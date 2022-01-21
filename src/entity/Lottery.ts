@@ -3,25 +3,26 @@ import Model from './Model'
 
 // import Empire from './Empire'
 
-@Entity('clan topics')
-export default class ClanTopic extends Model {
+@Entity('lottery')
+export default class Lottery extends Model {
 	@Index()
-	@PrimaryGeneratedColumn()
-	clanTopic_id: number
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	empire_id: number
+
+	@Index()
+	@Column({
+		type: 'bigint',
+		default: 0,
+	})
+	cash: number
 
 	@Index()
 	@Column({
 		type: 'int',
 		default: 0,
 	})
-	c_id: number
-
-	@Column()
-	clanTopicSubject: string
-
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	clanTopicFlags: number
+	ticket: number
 }

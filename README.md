@@ -1,4 +1,10 @@
-# Awesome Project Build with TypeORM
+# Promisance Typescript Backend
+
+Based on the QMT Promisance 4.81
+
+Porting from PHP to express/typeORM
+
+There is a lot to do...
 
 Steps to run this project:
 

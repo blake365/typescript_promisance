@@ -3,25 +3,21 @@ import Model from './Model'
 
 // import Empire from './Empire'
 
-@Entity('clan topics')
-export default class ClanTopic extends Model {
+@Entity('session')
+export default class Session extends Model {
 	@Index()
 	@PrimaryGeneratedColumn()
-	clanTopic_id: number
+	session_id: number
 
 	@Index()
 	@Column({
 		type: 'int',
 		default: 0,
 	})
-	c_id: number
-
-	@Column()
-	clanTopicSubject: string
+	time: number
 
 	@Column({
-		type: 'int',
-		default: 0,
+		type: 'text',
 	})
-	clanTopicFlags: number
+	data: string
 }
