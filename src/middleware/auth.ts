@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import User from '../entities/User'
+import User from '../entity/User'
 
 export default async (_: Request, res: Response, next: NextFunction) => {
 	try {

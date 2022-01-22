@@ -6,7 +6,7 @@
    "password": "hokies",
    "database": "promisance",
    "synchronize": true,
-   "logging": true,
+   "logging": false,
    "entities": [
       "src/entity/**/*.ts"
    ],

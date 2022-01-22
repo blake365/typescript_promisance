@@ -48,21 +48,24 @@ export default class Empire extends Model {
 	})
 	attacks: number
 
-	@Column({
-		type: 'bigint',
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
 		default: 0,
 	})
 	bank: number
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 10,
 	})
 	bldCash: number
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 5,
 	})
 	bldCost: number
 
@@ -74,13 +77,13 @@ export default class Empire extends Model {
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 15,
 	})
 	bldFood: number
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 20,
 	})
 	bldPop: number
 
@@ -96,9 +99,12 @@ export default class Empire extends Model {
 	})
 	bldWiz: number
 
-	@Column({
-		type: 'bigint',
-		default: 0,
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 100000,
 	})
 	cash: number
 
@@ -127,21 +133,24 @@ export default class Empire extends Model {
 	})
 	flags: number
 
-	@Column({
-		type: 'bigint',
-		default: 0,
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 10000,
 	})
 	food: number
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 200,
 	})
 	freeLand: number
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 100,
 	})
 	health: number
 
@@ -159,25 +168,25 @@ export default class Empire extends Model {
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 25,
 	})
 	indArmy: number
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 25,
 	})
 	indFly: number
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 25,
 	})
 	indLnd: number
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 25,
 	})
 	indSea: number
 
@@ -201,39 +210,64 @@ export default class Empire extends Model {
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 250,
 	})
 	land: number
 
-	@Column({
-		type: 'bigint',
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
 		default: 0,
 	})
 	loan: number
 
-	@Column({
-		type: 'bigint',
-		default: 0,
+	// private market supplies
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 4000,
 	})
 	mktArm: number
 
-	@Column({
-		type: 'bigint',
-		default: 0,
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 2000,
 	})
 	mktFly: number
 
-	@Column({
-		type: 'bigint',
-		default: 0,
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 100000,
 	})
 	mktFood: number
 
-	@Column({
-		type: 'bigint',
-		default: 0,
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 3000,
 	})
 	mktLnd: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 1000,
+	})
+	mktSea: number
 
 	@Column({
 		type: 'int',
@@ -259,17 +293,14 @@ export default class Empire extends Model {
 	})
 	mktPerSea: number
 
-	@Column({
-		type: 'bigint',
-		default: 0,
-	})
-	mktSea: number
-
 	@Column()
 	name: string
 
-	@Column({
-		type: 'bigint',
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
 		default: 0,
 	})
 	networth: number
@@ -286,8 +317,11 @@ export default class Empire extends Model {
 	})
 	offTotal: number
 
-	@Column({
-		type: 'bigint',
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
 		default: 0,
 	})
 	peasants: number
@@ -307,8 +341,11 @@ export default class Empire extends Model {
 	})
 	reason: string
 
-	@Column({
-		type: 'bigint',
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
 		default: 0,
 	})
 	runes: number
@@ -331,32 +368,47 @@ export default class Empire extends Model {
 	})
 	tax: number
 
-	@Column({
-		type: 'bigint',
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
 		default: 0,
 	})
 	trpArm: number
 
-	@Column({
-		type: 'bigint',
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
 		default: 0,
 	})
 	trpFly: number
 
-	@Column({
-		type: 'bigint',
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
 		default: 0,
 	})
 	trpLnd: number
 
-	@Column({
-		type: 'bigint',
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
 		default: 0,
 	})
 	trpSea: number
 
-	@Column({
-		type: 'bigint',
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
 		default: 0,
 	})
 	trpWiz: number

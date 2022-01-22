@@ -1,95 +1,54 @@
 import 'reflect-metadata'
 import { createConnection } from 'typeorm'
+import express from 'express'
+import morgan from 'morgan'
+import dotenv from 'dotenv'
+import cookieParser from 'cookie-parser'
+import cors from 'cors'
+dotenv.config()
+
+import authRoutes from './routes/auth'
+import empireRoutes from './routes/empire'
+import useTurns from './routes/useturns'
+
+import trim from './middleware/trim'
+
 import Empire from './entity/Empire'
 
 // import { validate } from 'class-validator'
-
-import express, { Request, Response } from 'express'
-
 const app = express()
+const PORT = process.env.PORT
+
 app.use(express.json())
-
-//CREATE
-app.post('/empire', async (req: Request, res: Response) => {
-	const { name, race } = req.body
-
-	try {
-		const empire = Empire.create({ name, race })
-
-		empire.save()
-		return res.status(201).json(empire)
-	} catch (error) {
-		console.log(error)
-		return res.status(500).json(error)
-	}
-})
-// READ
-app.get('/empire', async (_: Request, res: Response) => {
-	try {
-		const empire = await Empire.find()
-
-		return res.json(empire)
-	} catch (error) {
-		console.log(error)
-		return res.status(500).json(error)
-	}
-})
-// UPDATE
-app.put('/empire/:uuid', async (req: Request, res: Response) => {
-	const uuid = req.params.body
-	const { name, race } = req.body
-
-	try {
-		const empire = await Empire.findOneOrFail({ uuid })
-		empire.name = name || empire.name
-		empire.race = race || empire.race
-
-		await empire.save()
-
-		return res.json(empire)
-	} catch (error) {
-		console.log(error)
-		return res.status(500).json({ error: 'something went wrong' })
-	}
-})
-// DELETE
-app.delete('/empire/:uuid', async (req: Request, res: Response) => {
-	const uuid = req.params.body
-
-	try {
-		const empire = await Empire.findOneOrFail({ uuid })
-
-		await empire.remove()
-
-		return res.json({ message: 'empire deleted' })
-	} catch (error) {
-		console.log(error)
-		return res.status(500).json({ error: 'something went wrong' })
-	}
-})
-// FIND
-app.get('/empire/:uuid', async (req: Request, res: Response) => {
-	const uuid = req.params.body
-	try {
-		const empire = await Empire.findOneOrFail({ uuid })
-		return res.json(empire)
-	} catch (error) {
-		console.log(error)
-		return res.status(404).json({ empire: 'empire not found' })
-	}
-})
-
-createConnection()
-	.then(async () => {
-		app.listen(5001, () => console.log('server up at http://localhost:5001'))
-		// const empire = new Empire()
-
-		// empire.name = 'Test Empire'
-		// empire.turns = 300
-		// empire.race = 'human'
-
-		// await empire.save()
-
-		// console.log('Empire created')
+app.use(morgan('dev'))
+app.use(trim)
+app.use(cookieParser())
+app.use(
+	cors({
+		credentials: true,
+		origin: process.env.ORIGIN,
+		optionsSuccessStatus: 200,
 	})
-	.catch((error) => console.log(error))
+)
+
+app.use(express.static('public'))
+
+app.get('/', (_, res) => res.send('hello world'))
+app.get('/api/', (_, res) => res.send('hello api'))
+app.use('/api/auth', authRoutes)
+app.use('/api/empire', empireRoutes)
+app.use('/api/useturns', useTurns)
+// app.use('/api/posts', postRoutes)
+// app.use('/api/subs', subRoutes)
+// app.use('/api/misc', miscRoutes)
+
+app.listen(PORT, async () => {
+	console.log(`server running at http://localhost:${PORT}`)
+
+	try {
+		await createConnection()
+		console.log('database connected')
+	} catch (err) {
+		console.log(err)
+	}
+})
