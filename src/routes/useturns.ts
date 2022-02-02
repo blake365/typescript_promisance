@@ -10,14 +10,22 @@ import {
 } from './actions/actions'
 // import Empire from '../entity/Empire'
 
+function getRandomInt(min, max) {
+	min = Math.ceil(min)
+	max = Math.floor(max)
+	return Math.floor(Math.random() * (max - min) + min) //The maximum is exclusive and the minimum is inclusive
+}
+
 const useTurns = async (req: Request, res: Response) => {
-	const { type, turns, empireId } = req.body
+	const { type, turns, empireId, condensed } = req.body
 
 	// const user = res.locals.user
 	// const empireId = res.locals.user.empire.empireId
 
 	let taken: number = 0
-	let overall = []
+	let overall = {}
+	let stats = {}
+	let statsArray = []
 	let turnResult = 0
 
 	const empire = await Empire.findOne({ empireId })
@@ -226,43 +234,75 @@ const useTurns = async (req: Request, res: Response) => {
 			peasants = 1 - empire.peasants
 		}
 		empire.peasants += peasants
-
 		current['peasants'] = peasants
 
-		// console.log(turnResult)
-		console.log(current)
+		// gain magic energy
+		let runes = 0
+		if (empire.bldWiz / empire.land > 0.15) {
+			runes = getRandomInt(
+				Math.round(empire.bldWiz * 1.1),
+				Math.round(empire.bldWiz * 1.5)
+			)
+		} else {
+			runes = Math.round(empire.bldWiz * 1.1)
+		}
+		// TODO: modifiers
+		// runes = round(runes * modifier)
+		empire.runes += runes
+		current['runes'] = runes
+
+		// add/lose wizards
+		let trpWiz = 0
+		if (empire.trpWiz < empire.trpWiz * 25) {
+			trpWiz = empire.bldWiz * 0.45
+		} else if (empire.trpWiz < empire.trpWiz * 50) {
+			trpWiz = empire.bldWiz * 0.3
+		} else if (empire.trpWiz < empire.trpWiz * 90) {
+			trpWiz = empire.bldWiz * 0.15
+		} else if (empire.trpWiz < empire.trpWiz * 100) {
+			trpWiz = empire.bldWiz * 0.1
+		} else if (empire.trpWiz < empire.trpWiz * 175) {
+			trpWiz = empire.bldWiz * -0.05
+		}
+
+		trpWiz = Math.round(
+			trpWiz *
+				Math.sqrt(
+					1 -
+						((trpWiz / Math.max(1, Math.abs(trpWiz))) * 0.75 * empire.bldWiz) /
+							empire.land
+				)
+		)
+
+		empire.trpWiz += trpWiz
+		current['trpWiz'] = trpWiz
+
+		// console.log(current)
+		Object.entries(current).forEach((entry) => {
+			if (overall[entry[0]]) {
+				overall[entry[0]] += entry[1]
+			} else {
+				overall[entry[0]] = entry[1]
+			}
+		})
+
+		if (!condensed || taken === turns || trouble === 6) {
+			if (condensed) {
+				stats = overall
+			} else statsArray.push(current)
+		}
+
+		empire.turnsUsed++
+		empire.turns--
+
 		await empire.save()
 	}
 
-	// switch (type) {
-	// 	case 'farm':
-	// 		console.log(type, turns)
-	// 		break
-	// 	case 'cash':
-	// 		console.log(type, turns)
-	// 		break
-	// 	case 'industry':
-	// 		console.log(type, turns)
-	// 		break
-	// 	case 'heal':
-	// 		console.log(type, turns)
-	// 		break
-	// 	case 'meditate':
-	// 		console.log(type, turns)
-	// 	case 'explore':
-	// 		console.log(type, turns)
-	// 		explore(turns, empire)
-	// 		break
-	// 	case 'build':
-	// 		console.log(type, turns)
-	// 		break
-	// 	default:
-	// 		console.log('not a valid action')
-	// }
-
-	empire.turns -= turns
-
-	return res.json(empire)
+	if (statsArray.length === 0) {
+		return res.json(stats)
+	} else {
+		return res.json(statsArray)
+	}
 }
 
 const router = Router()

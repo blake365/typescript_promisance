@@ -54,10 +54,10 @@ export default class User extends Model {
 	})
 	role: string
 
-	@Column()
+	@Column({ default: '' })
 	comment: string
 
-	@Column()
+	@Column({ default: '' })
 	dateFormat: string
 
 	@Column({
@@ -103,16 +103,16 @@ export default class User extends Model {
 	})
 	kills: number
 
-	@Column()
+	@Column({ default: '' })
 	lang: string
 
-	@Column()
+	@Column({ default: new Date() })
 	lastDate: Date
 
-	@Column()
+	@Column({ default: '' })
 	lastIp: string
 
-	@Column()
+	@Column({ default: '' })
 	name: string
 
 	@Column({
@@ -133,7 +133,7 @@ export default class User extends Model {
 	})
 	offTotal: number
 
-	@Column()
+	@Column({ default: '' })
 	style: string
 
 	@Column({
