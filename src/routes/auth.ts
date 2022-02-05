@@ -51,7 +51,7 @@ const register = async (req: Request, res: Response) => {
 
 const login = async (req: Request, res: Response) => {
 	const { username, password } = req.body
-
+	console.log(username, password)
 	try {
 		let errors: any = {}
 		if (isEmpty(username)) errors.username = 'Username must not be empty'
@@ -61,6 +61,7 @@ const login = async (req: Request, res: Response) => {
 		}
 
 		const user = await User.findOne({ username })
+		console.log(user)
 
 		if (!user) return res.status(404).json({ username: 'User not found' })
 
@@ -71,7 +72,7 @@ const login = async (req: Request, res: Response) => {
 		}
 
 		const token = jwt.sign({ username }, process.env.JWT_SECRET!)
-
+		console.log(token)
 		res.set(
 			'Set-Cookie',
 			cookie.serialize('token', token, {

@@ -1,5 +1,8 @@
 import { Request, Response, Router } from 'express'
 import Empire from '../entity/Empire'
+import User from '../entity/User'
+import auth from '../middleware/auth'
+import user from '../middleware/user'
 // import user from '../middleware/user'
 // import auth from './auth'
 
@@ -7,16 +10,45 @@ import Empire from '../entity/Empire'
 const createEmpire = async (req: Request, res: Response) => {
 	const { name, race } = req.body
 
-	try {
-		const empire = Empire.create({ name, race })
+	const user: User = res.locals.user
 
-		empire.save()
+	if (name.trim() === '') {
+		return res.status(400).json({ name: 'Name must not be empty' })
+	}
+
+	try {
+		const empire = new Empire({ name, race, user })
+
+		await empire.save()
 		return res.status(201).json(empire)
 	} catch (error) {
 		console.log(error)
-		return res.status(500).json(error)
+		return res.status(500).json({ error: 'Something went wrong' })
 	}
 }
+
+// const createPost = async (req: Request, res: Response) => {
+// 	const { title, body, sub } = req.body
+
+// 	const user = res.locals.user
+
+// 	if (title.trim() === '') {
+// 		return res.status(400).json({ title: 'Title must not be empty' })
+// 	}
+
+// 	try {
+// 		// find sub
+// 		const subRecord = await Sub.findOneOrFail({ name: sub })
+
+// 		const post = new Post({ title, body, user, sub: subRecord })
+
+// 		await post.save()
+// 		return res.json(post)
+// 	} catch (error) {
+// 		console.log(error)
+// 		return res.status(500).json({ error: 'Something went wrong' })
+// 	}
+// }
 
 // set some starting resources to work with
 const giveResources = async (_: Request, res: Response) => {
@@ -138,7 +170,7 @@ const findOneEmpire = async (req: Request, res: Response) => {
 
 const router = Router()
 
-router.post('/', createEmpire)
+router.post('/', user, auth, createEmpire)
 
 router.get('/', getEmpires)
 router.get('/:uuid', findOneEmpire)

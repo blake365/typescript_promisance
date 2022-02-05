@@ -10,12 +10,10 @@ dotenv.config()
 import authRoutes from './routes/auth'
 import empireRoutes from './routes/empire'
 import useTurns from './routes/useturns'
+import build from './routes/build'
 
 import trim from './middleware/trim'
 
-import Empire from './entity/Empire'
-
-// import { validate } from 'class-validator'
 const app = express()
 const PORT = process.env.PORT
 
@@ -35,12 +33,11 @@ app.use(express.static('public'))
 
 app.get('/', (_, res) => res.send('hello world'))
 app.get('/api/', (_, res) => res.send('hello api'))
+
 app.use('/api/auth', authRoutes)
 app.use('/api/empire', empireRoutes)
 app.use('/api/useturns', useTurns)
-// app.use('/api/posts', postRoutes)
-// app.use('/api/subs', subRoutes)
-// app.use('/api/misc', miscRoutes)
+app.use('/api/build', build)
 
 app.listen(PORT, async () => {
 	console.log(`server running at http://localhost:${PORT}`)

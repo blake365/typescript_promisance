@@ -11,6 +11,10 @@ import User from './User'
 
 @Entity('empires')
 export default class Empire extends Model {
+	constructor(empire: Partial<Empire>) {
+		super()
+		Object.assign(this, empire)
+	}
 	// @PrimaryGeneratedColumn()
 	// id: number
 

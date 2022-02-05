@@ -16,7 +16,7 @@ function getRandomInt(min, max) {
 	return Math.floor(Math.random() * (max - min) + min) //The maximum is exclusive and the minimum is inclusive
 }
 
-const useTurns = async (req: Request, res: Response) => {
+export const useTurns = async (req: Request, res: Response) => {
 	const { type, turns, empireId, condensed } = req.body
 
 	// const user = res.locals.user
@@ -139,11 +139,23 @@ const useTurns = async (req: Request, res: Response) => {
 		current['money'] = money
 
 		// industry
+		let indMultiplier = 1
+		if (type === 'industry') {
+			indMultiplier = 1.25
+		}
 
-		let trparm = Math.ceil(empire.bldTroop * (empire.indArmy / 100) * 1.2 * 2.5)
-		let trplnd = Math.ceil(empire.bldTroop * (empire.indLnd / 100) * 0.6 * 2.5)
-		let trpfly = Math.ceil(empire.bldTroop * (empire.indFly / 100) * 0.3 * 2.5)
-		let trpsea = Math.ceil(empire.bldTroop * (empire.indSea / 100) * 0.2 * 2.5)
+		let trparm = Math.ceil(
+			empire.bldTroop * (empire.indArmy / 100) * 1.2 * 2.5 * indMultiplier
+		)
+		let trplnd = Math.ceil(
+			empire.bldTroop * (empire.indLnd / 100) * 0.6 * 2.5 * indMultiplier
+		)
+		let trpfly = Math.ceil(
+			empire.bldTroop * (empire.indFly / 100) * 0.3 * 2.5 * indMultiplier
+		)
+		let trpsea = Math.ceil(
+			empire.bldTroop * (empire.indSea / 100) * 0.2 * 2.5 * indMultiplier
+		)
 
 		empire.trpArm += trparm
 		empire.trpLnd += trplnd
@@ -237,14 +249,21 @@ const useTurns = async (req: Request, res: Response) => {
 		current['peasants'] = peasants
 
 		// gain magic energy
+		let runeMultiplier = 1
+		if (type === 'meditate') {
+			runeMultiplier = 1.25
+		}
+
 		let runes = 0
 		if (empire.bldWiz / empire.land > 0.15) {
-			runes = getRandomInt(
-				Math.round(empire.bldWiz * 1.1),
-				Math.round(empire.bldWiz * 1.5)
+			runes = Math.round(
+				getRandomInt(
+					Math.round(empire.bldWiz * 1.1),
+					Math.round(empire.bldWiz * 1.5)
+				) * runeMultiplier
 			)
 		} else {
-			runes = Math.round(empire.bldWiz * 1.1)
+			runes = Math.round(empire.bldWiz * 1.1 * runeMultiplier)
 		}
 		// TODO: modifiers
 		// runes = round(runes * modifier)
@@ -253,18 +272,19 @@ const useTurns = async (req: Request, res: Response) => {
 
 		// add/lose wizards
 		let trpWiz = 0
-		if (empire.trpWiz < empire.trpWiz * 25) {
+
+		if (empire.trpWiz < empire.bldWiz * 25) {
 			trpWiz = empire.bldWiz * 0.45
-		} else if (empire.trpWiz < empire.trpWiz * 50) {
+		} else if (empire.trpWiz < empire.bldWiz * 50) {
 			trpWiz = empire.bldWiz * 0.3
-		} else if (empire.trpWiz < empire.trpWiz * 90) {
+		} else if (empire.trpWiz < empire.bldWiz * 90) {
 			trpWiz = empire.bldWiz * 0.15
-		} else if (empire.trpWiz < empire.trpWiz * 100) {
+		} else if (empire.trpWiz < empire.bldWiz * 100) {
 			trpWiz = empire.bldWiz * 0.1
-		} else if (empire.trpWiz < empire.trpWiz * 175) {
+		} else if (empire.trpWiz < empire.bldWiz * 175) {
 			trpWiz = empire.bldWiz * -0.05
 		}
-
+		// console.log(trpWiz)
 		trpWiz = Math.round(
 			trpWiz *
 				Math.sqrt(
@@ -274,6 +294,7 @@ const useTurns = async (req: Request, res: Response) => {
 				)
 		)
 
+		// console.log(trpWiz)
 		empire.trpWiz += trpWiz
 		current['trpWiz'] = trpWiz
 
