@@ -9,12 +9,12 @@ import {
 	getNetworth,
 } from './actions/actions'
 
-import useTurns from './useturns'
+import { useTurn } from './useturns'
 
 const getBuildAmounts = (empire: Empire) => {
 	let buildCost = Math.round(3500 + empire.land * 0.1)
 
-	let buildRate = empire.land * 0.015 + 4
+	let buildRate = Math.round(empire.land * 0.015 + 4)
 
 	//TODO: buildrate race bonus
 
@@ -54,7 +54,7 @@ const build = async (req: Request, res: Response) => {
 	} = req.body
 
 	if (type !== 'build') {
-		return
+		return res.json({ error: 'Something went wrong' })
 	}
 
 	const empire = await Empire.findOne({ empireId })
@@ -87,25 +87,82 @@ const build = async (req: Request, res: Response) => {
 
 	let totalTurns = buildTotal / buildRate
 
-	buildArray.forEach((building) => {
-		console.log(building)
-		let key: string = Object.keys(building)[0]
-		let value: number = Object.values(building)[0]
-		let turns = 0
-		if (value < buildRate) {
-			turns = 1
-		} else {
-			turns = Math.round(value / buildRate)
-		}
+	const buildLoop = async () => {
+		let resultArray = []
+		for (let i = 0; i < buildArray.length; i++) {
+			console.log(buildArray[i])
+			let key: string = Object.keys(buildArray[i])[0]
+			let value: number = Object.values(buildArray[i])[0]
+			let turns = 0
+			if (value < buildRate) {
+				turns = 1
+			} else {
+				turns = Math.ceil(value / buildRate)
+			}
+			console.log(turns)
+			let result = {}
+			let leftToBuild = value
+			for (let i = 0; i < turns; i++) {
+				// console.log(`build ${value} of ${key}s`)
+				let buildAmount: number
+				if (leftToBuild < buildRate) {
+					buildAmount = leftToBuild
+				} else {
+					buildAmount = buildRate
+				}
+				// use one turn
+				result = await useTurn('build', 1, empireId, true)
+				// console.log(result)
+				resultArray.push(result)
+				// add value to empire.key
+				empire[key] += buildAmount
+				empire.freeLand -= buildAmount
+				empire.cash -= value * buildCost
+				empire.turns--
+				empire.turnsUsed++
 
-		for (let i = 0; i < turns; i++) {
-			console.log(`build ${value} of ${key}s`)
-			// use one turn
-			// add value to empire.key
+				leftToBuild -= buildAmount
+				await empire.save()
+			}
 		}
-	})
+		// console.log(resultArray)
+		return resultArray
+	}
 
-	return res.json({ test: 'test completed' })
+	let returnArray = await buildLoop()
+	// console.log(buildArray)
+	// buildArray.map(async (building) => {
+	// 	console.log(building)
+	// 	let key: string = Object.keys(building)[0]
+	// 	let value: number = Object.values(building)[0]
+	// 	let turns = 0
+	// 	if (value < buildRate) {
+	// 		turns = 1
+	// 	} else {
+	// 		turns = Math.round(value / buildRate)
+	// 	}
+
+	// 	for (let i = 0; i < turns; i++) {
+	// 		// console.log(`build ${value} of ${key}s`)
+	// 		// use one turn
+
+	// 		let result = await useTurn('build', 1, empireId, true)
+	// 		// console.log(result)
+	// 		resultArray.push(result)
+
+	// 		// add value to empire.key
+	// 		empire[key] += value
+	// 		empire.freeLand -= value
+	// 		empire.cash -= value * buildCost
+
+	// 		await empire.save()
+	// 	}
+
+	// })
+
+	// console.log(returnArray)
+	// console.log(empire)
+	return res.json(returnArray)
 }
 
 const router = Router()

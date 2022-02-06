@@ -16,12 +16,12 @@ function getRandomInt(min, max) {
 	return Math.floor(Math.random() * (max - min) + min) //The maximum is exclusive and the minimum is inclusive
 }
 
-export const useTurns = async (req: Request, res: Response) => {
-	const { type, turns, empireId, condensed } = req.body
-
-	// const user = res.locals.user
-	// const empireId = res.locals.user.empire.empireId
-
+export const useTurn = async (
+	type: string,
+	turns: number,
+	empireId: number,
+	condensed: boolean
+) => {
 	let taken: number = 0
 	let overall = {}
 	let stats = {}
@@ -35,9 +35,9 @@ export const useTurns = async (req: Request, res: Response) => {
 	}
 
 	if (turns > empire.turns) {
-		return res.json({ message: 'not enough turns available' })
+		return { message: 'not enough turns available' }
 	} else if (turns === 0) {
-		return res.json({ message: 'specify number of turns to use' })
+		return { message: 'specify number of turns to use' }
 	}
 
 	while (taken < turns) {
@@ -320,10 +320,21 @@ export const useTurns = async (req: Request, res: Response) => {
 	}
 
 	if (statsArray.length === 0) {
-		return res.json(stats)
+		return stats
 	} else {
-		return res.json(statsArray)
+		return statsArray
 	}
+}
+
+const useTurns = async (req: Request, res: Response) => {
+	const { type, turns, empireId, condensed } = req.body
+
+	// const user = res.locals.user
+	// const empireId = res.locals.user.empire.empireId
+
+	const response = await useTurn(type, turns, empireId, condensed)
+
+	return res.json(response)
 }
 
 const router = Router()
