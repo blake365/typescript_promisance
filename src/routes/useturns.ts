@@ -309,7 +309,7 @@ export const useTurn = async (
 
 		if (!condensed || taken === turns || trouble === 6) {
 			if (condensed) {
-				stats = overall
+				statsArray.push(overall)
 			} else statsArray.push(current)
 		}
 
@@ -319,11 +319,7 @@ export const useTurn = async (
 		await empire.save()
 	}
 
-	if (statsArray.length === 0) {
-		return stats
-	} else {
-		return statsArray
-	}
+	return statsArray
 }
 
 const useTurns = async (req: Request, res: Response) => {
