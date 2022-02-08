@@ -124,12 +124,19 @@ const getEmpires = async (_: Request, res: Response) => {
 // UPDATE
 const updateEmpire = async (req: Request, res: Response) => {
 	const { uuid } = req.params
-	const { name, race } = req.body
+	const { tax, indArmy, indFly, indLnd, indSea, empireId } = req.body
+
+	if (indArmy && indArmy + indFly + indLnd + indSea !== 100) {
+		return res.status(500).json({ error: 'percentages must add up to 100' })
+	}
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
-		empire.name = name || empire.name
-		empire.race = race || empire.race
+		empire.tax = tax || empire.tax
+		empire.indArmy = indArmy || empire.indArmy
+		empire.indLnd = indLnd || empire.indLnd
+		empire.indFly = indFly || empire.indFly
+		empire.indSea = indSea || empire.indSea
 
 		await empire.save()
 
