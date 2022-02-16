@@ -1,13 +1,6 @@
-import { min } from 'class-validator'
 import { Request, Response, Router } from 'express'
 import Empire from '../entity/Empire'
-import {
-	calcPCI,
-	calcSizeBonus,
-	explore,
-	exploreAlt,
-	getNetworth,
-} from './actions/actions'
+
 
 import { useTurn } from './useturns'
 
@@ -27,17 +20,17 @@ const getBuildAmounts = (empire: Empire) => {
 	return { canBuild, buildRate, buildCost }
 }
 
-const buildRequest = {
-	bldCash: 10,
-	bldCost: 10,
-	bldDef: 0,
-	bldFood: 10,
-	bldPop: 10,
-	bldTroop: 10,
-	bldWiz: 10,
-	empireId: 2,
-	type: 'build',
-}
+// const buildRequest = {
+// 	bldCash: 10,
+// 	bldCost: 10,
+// 	bldDef: 0,
+// 	bldFood: 10,
+// 	bldPop: 10,
+// 	bldTroop: 10,
+// 	bldWiz: 10,
+// 	empireId: 2,
+// 	type: 'build',
+// }
 
 const build = async (req: Request, res: Response) => {
 	// request will have object with type of building and number to build
@@ -57,7 +50,7 @@ const build = async (req: Request, res: Response) => {
 		return res.json({ error: 'Something went wrong' })
 	}
 
-	const empire = await Empire.findOne({ empireId })
+	const empire = await Empire.findOne({ id: empireId })
 
 	const { canBuild, buildRate, buildCost } = getBuildAmounts(empire)
 
@@ -68,9 +61,9 @@ const build = async (req: Request, res: Response) => {
 		return res.json({ error: "Can't build that many structures" })
 	}
 
-	console.log(buildRate)
+	// console.log(buildRate)
 
-	console.log(buildTotal)
+	// console.log(buildTotal)
 
 	let buildArray = [
 		{ bldCash: bldCash },
@@ -85,12 +78,12 @@ const build = async (req: Request, res: Response) => {
 	// console.log(buildArray)
 	buildArray = buildArray.filter((object) => Object.values(object)[0] > 0)
 
-	let totalTurns = buildTotal / buildRate
+	// let totalTurns = buildTotal / buildRate
 
 	const buildLoop = async () => {
 		let resultArray = []
 		for (let i = 0; i < buildArray.length; i++) {
-			console.log(buildArray[i])
+			// console.log(buildArray[i])
 			let key: string = Object.keys(buildArray[i])[0]
 			let value: number = Object.values(buildArray[i])[0]
 			let turns = 0
@@ -99,8 +92,7 @@ const build = async (req: Request, res: Response) => {
 			} else {
 				turns = Math.ceil(value / buildRate)
 			}
-			console.log(turns)
-			let result = {}
+			// console.log(turns)
 			let leftToBuild = value
 			for (let i = 0; i < turns; i++) {
 				// console.log(`build ${value} of ${key}s`)
@@ -111,9 +103,10 @@ const build = async (req: Request, res: Response) => {
 					buildAmount = buildRate
 				}
 				// use one turn
-				result = await useTurn('build', 1, empireId, true)
-				// console.log(result)
-				resultArray.push(result)
+				let oneTurn = await useTurn('build', 1, empireId, true)
+				// console.log(oneTurn)
+				// extract turn info from result and put individual object in result array
+				resultArray.push(oneTurn[0])
 				// add value to empire.key
 				empire[key] += buildAmount
 				empire.freeLand -= buildAmount

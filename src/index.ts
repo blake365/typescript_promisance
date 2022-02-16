@@ -6,11 +6,14 @@ import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 dotenv.config()
+import { ToadScheduler, SimpleIntervalJob, Task, AsyncTask } from 'toad-scheduler';
 
 import authRoutes from './routes/auth'
 import empireRoutes from './routes/empire'
 import useTurns from './routes/useturns'
 import build from './routes/build'
+
+import {hourlyUpdate, promTurns} from './jobs/promTurns'
 
 import trim from './middleware/trim'
 
@@ -49,3 +52,22 @@ app.listen(PORT, async () => {
 		console.log(err)
 	}
 })
+
+const scheduler = new ToadScheduler()
+
+const turns = new SimpleIntervalJob(
+	{ minutes: 5, runImmediately: false },
+	promTurns,
+	'id_1'
+);
+
+const hourly = new SimpleIntervalJob(
+	{ hours: 1, runImmediately: false },
+	hourlyUpdate,
+	'id_2'
+);
+
+scheduler.addSimpleIntervalJob(turns);
+scheduler.addSimpleIntervalJob(hourly);
+
+// console.log(scheduler.getById('id_1').getStatus());

@@ -275,25 +275,25 @@ export default class Empire extends Model {
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 500,
 	})
 	mktPerArm: number
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 2000,
 	})
 	mktPerFly: number
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 1000,
 	})
 	mktPerLnd: number
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 3000,
 	})
 	mktPerSea: number
 
@@ -427,6 +427,12 @@ export default class Empire extends Model {
 		type: 'int',
 		default: 0,
 	})
+	storedturns: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
 	turnsUsed: number
 
 	@Column({
@@ -440,6 +446,8 @@ export default class Empire extends Model {
 		default: 0,
 	})
 	valCode: number
+
+	
 
 	// @Column()
 	// turns: number

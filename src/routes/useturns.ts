@@ -24,11 +24,10 @@ export const useTurn = async (
 ) => {
 	let taken: number = 0
 	let overall = {}
-	let stats = {}
 	let statsArray = []
 	let turnResult = 0
 
-	const empire = await Empire.findOne({ empireId })
+	const empire = await Empire.findOneOrFail({ id: empireId })
 
 	if (empire.tax < 1) {
 		empire.tax = 1
