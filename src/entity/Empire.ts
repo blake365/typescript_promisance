@@ -4,6 +4,7 @@ import {
 	PrimaryGeneratedColumn,
 	Index,
 	ManyToOne,
+	JoinColumn,
 } from 'typeorm'
 
 import Model from './Model'
@@ -32,6 +33,7 @@ export default class Empire extends Model {
 	clanId: number
 
 	@ManyToOne(() => User, (user) => user.empires)
+	@JoinColumn({name: 'username', referencedColumnName: 'username'})
 	user: User
 
 	// @CreateDateColumn()

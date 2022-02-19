@@ -3,14 +3,19 @@ import Empire from '../entity/Empire'
 import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
-// import user from '../middleware/user'
-// import auth from './auth'
+
 
 //CREATE
 const createEmpire = async (req: Request, res: Response) => {
-	const { name, race } = req.body
+	let { name, race } = req.body
 
 	const user: User = res.locals.user
+
+	const time = new Date().getTime()
+
+	if (user.role === 'demo') {
+		name = "Demo" + time
+	}
 
 	if (name.trim() === '') {
 		return res.status(400).json({ name: 'Name must not be empty' })
@@ -18,7 +23,6 @@ const createEmpire = async (req: Request, res: Response) => {
 
 	try {
 		const empire = new Empire({ name, race, user })
-
 		await empire.save()
 		return res.status(201).json(empire)
 	} catch (error) {
@@ -166,8 +170,17 @@ const deleteEmpire = async (req: Request, res: Response) => {
 // FIND ONE
 const findOneEmpire = async (req: Request, res: Response) => {
 	const { uuid } = req.params
+
+	const user: User = res.locals.user
+
 	try {
-		const empire = await Empire.findOneOrFail({ uuid })
+		const empire = await Empire.findOneOrFail({ uuid }, {relations: ['user']})
+		// console.log('empire', empire)
+		// console.log('user', user)
+		if (user.username !== empire.user.username) {
+			return res.status(403).json({error: 'unauthorized'})
+		}
+
 		return res.json(empire)
 	} catch (error) {
 		console.log(error)
@@ -180,8 +193,8 @@ const router = Router()
 router.post('/', user, auth, createEmpire)
 
 router.get('/', getEmpires)
-router.get('/:uuid', findOneEmpire)
-router.put('/:uuid', updateEmpire)
+router.get('/:uuid', user, auth, findOneEmpire)
+router.put('/:uuid', user, auth, updateEmpire)
 
 router.put('/give/resources', giveResources)
 router.put('/give/turns', giveTurns)

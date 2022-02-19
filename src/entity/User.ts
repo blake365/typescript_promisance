@@ -35,7 +35,7 @@ export default class User extends Model {
 	username: string
 
 	@Exclude()
-	@Length(6, 255, { message: 'Must be at least 3 characters long' })
+	@Length(3, 255, { message: 'Must be at least 3 characters long' })
 	@Column()
 	password: string
 
@@ -49,7 +49,7 @@ export default class User extends Model {
 
 	@Column({
 		type: 'enum',
-		enum: ['user', 'admin'],
+		enum: ['user', 'admin', 'demo'],
 		default: ['user'],
 	})
 	role: string

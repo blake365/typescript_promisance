@@ -4,7 +4,6 @@ import Empire from '../entity/Empire'
 import {
 	calcPCI,
 	calcSizeBonus,
-	explore,
 	exploreAlt,
 	getNetworth,
 } from './actions/actions'
