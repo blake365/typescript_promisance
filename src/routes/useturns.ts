@@ -25,6 +25,9 @@ export const useTurn = async (
 	let overall = {}
 	let statsArray = []
 	let turnResult = 0
+	let interruptable = true
+
+	let deserted = 1
 
 	const empire = await Empire.findOneOrFail({ id: empireId })
 
@@ -42,6 +45,9 @@ export const useTurn = async (
 		let current = {}
 		taken++
 		let trouble = 0
+		let troubleFood = false
+		let troubleLoan = false
+		let troubleCash = false
 		empire.networth = getNetworth(empire)
 
 		if (type === 'explore') {
@@ -56,7 +62,7 @@ export const useTurn = async (
 
 		// savings interest
 		if (empire.turnsUsed > 200) {
-			let bankMax = empire.networth * 100
+			let bankMax = empire.networth * 50
 			if (empire.bank > bankMax) {
 				withdraw = empire.bank - bankMax
 				empire.bank -= withdraw
@@ -72,7 +78,7 @@ export const useTurn = async (
 
 		// loan interest
 		let loanMax = empire.networth * 50
-		let loanRate = 7.5 * size
+		let loanRate = 7.5 + size
 		let loanInterest = Math.round(empire.loan * (loanRate / 52 / 100))
 		empire.loan += loanInterest
 
@@ -118,11 +124,25 @@ export const useTurn = async (
 
 		// handle loan separately
 		if (empire.cash < 0) {
-			trouble = 1 // turns trouble cash
+			trouble |= 1 // turns trouble cash
+			troubleCash = true
 		}
 
 		//TODO: more loan stuff
 		let loanpayed = 0
+		let loanEmergencyLimit = loanMax * 2
+
+		if ((trouble === 1 && troubleCash) && (empire.loan > loanEmergencyLimit)) {
+			trouble |= 2
+			troubleLoan = true
+			empire.cash = 0
+			loanpayed = 0
+		} else {
+			loanpayed = Math.min(Math.round(empire.loan / 200), empire.cash)
+		}
+
+		empire.cash -= loanpayed
+		empire.loan -= loanpayed
 
 		//adjust net income
 		money -= loanpayed
@@ -196,7 +216,8 @@ export const useTurn = async (
 		}
 		if (empire.food < 0) {
 			empire.food = 0
-			trouble = 4
+			trouble |= 4
+			troubleFood = true
 		}
 
 		current['foodpro'] = foodpro
@@ -245,6 +266,8 @@ export const useTurn = async (
 		}
 		empire.peasants += peasants
 		current['peasants'] = peasants
+
+
 
 		// gain magic energy
 		let runeMultiplier = 1
@@ -296,6 +319,8 @@ export const useTurn = async (
 		empire.trpWiz += trpWiz
 		current['trpWiz'] = trpWiz
 
+		// current['result'] = turnResult
+
 		// console.log(current)
 		Object.entries(current).forEach((entry) => {
 			if (overall[entry[0]]) {
@@ -314,10 +339,31 @@ export const useTurn = async (
 		empire.turnsUsed++
 		empire.turns--
 
+		if (trouble && (troubleLoan || troubleFood)) {
+			empire.peasants -= Math.round(empire.peasants * 0.03)
+			empire.trpArm -= Math.round(empire.trpArm * 0.03)
+			empire.trpLnd -= Math.round(empire.trpLnd * 0.03)
+			empire.trpFly -= Math.round(empire.trpFly * 0.03)
+			empire.trpSea -= Math.round(empire.trpSea * 0.03)
+			empire.trpWiz -= Math.round(empire.peasants * 0.03)
+			deserted *= (1 - 0.3)
+			if (!interruptable) {
+				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
+				let message = { desertion: `${percent}% of your people, troops, and wizards have deserted due to lack of resources.` }
+				current['messages'] = message
+			} else {
+				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
+				let message = { desertion: `${percent}% of your people, troops, and wizards have deserted due to lack of resources. Turns have been stopped to prevent further losses.` }
+				current['messages'] = message
+				break
+			}
+		}
+		
+		empire.networth = getNetworth(empire)
 		await empire.save()
 	}
 
-	return statsArray
+	return (statsArray)
 }
 
 const useTurns = async (req: Request, res: Response) => {

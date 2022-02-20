@@ -119,8 +119,7 @@ const demoAccount = async (req: Request, res: Response) => {
 	)
 		.split(',')[0]
 		.trim()
-		
-
+	
 		// console.log(ip)
 	let IPaddress: string
 
@@ -152,7 +151,7 @@ const demoAccount = async (req: Request, res: Response) => {
 	
 	// console.log(IPaddress)
 
-	const addOn = new Date().getMilliseconds()
+	const addOn = new Date().getTime()
 
 	const email = IPaddress + addOn + '@demo.com'
 	const username = IPaddress + addOn

@@ -42,6 +42,9 @@ export default class Empire extends Model {
 	// @UpdateDateColumn()
 	// updatedAt: Date
 
+	@Column({default: ''})
+	mode: string
+
 	@Column({
 		type: 'int',
 		default: 0,
@@ -65,7 +68,7 @@ export default class Empire extends Model {
 
 	@Column({
 		type: 'int',
-		default: 10,
+		default: 20,
 	})
 	bldCash: number
 
@@ -83,13 +86,13 @@ export default class Empire extends Model {
 
 	@Column({
 		type: 'int',
-		default: 15,
+		default: 25,
 	})
 	bldFood: number
 
 	@Column({
 		type: 'int',
-		default: 20,
+		default: 30,
 	})
 	bldPop: number
 
@@ -101,7 +104,7 @@ export default class Empire extends Model {
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 10,
 	})
 	bldWiz: number
 
@@ -150,7 +153,7 @@ export default class Empire extends Model {
 
 	@Column({
 		type: 'int',
-		default: 200,
+		default: 160,
 	})
 	freeLand: number
 
@@ -328,7 +331,7 @@ export default class Empire extends Model {
 			to: (value) => value,
 			from: (value) => parseInt(value),
 		},
-		default: 0,
+		default: 500,
 	})
 	peasants: number
 
@@ -370,7 +373,7 @@ export default class Empire extends Model {
 
 	@Column({
 		type: 'int',
-		default: 0,
+		default: 25,
 	})
 	tax: number
 
@@ -379,7 +382,7 @@ export default class Empire extends Model {
 			to: (value) => value,
 			from: (value) => parseInt(value),
 		},
-		default: 0,
+		default: 100,
 	})
 	trpArm: number
 
@@ -388,7 +391,7 @@ export default class Empire extends Model {
 			to: (value) => value,
 			from: (value) => parseInt(value),
 		},
-		default: 0,
+		default: 20,
 	})
 	trpFly: number
 
@@ -397,7 +400,7 @@ export default class Empire extends Model {
 			to: (value) => value,
 			from: (value) => parseInt(value),
 		},
-		default: 0,
+		default: 50,
 	})
 	trpLnd: number
 
@@ -406,7 +409,7 @@ export default class Empire extends Model {
 			to: (value) => value,
 			from: (value) => parseInt(value),
 		},
-		default: 0,
+		default: 10,
 	})
 	trpSea: number
 
@@ -415,7 +418,7 @@ export default class Empire extends Model {
 			to: (value) => value,
 			from: (value) => parseInt(value),
 		},
-		default: 0,
+		default: 10,
 	})
 	trpWiz: number
 

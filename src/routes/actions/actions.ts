@@ -20,10 +20,6 @@ export const exploreAlt = (empire: Empire) => {
 	return land
 }
 
-export const meditate = (turns) => {}
-
-export const heal = (turns) => {}
-
 export const calcSizeBonus = ({ networth }) => {
 	let net = Math.max(networth, 1)
 	let size = Math.atan(generalLog(net, 1000) - 1) * 2.1 - 0.65
@@ -38,7 +34,7 @@ export const calcPCI = (empire: Empire) => {
 }
 
 export const giveLand = (empire: Empire) => {
-	return Math.ceil((1 / (empire.land * 0.00022 + 0.25)) * 20)
+	return Math.ceil((1 / (empire.land * 0.00022 + 0.25)) * 40)
 	//TODO: needs race and era modifier
 }
 

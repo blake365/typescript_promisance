@@ -16,8 +16,8 @@ export const promTurns = new AsyncTask('prom turns', async () => {
             // update turns
             turns: () => "turns + 5 + LEAST(storedTurns, 1), storedTurns = storedTurns - LEAST(storedTurns, 1)",
         })
-    .where("vacation  = 0 AND id != 0")
-    .execute();
+    .where("vacation = 0 AND id != 0 AND mode != :mode", {mode: "demo"})
+        .execute();
     
     await getConnection()
     .createQueryBuilder()
@@ -26,7 +26,7 @@ export const promTurns = new AsyncTask('prom turns', async () => {
             // update stored turns
             storedturns: () => "LEAST(250, storedTurns + turns - 500), turns = 500 "
         })
-    .where("turns > 500 AND id != 0")
+    .where("turns > 500 AND id != 0 AND mode != :mode", {mode: "demo"})
         .execute();
     
     // reduce max private market sell percentage based on number of buildCash buildings

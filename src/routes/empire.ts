@@ -11,10 +11,12 @@ const createEmpire = async (req: Request, res: Response) => {
 
 	const user: User = res.locals.user
 
-	const time = new Date().getTime()
+	let mode = 'normal'
+	let turns: number = 250
 
 	if (user.role === 'demo') {
-		name = "Demo" + time
+		mode = 'demo'
+		turns = 2000
 	}
 
 	if (name.trim() === '') {
@@ -22,7 +24,7 @@ const createEmpire = async (req: Request, res: Response) => {
 	}
 
 	try {
-		const empire = new Empire({ name, race, user })
+		const empire = new Empire({ name, race, user, mode, turns })
 		await empire.save()
 		return res.status(201).json(empire)
 	} catch (error) {
