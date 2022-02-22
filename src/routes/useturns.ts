@@ -89,10 +89,9 @@ export const useTurn = async (
 			(calcPCI(empire) *
 				(empire.tax / 100) *
 				(empire.health / 100) *
-				empire.peasants +
+				empire.peasants) +
 				empire.bldCash * 500) /
 				size
-		)
 
 		let loan = Math.round(empire.loan / 200)
 

@@ -1,8 +1,5 @@
 import Empire from '../../entity/Empire'
 
-export const farm = (turns) => {}
-
-export const cash = (turns) => {}
 
 export const explore = (turns: number, empire: Empire) => {
 	for (let i = 0; i < turns; i++) {
