@@ -3,6 +3,7 @@ import Empire from '../entity/Empire'
 import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
+import { getNetworth } from './actions/actions'
 
 
 //CREATE
@@ -33,87 +34,65 @@ const createEmpire = async (req: Request, res: Response) => {
 	}
 }
 
-// const createPost = async (req: Request, res: Response) => {
-// 	const { title, body, sub } = req.body
 
-// 	const user = res.locals.user
-
-// 	if (title.trim() === '') {
-// 		return res.status(400).json({ title: 'Title must not be empty' })
-// 	}
-
+// set some starting resources to work with
+// const giveResources = async (_: Request, res: Response) => {
 // 	try {
-// 		// find sub
-// 		const subRecord = await Sub.findOneOrFail({ name: sub })
+// 		const empires = await Empire.find()
 
-// 		const post = new Post({ title, body, user, sub: subRecord })
+// 		empires.forEach(async (empire) => {
+// 			empire.bldCash = 2000
+// 			empire.bldCost = 2000
+// 			empire.bldFood = 2000
+// 			empire.bldPop = 2000
+// 			empire.bldTroop = 2000
+// 			empire.bldWiz = 2000
+// 			empire.cash = 1000000
+// 			empire.era = 1
+// 			empire.food = 50000
+// 			empire.freeLand = 2000
+// 			empire.land = 14000
+// 			empire.health = 100
+// 			empire.indArmy = 25
+// 			empire.indFly = 25
+// 			empire.indLnd = 25
+// 			empire.indSea = 25
+// 			empire.trpArm = 500
+// 			empire.trpFly = 500
+// 			empire.trpLnd = 500
+// 			empire.trpSea = 500
+// 			empire.peasants = 20000
+// 			empire.runes = 1000
+// 			empire.turns = 1000
+// 			empire.tax = 10
 
-// 		await post.save()
-// 		return res.json(post)
+// 			await empire.save()
+// 		})
+
+// 		return res.json(empires)
 // 	} catch (error) {
 // 		console.log(error)
-// 		return res.status(500).json({ error: 'Something went wrong' })
+// 		return res.status(500).json(error)
 // 	}
 // }
 
-// set some starting resources to work with
-const giveResources = async (_: Request, res: Response) => {
-	try {
-		const empires = await Empire.find()
-
-		empires.forEach(async (empire) => {
-			empire.bldCash = 2000
-			empire.bldCost = 2000
-			empire.bldFood = 2000
-			empire.bldPop = 2000
-			empire.bldTroop = 2000
-			empire.bldWiz = 2000
-			empire.cash = 1000000
-			empire.era = 1
-			empire.food = 50000
-			empire.freeLand = 2000
-			empire.land = 14000
-			empire.health = 100
-			empire.indArmy = 25
-			empire.indFly = 25
-			empire.indLnd = 25
-			empire.indSea = 25
-			empire.trpArm = 500
-			empire.trpFly = 500
-			empire.trpLnd = 500
-			empire.trpSea = 500
-			empire.peasants = 20000
-			empire.runes = 1000
-			empire.turns = 1000
-			empire.tax = 10
-
-			await empire.save()
-		})
-
-		return res.json(empires)
-	} catch (error) {
-		console.log(error)
-		return res.status(500).json(error)
-	}
-}
-
 // set some turns resources to work with
-const giveTurns = async (_: Request, res: Response) => {
-	try {
-		const empires = await Empire.find()
+// const giveTurns = async (_: Request, res: Response) => {
+// 	try {
+// 		const empires = await Empire.find()
 
-		empires.forEach(async (empire) => {
-			empire.turns = 1000
+// 		empires.forEach(async (empire) => {
+// 			empire.turns = 1000
 
-			await empire.save()
-		})
+// 			await empire.save()
+// 		})
 
-		return res.json(empires)
-	} catch (error) {
-		console.log(error)
-		return res.status(500).json(error)
-	}
-}
+// 		return res.json(empires)
+// 	} catch (error) {
+// 		console.log(error)
+// 		return res.status(500).json(error)
+// 	}
+// }
 
 // READ
 const getEmpires = async (_: Request, res: Response) => {
@@ -130,7 +109,7 @@ const getEmpires = async (_: Request, res: Response) => {
 // UPDATE
 const updateEmpire = async (req: Request, res: Response) => {
 	const { uuid } = req.params
-	const { tax, indArmy, indFly, indLnd, indSea, empireId } = req.body
+	const { tax, indArmy, indFly, indLnd, indSea } = req.body
 
 	if (indArmy && indArmy + indFly + indLnd + indSea !== 100) {
 		return res.status(500).json({ error: 'percentages must add up to 100' })
@@ -147,6 +126,86 @@ const updateEmpire = async (req: Request, res: Response) => {
 		await empire.save()
 
 		return res.json(empire)
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({ error: 'something went wrong' })
+	}
+}
+
+// Bank
+const bank = async (req:Request, res: Response) => {
+	const { uuid } = req.params
+	let { depositAmt, withdrawAmt, type, loanAmt, repayAmt } = req.body
+
+	console.log(req.body)
+
+	try {
+		const empire = await Empire.findOneOrFail({ uuid })
+
+		// const size = calcSizeBonus(empire)
+
+		const maxLoan = empire.networth * 50
+		const maxSavings = empire.networth * 100
+		
+		if (repayAmt > empire.loan) {
+			repayAmt = empire.loan
+		}
+
+		let depositResult = null
+		let withdrawResult = null
+		let loanResult = null
+		let repayResult = null
+
+		if (type === 'savings') {
+			if (depositAmt !== 0 && depositAmt <= maxSavings - empire.bank) {
+				empire.cash -= depositAmt
+				empire.bank += depositAmt
+				empire.networth = getNetworth(empire)
+				depositResult = {action: 'deposit', amount: depositAmt}
+
+				await empire.save()
+			}
+			
+			if (withdrawAmt !== 0 && withdrawAmt <= empire.bank) {
+				empire.bank -= withdrawAmt
+				empire.cash += withdrawAmt
+				empire.networth = getNetworth(empire)
+
+				withdrawResult = { action: 'withdraw', amount: withdrawAmt }
+				
+				await empire.save()
+			} 
+		}
+
+		if (type === 'loan') {
+			if (loanAmt !== 0 && loanAmt <= maxLoan - empire.loan) {
+				empire.cash += loanAmt
+				empire.loan += loanAmt
+				empire.networth = getNetworth(empire)
+
+				loanResult = { action: 'loan', amount: loanAmt }
+				
+				await empire.save()
+			}
+			
+			if (repayAmt !== 0 && repayAmt <= empire.cash) {
+				empire.cash -= repayAmt
+				empire.loan -= repayAmt
+				empire.networth = getNetworth(empire)
+
+				repayResult = { action: 'repay', amount: repayAmt }
+				
+				await empire.save()
+			} 
+		}
+
+		let bankResult = [depositResult, withdrawResult, loanResult, repayResult]
+		
+		bankResult = bankResult.filter(Boolean)
+		console.log(bankResult)
+
+		return res.json(bankResult)
+
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json({ error: 'something went wrong' })
@@ -197,9 +256,10 @@ router.post('/', user, auth, createEmpire)
 router.get('/', getEmpires)
 router.get('/:uuid', user, auth, findOneEmpire)
 router.put('/:uuid', user, auth, updateEmpire)
+router.post('/:uuid/bank', user, auth, bank)
 
-router.put('/give/resources', giveResources)
-router.put('/give/turns', giveTurns)
+// router.put('/give/resources', giveResources)
+// router.put('/give/turns', giveTurns)
 
 router.delete('/:uuid', deleteEmpire)
 

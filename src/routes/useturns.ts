@@ -62,13 +62,13 @@ export const useTurn = async (
 
 		// savings interest
 		if (empire.turnsUsed > 200) {
-			let bankMax = empire.networth * 50
+			let bankMax = empire.networth * 100
 			if (empire.bank > bankMax) {
 				withdraw = empire.bank - bankMax
 				empire.bank -= withdraw
 				empire.cash += withdraw
 			} else {
-				let saveRate = 0.4 - size
+				let saveRate = 0.4 + size
 				let bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
 				empire.bank = Math.min(empire.bank + bankInterest, bankMax)
 			}
