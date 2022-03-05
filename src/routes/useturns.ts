@@ -8,6 +8,9 @@ import {
 	getNetworth,
 } from './actions/actions'
 // import Empire from '../entity/Empire'
+import { raceArray } from '../config/races'
+import { eraArray } from '../config/eras'
+import { INDUSTRY_MULT } from '../config/conifg'
 
 function getRandomInt(min, max) {
 	min = Math.ceil(min)
@@ -105,7 +108,7 @@ export const useTurn = async (
 		)
 
 		//TODO: set up race/era modifier
-		let expensesBonus = Math.min(0.5, empire.bldCost / Math.max(empire.land, 1))
+		let expensesBonus = Math.min(0.5, (((raceArray[empire.race].mod_expenses + 100) / 100) - 1) + (empire.bldCost / Math.max(empire.land, 1)))
 
 		expenses -= Math.round(expenses * expensesBonus)
 
@@ -162,16 +165,16 @@ export const useTurn = async (
 		}
 
 		let trparm = Math.ceil(
-			empire.bldTroop * (empire.indArmy / 100) * 1.2 * 2.5 * indMultiplier
+			empire.bldTroop * (empire.indArmy / 100) * 1.2 * INDUSTRY_MULT * indMultiplier * ((100 + raceArray[empire.race].mod_industry + eraArray[empire.era].mod_industry) / 100)
 		)
 		let trplnd = Math.ceil(
-			empire.bldTroop * (empire.indLnd / 100) * 0.6 * 2.5 * indMultiplier
+			empire.bldTroop * (empire.indLnd / 100) * 0.6 * INDUSTRY_MULT * indMultiplier * ((100 + raceArray[empire.race].mod_industry + eraArray[empire.era].mod_industry) / 100)
 		)
 		let trpfly = Math.ceil(
-			empire.bldTroop * (empire.indFly / 100) * 0.3 * 2.5 * indMultiplier
+			empire.bldTroop * (empire.indFly / 100) * 0.3 * INDUSTRY_MULT * indMultiplier * ((100 + raceArray[empire.race].mod_industry + eraArray[empire.era].mod_industry) / 100)
 		)
 		let trpsea = Math.ceil(
-			empire.bldTroop * (empire.indSea / 100) * 0.2 * 2.5 * indMultiplier
+			empire.bldTroop * (empire.indSea / 100) * 0.2 * INDUSTRY_MULT * indMultiplier * ((100 + raceArray[empire.race].mod_industry + eraArray[empire.era].mod_industry) / 100)
 		)
 
 		empire.trpArm += trparm
@@ -192,7 +195,7 @@ export const useTurn = async (
 			empire.bldFood *
 				85 *
 				Math.sqrt(1 - (0.75 * empire.bldFood) / Math.max(empire.land, 1))
-		// production *= food production modifier
+		production *= (100 + raceArray[empire.race].mod_foodpro) / 100
 		let foodpro = Math.round(production)
 
 		let consumption =
@@ -202,7 +205,7 @@ export const useTurn = async (
 			empire.trpSea * 0.01 +
 			empire.peasants * 0.01 +
 			empire.trpWiz * 0.25
-		// consumption *= food consumption modifier
+		consumption *= (100 + raceArray[empire.race].mod_foodcon) / 100
 		let foodcon = Math.round(consumption)
 
 		if (type === 'farm') {
@@ -267,7 +270,6 @@ export const useTurn = async (
 		current['peasants'] = peasants
 
 
-
 		// gain magic energy
 		let runeMultiplier = 1
 		if (type === 'meditate') {
@@ -286,7 +288,7 @@ export const useTurn = async (
 			runes = Math.round(empire.bldWiz * 1.1 * runeMultiplier)
 		}
 		// TODO: modifiers
-		// runes = round(runes * modifier)
+		runes = Math.round(runes * ((100 + raceArray[empire.race].mod_runepro + eraArray[empire.era].mod_runepro) / 100))
 		empire.runes += runes
 		current['runes'] = runes
 

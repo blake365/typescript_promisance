@@ -1,15 +1,17 @@
 import { Request, Response, Router } from 'express'
+import { BUILD_COST } from '../config/conifg'
+import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 
 
 import { useTurn } from './useturns'
 
 const getBuildAmounts = (empire: Empire) => {
-	let buildCost = Math.round(3500 + empire.land * 0.1)
+	let buildCost = Math.round(BUILD_COST + empire.land * 0.1)
 
 	let buildRate = Math.round(empire.land * 0.015 + 4)
 
-	//TODO: buildrate race bonus
+	buildRate = Math.round((100 + raceArray[empire.race].mod_buildrate) / 100 * buildRate)
 
 	let canBuild = Math.min(
 		Math.floor(empire.cash / buildCost),
@@ -19,18 +21,6 @@ const getBuildAmounts = (empire: Empire) => {
 
 	return { canBuild, buildRate, buildCost }
 }
-
-// const buildRequest = {
-// 	bldCash: 10,
-// 	bldCost: 10,
-// 	bldDef: 0,
-// 	bldFood: 10,
-// 	bldPop: 10,
-// 	bldTroop: 10,
-// 	bldWiz: 10,
-// 	empireId: 2,
-// 	type: 'build',
-// }
 
 const build = async (req: Request, res: Response) => {
 	// request will have object with type of building and number to build
@@ -62,7 +52,6 @@ const build = async (req: Request, res: Response) => {
 	}
 
 	// console.log(buildRate)
-
 	// console.log(buildTotal)
 
 	let buildArray = [
@@ -123,38 +112,7 @@ const build = async (req: Request, res: Response) => {
 	}
 
 	let returnArray = await buildLoop()
-	// console.log(buildArray)
-	// buildArray.map(async (building) => {
-	// 	console.log(building)
-	// 	let key: string = Object.keys(building)[0]
-	// 	let value: number = Object.values(building)[0]
-	// 	let turns = 0
-	// 	if (value < buildRate) {
-	// 		turns = 1
-	// 	} else {
-	// 		turns = Math.round(value / buildRate)
-	// 	}
 
-	// 	for (let i = 0; i < turns; i++) {
-	// 		// console.log(`build ${value} of ${key}s`)
-	// 		// use one turn
-
-	// 		let result = await useTurn('build', 1, empireId, true)
-	// 		// console.log(result)
-	// 		resultArray.push(result)
-
-	// 		// add value to empire.key
-	// 		empire[key] += value
-	// 		empire.freeLand -= value
-	// 		empire.cash -= value * buildCost
-
-	// 		await empire.save()
-	// 	}
-
-	// })
-
-	// console.log(returnArray)
-	// console.log(empire)
 	return res.json(returnArray)
 }
 

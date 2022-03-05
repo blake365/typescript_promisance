@@ -1,19 +1,21 @@
 import { Request, Response, Router } from 'express'
+import { PVTM_FOOD, PVTM_SHOPBONUS, PVTM_TRPARM, PVTM_TRPFLY, PVTM_TRPLND, PVTM_TRPSEA } from '../config/conifg'
+import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import { getNetworth } from './actions/actions'
 
 const getCost = (empire: Empire, base) => {
-       let cost = base
-        let costBonus = 1 - ((1 - 0.2) * (empire.bldCost / empire.land) + 0.2 * (empire.bldCost / empire.land))
+    	let cost = base
+		let costBonus = 1 - ((1 - PVTM_SHOPBONUS) * (empire.bldCost / empire.land) + PVTM_SHOPBONUS * (empire.bldCost / empire.land))
 
-        cost *= costBonus
-        //TODO: race modifier here
+		cost *= costBonus
+		cost *= (2 - ((100 + raceArray[empire.race].mod_market)/100))
 
-        if (cost < base * 0.6) {
-            cost = base * 0.6
-        }
+		if (cost < base * 0.6) {
+			cost = base * 0.6
+		}
 
-        return Math.round(cost)
+		return Math.round(cost)
 }
 
 
@@ -27,7 +29,7 @@ const buy = async (req: Request, res: Response) => {
 
 	const empire = await Empire.findOne({ id: empireId })
 
-	let priceArray = [getCost(empire, 500), getCost(empire, 1000), getCost(empire, 2000), getCost(empire, 3000), 30]
+	let priceArray = [getCost(empire, PVTM_TRPARM), getCost(empire, PVTM_TRPLND), getCost(empire, PVTM_TRPFLY), getCost(empire, PVTM_TRPSEA), PVTM_FOOD]
 
 	let buyArray = [
 		buyArm, buyLnd, buyFly, buySea, buyFood

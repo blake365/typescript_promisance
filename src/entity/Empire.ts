@@ -335,8 +335,11 @@ export default class Empire extends Model {
 	})
 	peasants: number
 
-	@Column()
-	race: string
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	race: number
 
 	@Column({
 		type: 'int',
