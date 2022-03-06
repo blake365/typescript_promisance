@@ -12,6 +12,7 @@ import authRoutes from './routes/auth'
 import empireRoutes from './routes/empire'
 import useTurns from './routes/useturns'
 import build from './routes/build'
+import magic from './routes/magic'
 import buy from './routes/privateMarket'
 
 import {hourlyUpdate, promTurns} from './jobs/promTurns'
@@ -42,6 +43,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/empire', empireRoutes)
 app.use('/api/useturns', useTurns)
 app.use('/api/build', build)
+app.use('/api/magic', magic)
 app.use('/api/buy', buy)
 
 app.listen(PORT, async () => {

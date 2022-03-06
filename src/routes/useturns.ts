@@ -380,6 +380,7 @@ const useTurns = async (req: Request, res: Response) => {
 
 const router = Router()
 
+//TODO: move to empire route and require auth and user
 router.post('/', useTurns)
 
 export default router
