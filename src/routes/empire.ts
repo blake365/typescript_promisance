@@ -107,24 +107,48 @@ const getEmpires = async (_: Request, res: Response) => {
 }
 
 // UPDATE
+
+// TODO: rework how taxes and industry are updated
+// TODO: set up framework for how other empire settings are updated
 const updateEmpire = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { tax, indArmy, indFly, indLnd, indSea } = req.body
 
-	if (indArmy && indArmy + indFly + indLnd + indSea !== 100) {
+	if (indArmy !== null && indArmy + indFly + indLnd + indSea !== 100) {
 		return res.status(500).json({ error: 'percentages must add up to 100' })
 	}
+
+	console.log(req.body)
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
 		empire.tax = tax || empire.tax
-		empire.indArmy = indArmy || empire.indArmy
-		empire.indLnd = indLnd || empire.indLnd
-		empire.indFly = indFly || empire.indFly
-		empire.indSea = indSea || empire.indSea
+		if (indArmy === 0) {
+			empire.indArmy = 0
+		} else {
+			empire.indArmy = indArmy || empire.indArmy
+		}
+		if (indLnd === 0) {
+			empire.indLnd = 0
+		} else {
+			empire.indLnd = indLnd || empire.indLnd
+		}
+		if (indFly === 0) {
+			empire.indFly = 0
+		} else {
+			empire.indFly = indFly || empire.indFly
+		}
+		if (indSea === 0) {
+			empire.indSea = 0
+		} else {
+			empire.indSea = indSea || empire.indSea
+		}
+		// empire.indArmy = indArmy || empire.indArmy
+		// empire.indLnd = indLnd || empire.indLnd
+		// empire.indFly = indFly || empire.indFly
+		// empire.indSea = indSea || empire.indSea
 
 		await empire.save()
-
 		return res.json(empire)
 	} catch (error) {
 		console.log(error)

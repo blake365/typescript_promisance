@@ -18,7 +18,7 @@ export const regress_allow = ({era}) => {
 
 export const regress_cast = (empire: Empire) => {
     if (getPower_self(empire) >= 90) {
-        let result = { result: 'success', message: 'You have regressed to the previous era', wizloss: 0 }
+        let result = { result: 'success', message: 'You have regressed to the previous era.', wizloss: 0 }
         return result
     } else {
         let wizloss = getWizLoss_self(empire)

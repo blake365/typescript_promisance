@@ -17,7 +17,7 @@ export const advance_allow = ({era}) => {
 
 export const advance_cast = (empire: Empire) => {
     if (getPower_self(empire) >= 90) {
-        let result = { result: 'success', message: 'You have advanced to the next era', wizloss: 0 }
+        let result = { result: 'success', message: 'You have advanced to the next era.', wizloss: 0 }
         return result
     }
 
