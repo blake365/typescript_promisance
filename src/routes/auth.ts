@@ -51,7 +51,7 @@ const register = async (req: Request, res: Response) => {
 
 const login = async (req: Request, res: Response) => {
 	const { username, password } = req.body
-	console.log(username, password)
+	// console.log(username, password)
 	try {
 		let errors: any = {}
 		if (isEmpty(username)) errors.username = 'Username must not be empty'

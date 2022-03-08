@@ -5,6 +5,8 @@ import ClanInvite from "../entity/ClanInvite";
 import Empire from "../entity/Empire";
 import Market from "../entity/Market";
 
+// TODO: add in config values
+
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
     

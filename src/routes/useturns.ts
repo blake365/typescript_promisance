@@ -77,6 +77,7 @@ export const useTurn = async (
 			}
 		}
 
+		// FIXME: withdraw not accumulating in condensed view?
 		current['withdraw'] = withdraw
 
 		// loan interest

@@ -62,7 +62,7 @@ app.listen(PORT, async () => {
 const scheduler = new ToadScheduler()
 
 const turns = new SimpleIntervalJob(
-	{ minutes: 2, runImmediately: false },
+	{ minutes: 5, runImmediately: false },
 	promTurns,
 	'id_1'
 );

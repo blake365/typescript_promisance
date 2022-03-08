@@ -6,7 +6,7 @@ import { getNetworth } from './actions/actions'
 
 const getCost = (empire: Empire, base) => {
     	let cost = base
-		let costBonus = 1 - ((1 - PVTM_SHOPBONUS) * (empire.bldCost / empire.land) + PVTM_SHOPBONUS * (empire.bldCost / empire.land))
+		let costBonus = 1 - ((1 - PVTM_SHOPBONUS) * (empire.bldCost / empire.land) + PVTM_SHOPBONUS * (empire.bldCash / empire.land))
 
 		cost *= costBonus
 		cost *= (2 - ((100 + raceArray[empire.race].mod_market)/100))
@@ -31,6 +31,8 @@ const buy = async (req: Request, res: Response) => {
 
 	let priceArray = [getCost(empire, PVTM_TRPARM), getCost(empire, PVTM_TRPLND), getCost(empire, PVTM_TRPFLY), getCost(empire, PVTM_TRPSEA), PVTM_FOOD]
 
+	console.log(priceArray)
+
 	let buyArray = [
 		buyArm, buyLnd, buyFly, buySea, buyFood
 	]
@@ -43,7 +45,9 @@ const buy = async (req: Request, res: Response) => {
 	
 	let totalPrice = spendArray
 	.filter(Number)
-	.reduce((partialSum, a) => partialSum + a, 0)
+		.reduce((partialSum, a) => partialSum + a, 0)
+	
+	console.log(totalPrice)
 
 	if (totalPrice > empire.cash ) {
 		return res.json({error: 'Not enough money'})
@@ -67,7 +71,7 @@ const buy = async (req: Request, res: Response) => {
 	
 	let shoppingResult = {resultBuyArm, resultBuyLnd, resultBuyFly, resultBuySea, resultBuyFood}
 
-	// console.log(shoppingResult)
+	console.log(shoppingResult)
 
 	return res.json(shoppingResult)
 }
@@ -104,6 +108,9 @@ const sell = async (req: Request, res: Response) => {
 		sellArm, sellLnd, sellFly, sellSea, sellFood
 	]
 
+	// console.log(sellArray)
+	// console.log(priceArray)
+
 	const spendArray = sellArray.map((value, index) =>
     {
         value = value * priceArray[index]
@@ -115,7 +122,7 @@ const sell = async (req: Request, res: Response) => {
 	.reduce((partialSum, a) => partialSum + a, 0)
 
 	if (sellArm > empire.trpArm * PVTM_MAXSELL/10000 || sellLnd > empire.trpLnd * PVTM_MAXSELL/10000 || sellFly > empire.trpFly * PVTM_MAXSELL/10000 || sellSea > empire.trpSea * PVTM_MAXSELL/10000 || sellFood > empire.food) {
-		return res.json({error: "Can't sell that many!"})
+		return res.status(500).json({error: "Can't sell that many!"})
 	} else {
 		empire.trpArm -= sellArm
 		empire.trpLnd -= sellLnd
