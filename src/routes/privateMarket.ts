@@ -18,7 +18,7 @@ const getCost = (empire: Empire, base) => {
 		return Math.round(cost)
 }
 
-
+// FIXME: subtract amount bought from mktArm etc. so you can't buy more than is available
 const buy = async (req: Request, res: Response) => {
 	// request will have object with number of each unit to purchase
 	const { type, empireId, buyArm, buyLnd, buyFly, buySea, buyFood } = req.body

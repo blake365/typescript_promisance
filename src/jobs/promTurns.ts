@@ -191,3 +191,24 @@ const markets = await getConnection()
 
     //TODO: delete from market
 })
+
+export const updateRanks = new AsyncTask('update ranks', async () => { 
+
+    const empires = await Empire.find({order:{networth: "DESC"}})
+    let uRank = 0
+
+    for (let i = 0; i < empires.length; i++){
+        uRank++
+        let id = empires[i].id
+        await getConnection()
+            .createQueryBuilder()
+            .update(Empire)
+            .set({
+                    // update rank
+                    rank: uRank,
+                })
+            .where("id = :id", {id: id})
+            .execute();
+    }
+    
+})

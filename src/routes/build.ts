@@ -99,7 +99,7 @@ const build = async (req: Request, res: Response) => {
 				// add value to empire.key
 				empire[key] += buildAmount
 				empire.freeLand -= buildAmount
-				empire.cash -= value * buildCost
+				empire.cash -= buildAmount * buildCost
 				empire.turns--
 				empire.turnsUsed++
 

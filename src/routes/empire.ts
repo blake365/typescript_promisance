@@ -34,71 +34,27 @@ const createEmpire = async (req: Request, res: Response) => {
 	}
 }
 
-
-// set some starting resources to work with
-// const giveResources = async (_: Request, res: Response) => {
-// 	try {
-// 		const empires = await Empire.find()
-
-// 		empires.forEach(async (empire) => {
-// 			empire.bldCash = 2000
-// 			empire.bldCost = 2000
-// 			empire.bldFood = 2000
-// 			empire.bldPop = 2000
-// 			empire.bldTroop = 2000
-// 			empire.bldWiz = 2000
-// 			empire.cash = 1000000
-// 			empire.era = 1
-// 			empire.food = 50000
-// 			empire.freeLand = 2000
-// 			empire.land = 14000
-// 			empire.health = 100
-// 			empire.indArmy = 25
-// 			empire.indFly = 25
-// 			empire.indLnd = 25
-// 			empire.indSea = 25
-// 			empire.trpArm = 500
-// 			empire.trpFly = 500
-// 			empire.trpLnd = 500
-// 			empire.trpSea = 500
-// 			empire.peasants = 20000
-// 			empire.runes = 1000
-// 			empire.turns = 1000
-// 			empire.tax = 10
-
-// 			await empire.save()
-// 		})
-
-// 		return res.json(empires)
-// 	} catch (error) {
-// 		console.log(error)
-// 		return res.status(500).json(error)
-// 	}
-// }
-
-// set some turns resources to work with
-// const giveTurns = async (_: Request, res: Response) => {
-// 	try {
-// 		const empires = await Empire.find()
-
-// 		empires.forEach(async (empire) => {
-// 			empire.turns = 1000
-
-// 			await empire.save()
-// 		})
-
-// 		return res.json(empires)
-// 	} catch (error) {
-// 		console.log(error)
-// 		return res.status(500).json(error)
-// 	}
-// }
-
 // READ
 const getEmpires = async (_: Request, res: Response) => {
 	try {
 		const empires = await Empire.find()
 
+		return res.json(empires)
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
+// GET EMPIRE LIST FOR SCORES
+const getScores = async (_:Request, res: Response) => {
+	try {
+		const empires = await Empire.find({
+			order: {
+				rank: "ASC",
+			}
+		})
+		
 		return res.json(empires)
 	} catch (error) {
 		console.log(error)
@@ -278,6 +234,7 @@ const router = Router()
 router.post('/', user, auth, createEmpire)
 
 router.get('/', getEmpires)
+router.get('/scores', getScores)
 router.get('/:uuid', user, auth, findOneEmpire)
 router.put('/:uuid', user, auth, updateEmpire)
 router.post('/:uuid/bank', user, auth, bank)

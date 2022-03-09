@@ -16,7 +16,7 @@ import magic from './routes/magic'
 import buy from './routes/privateMarket'
 import sell from './routes/privateMarket'
 
-import {hourlyUpdate, promTurns} from './jobs/promTurns'
+import {hourlyUpdate, promTurns, updateRanks} from './jobs/promTurns'
 
 import trim from './middleware/trim'
 
@@ -67,6 +67,12 @@ const turns = new SimpleIntervalJob(
 	'id_1'
 );
 
+const ranks = new SimpleIntervalJob(
+	{ minutes: 5, runImmediately: false },
+	updateRanks,
+	'id_3'
+);
+
 const hourly = new SimpleIntervalJob(
 	{ hours: 1, runImmediately: false },
 	hourlyUpdate,
@@ -74,6 +80,7 @@ const hourly = new SimpleIntervalJob(
 );
 
 scheduler.addSimpleIntervalJob(turns);
+scheduler.addSimpleIntervalJob(ranks);
 scheduler.addSimpleIntervalJob(hourly);
 
 // console.log(scheduler.getById('id_1').getStatus());
