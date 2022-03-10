@@ -4,6 +4,8 @@ import {getConnection} from "typeorm";
 import ClanInvite from "../entity/ClanInvite";
 import Empire from "../entity/Empire";
 import Market from "../entity/Market";
+import { TURNS_COUNT, TURNS_MAXIMUM, TURNS_STORED, TURNS_UNSTORE } from "../config/conifg";
+ 
 
 // TODO: add in config values
 
@@ -16,20 +18,20 @@ export const promTurns = new AsyncTask('prom turns', async () => {
     .update(Empire)
         .set({
             // update turns
-            turns: () => "turns + 5 + LEAST(storedTurns, 1), storedTurns = storedTurns - LEAST(storedTurns, 1)",
+            turns: () => `turns + ${TURNS_COUNT} + LEAST(storedTurns, ${TURNS_UNSTORE}), storedTurns = storedTurns - LEAST(storedTurns, ${TURNS_UNSTORE})`,
         })
     .where("vacation = 0 AND id != 0 AND mode != :mode", {mode: "demo"})
-        .execute();
+    .execute();
     
     await getConnection()
     .createQueryBuilder()
     .update(Empire)
         .set({
             // update stored turns
-            storedturns: () => "LEAST(250, storedTurns + turns - 500), turns = 500 "
+            storedturns: () => `LEAST(${TURNS_STORED}, storedTurns + turns - ${TURNS_MAXIMUM}), turns = ${TURNS_MAXIMUM} `
         })
-    .where("turns > 500 AND id != 0 AND mode != :mode", {mode: "demo"})
-        .execute();
+    .where("turns > :turnsMax AND id != 0 AND mode != :mode", {mode: "demo", turnsMax: TURNS_MAXIMUM})
+    .execute();
     
     // reduce max private market sell percentage based on number of buildCash buildings
     await getConnection()
@@ -39,7 +41,7 @@ export const promTurns = new AsyncTask('prom turns', async () => {
             // update price on private market
             mktPerArm: () => "mkt_Per_Arm - LEAST(mkt_Per_Arm, 100 * (1 + bld_Cash / land))"
         })
-    .where("land != 0 AND id != 0")
+        .where("land != 0 AND id != 0")
         .execute();
     
     await getConnection()

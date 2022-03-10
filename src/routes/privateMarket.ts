@@ -47,7 +47,7 @@ const buy = async (req: Request, res: Response) => {
 	.filter(Number)
 		.reduce((partialSum, a) => partialSum + a, 0)
 	
-	console.log(totalPrice)
+	// console.log(totalPrice)
 
 	if (totalPrice > empire.cash ) {
 		return res.json({error: 'Not enough money'})
@@ -58,6 +58,11 @@ const buy = async (req: Request, res: Response) => {
 		empire.trpSea += buySea
 		empire.food += buyFood
 		empire.cash -= totalPrice
+		empire.mktArm -= buyArm
+		empire.mktLnd -= buyLnd
+		empire.mktFly -= buyFly
+		empire.mktSea -= buySea
+		empire.mktFood -= buyFood
 	}
 
 	empire.networth = getNetworth(empire)

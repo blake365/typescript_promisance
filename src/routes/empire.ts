@@ -14,6 +14,11 @@ const createEmpire = async (req: Request, res: Response) => {
 
 	let mode = 'normal'
 	let turns: number = 250
+	let mktArm: number = 999999999999
+	let mktLnd: number = 999999999999
+	let mktFly: number = 999999999999
+	let mktSea: number = 999999999999
+	let mktFood: number = 999999999999
 
 	if (user.role === 'demo') {
 		mode = 'demo'
@@ -25,7 +30,16 @@ const createEmpire = async (req: Request, res: Response) => {
 	}
 
 	try {
-		const empire = new Empire({ name, race, user, mode, turns })
+		let empire: Empire = null
+
+		if (user.role === 'demo') {
+			mode = 'demo'
+			turns = 2000
+			empire = new Empire({ name, race, user, mode, turns, mktArm, mktFly, mktFood, mktLnd, mktSea })
+		} else {
+			empire = new Empire({ name, race, user, mode, turns })
+		}
+
 		await empire.save()
 		return res.status(201).json(empire)
 	} catch (error) {
