@@ -6,17 +6,24 @@ import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 dotenv.config()
-import { ToadScheduler, SimpleIntervalJob, Task, AsyncTask } from 'toad-scheduler';
+import {
+	ToadScheduler,
+	SimpleIntervalJob,
+	Task,
+	AsyncTask,
+} from 'toad-scheduler'
 
 import authRoutes from './routes/auth'
 import empireRoutes from './routes/empire'
 import useTurns from './routes/useturns'
 import build from './routes/build'
+import demolish from './routes/demolish'
+import drop from './routes/dropLand'
 import magic from './routes/magic'
 import buy from './routes/privateMarket'
 import sell from './routes/privateMarket'
 
-import {hourlyUpdate, promTurns, updateRanks} from './jobs/promTurns'
+import { hourlyUpdate, promTurns, updateRanks } from './jobs/promTurns'
 
 import trim from './middleware/trim'
 
@@ -44,6 +51,9 @@ app.use('/api/auth', authRoutes)
 app.use('/api/empire', empireRoutes)
 app.use('/api/useturns', useTurns)
 app.use('/api/build', build)
+app.use('/api/demolish', demolish)
+app.use('/api/demolish', demolish)
+app.use('/api/drop', drop)
 app.use('/api/magic', magic)
 app.use('/api/market', buy)
 app.use('/api/market', sell)
@@ -65,22 +75,22 @@ const turns = new SimpleIntervalJob(
 	{ minutes: 5, runImmediately: false },
 	promTurns,
 	'id_1'
-);
+)
 
 const ranks = new SimpleIntervalJob(
 	{ minutes: 5, runImmediately: false },
 	updateRanks,
 	'id_3'
-);
+)
 
 const hourly = new SimpleIntervalJob(
 	{ hours: 1, runImmediately: false },
 	hourlyUpdate,
 	'id_2'
-);
+)
 
-scheduler.addSimpleIntervalJob(turns);
-scheduler.addSimpleIntervalJob(ranks);
-scheduler.addSimpleIntervalJob(hourly);
+scheduler.addSimpleIntervalJob(turns)
+scheduler.addSimpleIntervalJob(ranks)
+scheduler.addSimpleIntervalJob(hourly)
 
 // console.log(scheduler.getById('id_1').getStatus());
