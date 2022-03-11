@@ -3,12 +3,14 @@ import { raceArray } from '../config/races'
 import { eraArray } from '../config/eras'
 import Empire from '../entity/Empire'
 
-import { useTurn } from './useturns'
+import { useTurn, useTurnInternal } from './useturns'
 import { baseCost } from './spells/general'
 import { regress_allow, regress_cast, regress_cost } from './spells/regress'
 import { advance_allow, advance_cast, advance_cost } from './spells/advance'
 import { food_cast, food_cost } from './spells/food'
 import { cash_cast, cash_cost } from './spells/cash'
+
+// FIXME: internal turns not working
 
 const magic = async (req: Request, res: Response) => {
 	// request will have object with type of spell as a number and number of times to cast spell
@@ -56,7 +58,8 @@ const magic = async (req: Request, res: Response) => {
 				if (spellCheck(empire, cost, turns) === 'passed') {
 					empire.runes -= cost
 					// use two turns to cast spell
-					let spellTurns = await useTurn('magic', turns, empireId, true)
+					let spellTurns = useTurnInternal('magic', turns, empire, true)
+					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 					let cast = food_cast(empire)
 					// console.log(cast)
@@ -71,6 +74,21 @@ const magic = async (req: Request, res: Response) => {
 					resultArray.push(spellTurns)
 					// cast the spell and get result
 					// compose turn result and food result into a single object, insert into array
+					empire.cash =
+						empire.cash +
+						spellRes.withdraw +
+						spellRes.money -
+						spellRes.loanpayed
+
+					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
+					empire.trpArm += spellRes.trpArm
+					empire.trpLnd += spellRes.trpLnd
+					empire.trpFly += spellRes.trpFly
+					empire.trpSea += spellRes.trpSea
+					empire.food += spellRes.food
+					empire.peasants += spellRes.peasants
+					empire.runes += spellRes.runes
+					empire.trpWiz += spellRes.trpWiz
 					empire.turns -= turns
 					empire.turnsUsed += turns
 
@@ -96,7 +114,8 @@ const magic = async (req: Request, res: Response) => {
 				if (spellCheck(empire, cost, turns) === 'passed') {
 					empire.runes -= cost
 					// use two turns to cast spell
-					let spellTurns = await useTurn('magic', turns, empireId, true)
+					let spellTurns = useTurnInternal('magic', turns, empire, true)
+					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 
 					// cast the spell and get result
@@ -111,6 +130,22 @@ const magic = async (req: Request, res: Response) => {
 					spellTurns['cast'] = cast
 					resultArray.push(spellTurns)
 					// compose turn result and food result into a single object, insert into array
+					empire.cash =
+						empire.cash +
+						spellRes.withdraw +
+						spellRes.money -
+						spellRes.loanpayed
+
+					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
+					empire.trpArm += spellRes.trpArm
+					empire.trpLnd += spellRes.trpLnd
+					empire.trpFly += spellRes.trpFly
+					empire.trpSea += spellRes.trpSea
+					empire.food += spellRes.food
+					empire.peasants += spellRes.peasants
+					empire.runes += spellRes.runes
+					empire.trpWiz += spellRes.trpWiz
+
 					empire.turns -= turns
 					empire.turnsUsed += turns
 
@@ -144,7 +179,8 @@ const magic = async (req: Request, res: Response) => {
 
 					empire.runes -= cost
 					// use two turns to cast spell
-					let spellTurns = await useTurn('magic', turns, empireId, true)
+					let spellTurns = useTurnInternal('magic', turns, empire, true)
+					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 
 					// cast the spell and get result
@@ -159,6 +195,21 @@ const magic = async (req: Request, res: Response) => {
 
 					spellTurns['cast'] = cast
 					resultArray.push(spellTurns)
+					empire.cash =
+						empire.cash +
+						spellRes.withdraw +
+						spellRes.money -
+						spellRes.loanpayed
+
+					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
+					empire.trpArm += spellRes.trpArm
+					empire.trpLnd += spellRes.trpLnd
+					empire.trpFly += spellRes.trpFly
+					empire.trpSea += spellRes.trpSea
+					empire.food += spellRes.food
+					empire.peasants += spellRes.peasants
+					empire.runes += spellRes.runes
+					empire.trpWiz += spellRes.trpWiz
 					empire.turns -= turns
 					empire.turnsUsed += turns
 
@@ -192,7 +243,8 @@ const magic = async (req: Request, res: Response) => {
 					spellCheck(empire, cost, turns)
 					empire.runes -= cost
 					// use two turns to cast spell
-					let spellTurns = await useTurn('magic', turns, empireId, true)
+					let spellTurns = useTurnInternal('magic', turns, empire, true)
+					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 
 					let cast = regress_cast(empire)
@@ -206,7 +258,21 @@ const magic = async (req: Request, res: Response) => {
 
 					spellTurns['cast'] = cast
 					resultArray.push(spellTurns)
+					empire.cash =
+						empire.cash +
+						spellRes.withdraw +
+						spellRes.money -
+						spellRes.loanpayed
 
+					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
+					empire.trpArm += spellRes.trpArm
+					empire.trpLnd += spellRes.trpLnd
+					empire.trpFly += spellRes.trpFly
+					empire.trpSea += spellRes.trpSea
+					empire.food += spellRes.food
+					empire.peasants += spellRes.peasants
+					empire.runes += spellRes.runes
+					empire.trpWiz += spellRes.trpWiz
 					empire.turns -= turns
 					empire.turnsUsed += turns
 

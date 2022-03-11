@@ -3,15 +3,39 @@ import { BUILD_COST } from '../config/conifg'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 
+import { useTurn, useTurnInternal } from './useturns'
 
-import { useTurn } from './useturns'
+// FIXME: result of turns is not being saved to empire
+// FIXED?: created new turn function for use in loops that is not async use returned values to update empire
+
+interface oneTurn {
+	withdraw?: number
+	income?: number
+	expenses?: number
+	wartax?: number
+	loanpayed?: number
+	loanInterest?: number
+	money?: number
+	trpArm?: number
+	trpLnd?: number
+	trpFly?: number
+	trpSea?: number
+	foodpro?: number
+	foodcon?: number
+	food?: number
+	peasants?: number
+	runes?: number
+	trpWiz?: number
+}
 
 const getBuildAmounts = (empire: Empire) => {
 	let buildCost = Math.round(BUILD_COST + empire.land * 0.1)
 
 	let buildRate = Math.round(empire.land * 0.015 + 4)
 
-	buildRate = Math.round((100 + raceArray[empire.race].mod_buildrate) / 100 * buildRate)
+	buildRate = Math.round(
+		((100 + raceArray[empire.race].mod_buildrate) / 100) * buildRate
+	)
 
 	let canBuild = Math.min(
 		Math.floor(empire.cash / buildCost),
@@ -92,18 +116,34 @@ const build = async (req: Request, res: Response) => {
 					buildAmount = buildRate
 				}
 				// use one turn
-				let oneTurn = await useTurn('build', 1, empireId, true)
+				let oneTurn = useTurnInternal('build', 1, empire, true)
 				// console.log(oneTurn)
+				let turnRes: oneTurn = oneTurn[0]
 				// extract turn info from result and put individual object in result array
-				resultArray.push(oneTurn[0])
+				resultArray.push(turnRes)
 				// add value to empire.key
+				empire.cash =
+					empire.cash +
+					turnRes.withdraw +
+					turnRes.money -
+					turnRes.loanpayed -
+					buildAmount * buildCost
+				empire.loan -= turnRes.loanpayed + turnRes.loanInterest
+				empire.trpArm += turnRes.trpArm
+				empire.trpLnd += turnRes.trpLnd
+				empire.trpFly += turnRes.trpFly
+				empire.trpSea += turnRes.trpSea
+				empire.food += turnRes.food
+				empire.peasants += turnRes.peasants
+				empire.runes += turnRes.runes
+				empire.trpWiz += turnRes.trpWiz
 				empire[key] += buildAmount
 				empire.freeLand -= buildAmount
-				empire.cash -= buildAmount * buildCost
+				// empire.cash -= buildAmount * buildCost
+				leftToBuild -= buildAmount
 				empire.turns--
 				empire.turnsUsed++
 
-				leftToBuild -= buildAmount
 				await empire.save()
 			}
 		}
