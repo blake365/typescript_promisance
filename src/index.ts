@@ -26,6 +26,7 @@ import sell from './routes/privateMarket'
 import { hourlyUpdate, promTurns, updateRanks } from './jobs/promTurns'
 
 import trim from './middleware/trim'
+import { TURNS_FREQ } from './config/conifg'
 
 const app = express()
 const PORT = process.env.PORT
@@ -72,13 +73,13 @@ app.listen(PORT, async () => {
 const scheduler = new ToadScheduler()
 
 const turns = new SimpleIntervalJob(
-	{ minutes: 5, runImmediately: false },
+	{ minutes: TURNS_FREQ, runImmediately: false },
 	promTurns,
 	'id_1'
 )
 
 const ranks = new SimpleIntervalJob(
-	{ minutes: 5, runImmediately: false },
+	{ minutes: TURNS_FREQ, runImmediately: false },
 	updateRanks,
 	'id_3'
 )
