@@ -18,6 +18,8 @@ const mapErrors = (errors: Object[]) => {
 const register = async (req: Request, res: Response) => {
 	const { email, username, password } = req.body
 
+	const empires = []
+
 	try {
 		// Validate Data
 		let errors: any = {}
@@ -32,7 +34,7 @@ const register = async (req: Request, res: Response) => {
 		}
 
 		// Create the user
-		const user = new User({ email, username, password })
+		const user = new User({ email, username, password, empires })
 
 		errors = await validate(user)
 
@@ -60,7 +62,7 @@ const login = async (req: Request, res: Response) => {
 			return res.status(400).json(errors)
 		}
 
-		const user = await User.findOne({ username }, {relations: ['empires']})
+		const user = await User.findOne({ username }, { relations: ['empires'] })
 		// console.log(user)
 
 		if (!user) return res.status(404).json({ username: 'User not found' })
@@ -111,16 +113,17 @@ const logout = (_: Request, res: Response) => {
 }
 
 const demoAccount = async (req: Request, res: Response) => {
+	const empires = []
 
-	let ip = (<string>
-		req.headers['x-forwarded-for'] ||<string>
-		req.connection.remoteAddress ||
+	let ip = (
+		<string>req.headers['x-forwarded-for'] ||
+		<string>req.connection.remoteAddress ||
 		''
 	)
 		.split(',')[0]
 		.trim()
-	
-		// console.log(ip)
+
+	// console.log(ip)
 	let IPaddress: string
 
 	// process ip address or headers
@@ -144,11 +147,11 @@ const demoAccount = async (req: Request, res: Response) => {
 	} else {
 		console.error('No IP address')
 		return res.json({
-		error:
-			'An error occurred, please try again. Make an account if this problem persists.',
+			error:
+				'An error occurred, please try again. Make an account if this problem persists.',
 		})
 	}
-	
+
 	// console.log(IPaddress)
 
 	const addOn = new Date().getTime()
@@ -169,7 +172,7 @@ const demoAccount = async (req: Request, res: Response) => {
 		}
 
 		// Create the user
-		const user = new User({ email, username, password, role })
+		const user = new User({ email, username, password, role, empires })
 
 		errors = await validate(user)
 
