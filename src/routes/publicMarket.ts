@@ -1,21 +1,13 @@
 import { Request, Response, Router } from 'express'
-import {
-	PUBMKT_MAXFOOD,
-	PUBMKT_MAXSELL,
-	PUBMKT_START,
-	PVTM_FOOD,
-	PVTM_MAXSELL,
-	PVTM_SHOPBONUS,
-	PVTM_TRPARM,
-	PVTM_TRPFLY,
-	PVTM_TRPLND,
-	PVTM_TRPSEA,
-} from '../config/conifg'
-import { raceArray } from '../config/races'
+import { PUBMKT_MAXSELL } from '../config/conifg'
 import Empire from '../entity/Empire'
 import { getNetworth } from './actions/actions'
 import Market from '../entity/Market'
 import { eraArray } from '../config/eras'
+import auth from '../middleware/auth'
+import user from '../middleware/user'
+
+import { Not } from 'typeorm'
 
 interface ReturnObject {
 	amount: number
@@ -215,10 +207,37 @@ const pubSell = async (req: Request, res: Response) => {
 	return res.json(returnArray)
 }
 
+const getMyItems = async (req: Request, res: Response) => {
+	const empire_id = res.locals.user.empires[0].id
+	// console.log(res.locals.user)
+	console.log(empire_id)
+	// const { empire_id } = req.body
+	const myItems = await Market.find({
+		where: { empire_id: empire_id },
+		order: {
+			createdAt: 'ASC',
+		},
+	})
+
+	// console.log(myItems)
+	return res.json(myItems)
+}
+
+const getOtherItems = async (req: Request, res: Response) => {
+	const { empire_id } = req.params
+	// const { empire_id } = req.body
+	const myItems = await Market.find({ where: { empire_id: Not(empire_id) } })
+
+	// console.log(myItems)
+	return res.json(myItems)
+}
+
 const router = Router()
 
 //TODO: needs user and auth middleware
 // router.post('/pubBuy', buy)
-router.post('/pubSell', pubSell)
+router.post('/pubSell', user, auth, pubSell)
+router.get('/pubSellMine', user, auth, getMyItems)
+router.get('/pubSellOthers', user, auth, getOtherItems)
 
 export default router
