@@ -325,7 +325,6 @@ export const useTurn = async (
 		} else {
 			runes = Math.round(empire.bldWiz * 1.1 * runeMultiplier)
 		}
-		// TODO: modifiers
 		runes = Math.round(
 			runes *
 				((100 +

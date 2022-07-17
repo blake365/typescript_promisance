@@ -5,6 +5,11 @@ import Model from './Model'
 
 @Entity('market')
 export default class Market extends Model {
+	constructor(market: Partial<Market>) {
+		super()
+		Object.assign(this, market)
+	}
+
 	@Index()
 	@PrimaryGeneratedColumn()
 	market_id: number
