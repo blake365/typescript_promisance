@@ -211,25 +211,44 @@ const getMyItems = async (req: Request, res: Response) => {
 	const empire_id = res.locals.user.empires[0].id
 	// console.log(res.locals.user)
 	console.log(empire_id)
-	// const { empire_id } = req.body
+	const { empireId } = req.body
+	console.log(req.body)
+
+	if (empire_id !== empireId) {
+		return res.status(500).json({ error: 'Empire ID mismatch' })
+	}
+
 	const myItems = await Market.find({
 		where: { empire_id: empire_id },
 		order: {
-			createdAt: 'ASC',
+			createdAt: 'DESC',
 		},
 	})
-
-	// console.log(myItems)
+	// console.log(typeof myItems[0].price)
 	return res.json(myItems)
 }
 
 const getOtherItems = async (req: Request, res: Response) => {
-	const { empire_id } = req.params
-	// const { empire_id } = req.body
-	const myItems = await Market.find({ where: { empire_id: Not(empire_id) } })
+	const empire_id = res.locals.user.empires[0].id
+	// console.log(res.locals.user)
+	console.log(empire_id)
+	const { empireId } = req.body
+	console.log(req.body)
 
-	// console.log(myItems)
-	return res.json(myItems)
+	if (empire_id !== empireId) {
+		return res.status(500).json({ error: 'Empire ID mismatch' })
+	}
+
+	const otherItems = await Market.find({
+		where: { empire_id: Not(empire_id) },
+		order: {
+			type: 'ASC',
+			price: 'ASC',
+		},
+	})
+
+	// console.log(otherItems)
+	return res.json(otherItems)
 }
 
 const router = Router()
@@ -237,7 +256,7 @@ const router = Router()
 //TODO: needs user and auth middleware
 // router.post('/pubBuy', buy)
 router.post('/pubSell', user, auth, pubSell)
-router.get('/pubSellMine', user, auth, getMyItems)
-router.get('/pubSellOthers', user, auth, getOtherItems)
+router.post('/pubSellMine', user, auth, getMyItems)
+router.post('/pubSellOthers', user, auth, getOtherItems)
 
 export default router
