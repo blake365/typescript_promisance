@@ -110,4 +110,10 @@ export default class EmpireNews extends Model {
 		default: 0,
 	})
 	newsTime: number
+
+	@Column({ default: '' })
+	content: string
+
+	@Column({ default: false })
+	seen: boolean
 }

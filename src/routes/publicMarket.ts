@@ -8,6 +8,7 @@ import auth from '../middleware/auth'
 import user from '../middleware/user'
 
 import { Not } from 'typeorm'
+import EmpireNews from '../entity/EmpireNews'
 
 interface ReturnObject {
 	amount: number
@@ -15,77 +16,73 @@ interface ReturnObject {
 	error?: string
 }
 
-// FIXME: subtract amount bought from mktArm etc. so you can't buy more than is available
-// const buy = async (req: Request, res: Response) => {
-// 	// request will have object with number of each unit to purchase
-// 	const { type, empireId, buyArm, buyLnd, buyFly, buySea, buyFood } = req.body
+const pubBuy = async (req: Request, res: Response) => {
+	const { buyerId, sellerId, id, amount, cost } = req.body
 
-// 	if (type !== 'buy') {
-// 		return res.json({ error: 'Something went wrong' })
-// 	}
+	const empire_id = res.locals.user.empires[0].id
+	if (empire_id !== buyerId) {
+		return res.status(500).json({ error: 'Empire ID mismatch' })
+	}
 
-// 	const empire = await Empire.findOne({ id: empireId })
+	console.log('attempting purchase')
 
-// 	let priceArray = [
-// 		getCost(empire, PVTM_TRPARM),
-// 		getCost(empire, PVTM_TRPLND),
-// 		getCost(empire, PVTM_TRPFLY),
-// 		getCost(empire, PVTM_TRPSEA),
-// 		PVTM_FOOD,
-// 	]
+	let item: string
 
-// 	console.log(priceArray)
+	// get db entries
+	let itemBought = await Market.findOneOrFail({ id })
+	let buyer = await Empire.findOneOrFail({ where: { id: buyerId } })
+	let seller = await Empire.findOneOrFail({ where: { id: sellerId } })
 
-// 	let buyArray = [buyArm, buyLnd, buyFly, buySea, buyFood]
+	if (cost > buyer.cash) {
+		return res.status(500).json({ error: 'Not enough money to make purchase' })
+	}
 
-// 	const spendArray = buyArray.map((value, index) => {
-// 		value = value * priceArray[index]
-// 		return value
-// 	})
+	// add bought item to empire
+	if (itemBought.type === 0) {
+		buyer.trpArm += amount
+		item = eraArray[seller.era].trparm
+	} else if (itemBought.type === 1) {
+		buyer.trpLnd += amount
+		item = eraArray[seller.era].trplnd
+	} else if (itemBought.type === 2) {
+		buyer.trpFly += amount
+		item = eraArray[seller.era].trpfly
+	} else if (itemBought.type === 3) {
+		buyer.trpSea += amount
+		item = eraArray[seller.era].trpsea
+	} else if (itemBought.type === 4) {
+		buyer.food += amount
+		item = eraArray[seller.era].food
+	}
 
-// 	let totalPrice = spendArray
-// 		.filter(Number)
-// 		.reduce((partialSum, a) => partialSum + a, 0)
+	// deduct cost from buyer cash
+	buyer.cash -= cost
 
-// 	// console.log(totalPrice)
+	// add cost to seller cash
+	seller.cash += cost
 
-// 	if (totalPrice > empire.cash) {
-// 		return res.json({ error: 'Not enough money' })
-// 	} else {
-// 		empire.trpArm += buyArm
-// 		empire.trpLnd += buyLnd
-// 		empire.trpFly += buyFly
-// 		empire.trpSea += buySea
-// 		empire.food += buyFood
-// 		empire.cash -= totalPrice
-// 		empire.mktArm -= buyArm
-// 		empire.mktLnd -= buyLnd
-// 		empire.mktFly -= buyFly
-// 		empire.mktSea -= buySea
-// 		empire.mktFood -= buyFood
-// 	}
+	buyer.networth = getNetworth(buyer)
+	seller.networth = getNetworth(seller)
 
-// 	empire.networth = getNetworth(empire)
-// 	await empire.save()
+	await buyer.save()
+	await seller.save()
 
-// 	let resultBuyArm = { amount: buyArm, price: spendArray[0] }
-// 	let resultBuyLnd = { amount: buyLnd, price: spendArray[1] }
-// 	let resultBuyFly = { amount: buyFly, price: spendArray[2] }
-// 	let resultBuySea = { amount: buySea, price: spendArray[3] }
-// 	let resultBuyFood = { amount: buyFood, price: spendArray[4] }
+	// create news entry
+	let content: string = `You sold ${amount.toLocaleString()} ${item} for $${cost}`
 
-// 	let shoppingResult = {
-// 		resultBuyArm,
-// 		resultBuyLnd,
-// 		resultBuyFly,
-// 		resultBuySea,
-// 		resultBuyFood,
-// 	}
+	// create news event for seller that goods have been purchased
+	let newsItem = new EmpireNews()
+	newsItem.content = content
+	newsItem.empireIdSource = buyerId
+	newsItem.empireIdDestination = sellerId
+	console.log(newsItem)
+	await newsItem.save()
 
-// 	console.log(shoppingResult)
+	// delete market entry
+	await Market.delete({ market_id: itemBought.id })
 
-// 	return res.json(shoppingResult)
-// }
+	return res.json({ success: 'item purchased' })
+}
 
 const pubSell = async (req: Request, res: Response) => {
 	// request will have object with number of each unit to sell and price
@@ -197,11 +194,6 @@ const pubSell = async (req: Request, res: Response) => {
 	empire.networth = getNetworth(empire)
 	await empire.save()
 
-	// resultSellLnd = { amount: sellLnd, price: priceArray[1] }
-	// resultSellFly = { amount: sellFly, price: priceArray[2] }
-	// resultSellSea = { amount: sellSea, price: priceArray[3] }
-	// resultSellFood = { amount: sellFood, price: priceArray[4] }
-
 	console.log(returnArray)
 	console.log(empire.networth)
 	return res.json(returnArray)
@@ -210,9 +202,9 @@ const pubSell = async (req: Request, res: Response) => {
 const getMyItems = async (req: Request, res: Response) => {
 	const empire_id = res.locals.user.empires[0].id
 	// console.log(res.locals.user)
-	console.log(empire_id)
+	// console.log(empire_id)
 	const { empireId } = req.body
-	console.log(req.body)
+	// console.log(req.body)
 
 	if (empire_id !== empireId) {
 		return res.status(500).json({ error: 'Empire ID mismatch' })
@@ -231,9 +223,9 @@ const getMyItems = async (req: Request, res: Response) => {
 const getOtherItems = async (req: Request, res: Response) => {
 	const empire_id = res.locals.user.empires[0].id
 	// console.log(res.locals.user)
-	console.log(empire_id)
+	// console.log(empire_id)
 	const { empireId } = req.body
-	console.log(req.body)
+	// console.log(req.body)
 
 	if (empire_id !== empireId) {
 		return res.status(500).json({ error: 'Empire ID mismatch' })
@@ -254,7 +246,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 const router = Router()
 
 //TODO: needs user and auth middleware
-// router.post('/pubBuy', buy)
+router.post('/pubBuy', user, auth, pubBuy)
 router.post('/pubSell', user, auth, pubSell)
 router.post('/pubSellMine', user, auth, getMyItems)
 router.post('/pubSellOthers', user, auth, getOtherItems)

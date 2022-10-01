@@ -4,6 +4,15 @@ import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { getNetworth } from './actions/actions'
+import { Not } from 'typeorm'
+
+// interface resultObject {
+// 	name: string
+// 	land: number
+// 	empireId: number
+// 	era: number
+// 	race: number
+// }
 
 //CREATE
 const createEmpire = async (req: Request, res: Response) => {
@@ -62,12 +71,36 @@ const createEmpire = async (req: Request, res: Response) => {
 const getEmpires = async (_: Request, res: Response) => {
 	try {
 		const empires = await Empire.find()
-
 		return res.json(empires)
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json(error)
 	}
+}
+
+// GET OTHER EMPIRES
+const getOtherEmpires = async (req: Request, res: Response) => {
+	// console.log('get other empires')
+	// console.log(req.body)
+	const empire_id = res.locals.user.empires[0].id
+	// console.log(res.locals.user)
+	// console.log(empire_id)
+	const { empireId } = req.body
+	// console.log(empire_id)
+
+	if (empire_id !== empireId) {
+		return res.status(500).json({ error: 'Empire ID mismatch' })
+	}
+
+	const otherEmpires = await Empire.find({
+		where: { empireId: Not(empire_id) },
+		order: {
+			empireId: 'ASC',
+		},
+	})
+	// console.log(otherEmpires)
+
+	return res.json(otherEmpires)
 }
 
 // GET EMPIRE LIST FOR SCORES
@@ -314,6 +347,7 @@ router.put('/:uuid', user, auth, updateEmpire)
 router.post('/:uuid/bank', user, auth, bank)
 router.post('/:uuid/tax', user, auth, updateTax)
 router.post('/:uuid/industry', user, auth, updateIndustry)
+router.post('/otherEmpires', user, auth, getOtherEmpires)
 
 // router.put('/give/resources', giveResources)
 // router.put('/give/turns', giveTurns)

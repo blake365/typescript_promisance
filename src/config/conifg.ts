@@ -30,13 +30,13 @@ export const TURNS_ERA = 500 // Minimum number of turns that must be spent in an
 export const VACATION_START = 12 // Delay before empire is protected
 export const VACATION_LIMIT = 72 // Minimum vacation length (not including start delay)
 
-export const TURNS_FREQ = 10 // how often to give turns
+export const TURNS_FREQ = 5 // how often to give turns
 export const TURNS_OFFSET = 0 // offset (in minutes) for giving turns, relative to round start
 export const TURNS_OFFSET_HOURLY = 0 // offset (in minutes) for performing hourly events, relative to round start
 export const TURNS_OFFSET_DAILY = 60 * 12 // offset (in minutes) for performing daily events, relative to round start
 export const TURNS_CRONTAB = true // use "turns.php" to give out turns, scheduled via crontab; otherwise, trigger on page loads
 export const TURNS_CRONLOG = true // if TURNS_CRONTAB is disabled, store turn logs in the database for retrieval by turns.php
-export const TURNS_COUNT = 1 // how many turns to give during each period
+export const TURNS_COUNT = 25 // how many turns to give during each period
 export const TURNS_UNSTORE = 1 // how many turns to release from Stored Turns at once
 
 export const IDLE_TIMEOUT_NEW = 3 // Remove new empire if idle for this many days before being prompted to validate (create and abandon)

@@ -23,8 +23,10 @@ import magic from './routes/magic'
 import buy from './routes/privateMarket'
 import sell from './routes/privateMarket'
 import pubSell from './routes/publicMarket'
+import pubBuy from './routes/publicMarket'
 import pubSellMine from './routes/publicMarket'
 import pubSellOthers from './routes/publicMarket'
+import otherEmpires from './routes/empire'
 
 import { hourlyUpdate, promTurns, updateRanks } from './jobs/promTurns'
 
@@ -64,6 +66,8 @@ app.use('/api/market', sell)
 app.use('/api/market', pubSell)
 app.use('/api/market', pubSellMine)
 app.use('/api/market', pubSellOthers)
+app.use('/api/market', pubBuy)
+app.use('/api/empire', otherEmpires)
 
 app.listen(PORT, async () => {
 	console.log(`server running at http://localhost:${PORT}`)
