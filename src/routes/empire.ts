@@ -5,6 +5,7 @@ import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { getNetworth } from './actions/actions'
 import { Not } from 'typeorm'
+import EmpireEffect from '../entity/EmpireEffect'
 
 // interface resultObject {
 // 	name: string
@@ -174,54 +175,6 @@ const updateIndustry = async (req: Request, res: Response) => {
 	}
 }
 
-// TODO: rework how taxes and industry are updated
-// TODO: set up framework for how other empire settings are updated
-const updateEmpire = async (req: Request, res: Response) => {
-	const { uuid } = req.params
-	const { tax, indArmy, indFly, indLnd, indSea } = req.body
-
-	if (indArmy !== null && indArmy + indFly + indLnd + indSea !== 100) {
-		return res.status(500).json({ error: 'percentages must add up to 100' })
-	}
-
-	console.log(req.body)
-
-	try {
-		const empire = await Empire.findOneOrFail({ uuid })
-		empire.tax = tax || empire.tax
-		if (indArmy === 0) {
-			empire.indArmy = 0
-		} else {
-			empire.indArmy = indArmy || empire.indArmy
-		}
-		if (indLnd === 0) {
-			empire.indLnd = 0
-		} else {
-			empire.indLnd = indLnd || empire.indLnd
-		}
-		if (indFly === 0) {
-			empire.indFly = 0
-		} else {
-			empire.indFly = indFly || empire.indFly
-		}
-		if (indSea === 0) {
-			empire.indSea = 0
-		} else {
-			empire.indSea = indSea || empire.indSea
-		}
-		// empire.indArmy = indArmy || empire.indArmy
-		// empire.indLnd = indLnd || empire.indLnd
-		// empire.indFly = indFly || empire.indFly
-		// empire.indSea = indSea || empire.indSea
-
-		await empire.save()
-		return res.json(empire)
-	} catch (error) {
-		console.log(error)
-		return res.status(500).json({ error: 'something went wrong' })
-	}
-}
-
 // Bank
 const bank = async (req: Request, res: Response) => {
 	const { uuid } = req.params
@@ -324,7 +277,11 @@ const findOneEmpire = async (req: Request, res: Response) => {
 	try {
 		const empire = await Empire.findOneOrFail({ uuid }, { relations: ['user'] })
 		// console.log('empire', empire)
+		const effects = await EmpireEffect.find({
+			where: { empireEffect_id: empire.empireId },
+		})
 		// console.log('user', user)
+		console.log(effects)
 		if (user.username !== empire.user.username) {
 			return res.status(403).json({ error: 'unauthorized' })
 		}
@@ -336,6 +293,58 @@ const findOneEmpire = async (req: Request, res: Response) => {
 	}
 }
 
+const getEmpireEffects = async (req: Request, res: Response) => {
+	const { empireId } = req.body
+
+	try {
+		let effects = await EmpireEffect.find({
+			where: { effectOwnerId: empireId },
+		})
+		// console.log('user', user)
+		console.log(effects)
+
+		effects.forEach((effect, index, array) => {
+			// console.log(effect.empireEffectName)
+			let effectAge =
+				(Date.now().valueOf() - effect.createdAt.valueOf()) / 60000
+			effectAge = Math.floor(effectAge)
+
+			if (effectAge > effect.empireEffectValue) {
+				array.splice(index, 1)
+			}
+		})
+
+		return res.json(effects)
+	} catch (error) {
+		console.log(error)
+		return res.status(404).json({ empire: 'empire effects not found' })
+	}
+}
+
+const addEmpireEffect = async (req: Request, res: Response) => {
+	// const {uuid} = req.params
+	const { empireId, effectName, effectValue } = req.body
+
+	let effectOwnerId = empireId
+	let empireEffectName = effectName
+	let empireEffectValue = effectValue
+
+	try {
+		let effect: EmpireEffect = null
+		effect = new EmpireEffect({
+			effectOwnerId,
+			empireEffectName,
+			empireEffectValue,
+		})
+		// console.log(effect)
+		await effect.save()
+		return res.status(201).json(effect)
+	} catch (error) {
+		console.log(error)
+		return res.status(404).json({ empire: 'empire effects not found' })
+	}
+}
+
 const router = Router()
 
 router.post('/', user, auth, createEmpire)
@@ -343,7 +352,9 @@ router.post('/', user, auth, createEmpire)
 router.get('/', getEmpires)
 router.get('/scores', getScores)
 router.get('/:uuid', user, auth, findOneEmpire)
-router.put('/:uuid', user, auth, updateEmpire)
+router.post('/effects', user, auth, getEmpireEffects)
+router.post('/effects/new', user, auth, addEmpireEffect)
+// router.put('/:uuid', user, auth, updateEmpire)
 router.post('/:uuid/bank', user, auth, bank)
 router.post('/:uuid/tax', user, auth, updateTax)
 router.post('/:uuid/industry', user, auth, updateIndustry)

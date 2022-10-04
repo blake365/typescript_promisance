@@ -5,6 +5,10 @@ import Model from './Model'
 
 @Entity('empire effects')
 export default class EmpireEffect extends Model {
+	constructor(empire: Partial<EmpireEffect>) {
+		super()
+		Object.assign(this, empire)
+	}
 	@Index()
 	@PrimaryGeneratedColumn()
 	empireEffect_id: number
@@ -15,6 +19,12 @@ export default class EmpireEffect extends Model {
 		default: 0,
 	})
 	empireEffectValue: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	effectOwnerId: number
 
 	@Column()
 	empireEffectName: string
