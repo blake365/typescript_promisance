@@ -296,25 +296,33 @@ const findOneEmpire = async (req: Request, res: Response) => {
 const getEmpireEffects = async (req: Request, res: Response) => {
 	const { empireId } = req.body
 
+	function isOld(createdAt, effectValue) {
+		let effectAge =
+			(Date.now().valueOf() - new Date(createdAt).getTime()) / 60000
+		effectAge = Math.floor(effectAge)
+
+		// console.log(effectAge)
+		// console.log(effectValue)
+
+		if (effectAge > effectValue) {
+			return false
+		} else {
+			return true
+		}
+	}
+
 	try {
 		let effects = await EmpireEffect.find({
 			where: { effectOwnerId: empireId },
 		})
 		// console.log('user', user)
-		console.log(effects)
+		// console.log(effects)
 
-		effects.forEach((effect, index, array) => {
-			// console.log(effect.empireEffectName)
-			let effectAge =
-				(Date.now().valueOf() - effect.createdAt.valueOf()) / 60000
-			effectAge = Math.floor(effectAge)
+		let filterEffects = effects.filter((effect) =>
+			isOld(effect.createdAt, effect.empireEffectValue)
+		)
 
-			if (effectAge > effect.empireEffectValue) {
-				array.splice(index, 1)
-			}
-		})
-
-		return res.json(effects)
+		return res.json(filterEffects)
 	} catch (error) {
 		console.log(error)
 		return res.status(404).json({ empire: 'empire effects not found' })
