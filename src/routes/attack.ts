@@ -85,6 +85,85 @@ function isTimeGate(effect: Effect) {
 	} else true
 }
 
+const destroyBuildings = async (
+	attackType: string,
+	pcloss,
+	pcgain,
+	type,
+	defender: Empire,
+	attacker: Empire,
+	buildLoss,
+	buildGain
+) => {
+	if (
+		attackType === 'trplnd' ||
+		attackType === 'trpfly' ||
+		attackType === 'trpsea'
+	) {
+		if (attackType === 'trpfly') {
+			// air strikes destroy more, take more land, but gain fewer buildings
+			pcloss *= 1.25
+			pcgain *= 0.72
+		} else if (type === 'blddef' || type === 'bldwiz') {
+			// towers are even more likely to be destroyed by land/sea attacks (and more likely to be destroyed)
+			pcloss *= 1.3
+			pcgain *= 0.7
+		} else {
+			// while land/sea attacks simply have a higher chance of destroying the buildings stolen
+			pcgain *= 0.9
+		}
+	}
+
+	let loss = Math.min(
+		getRandomInt(1, Math.ceil(defender[type] * pcloss + 2)),
+		defender[type]
+	)
+
+	let gain = Math.ceil(loss * pcgain)
+
+	switch (attackType) {
+		case 'standard':
+			defender.land -= loss
+			// $emp2->subData($type, $loss); ?? what is this
+			buildLoss[type] += loss
+
+			attacker.land += loss
+			// $emp1->addData($type, $loss); ?? what is this
+			buildGain[type] += gain
+			attacker.freeLand += loss - gain
+			buildGain['freeLand'] += loss - gain
+			break
+		case 'surprise' || 'trparm':
+			defender.land -= loss
+			// $emp2->subData($type, $loss); ?? what is this
+			buildLoss[type] += loss
+
+			attacker.land += loss
+			attacker.freeLand += loss
+			buildGain['freeLand'] += loss
+			break
+		case 'trplnd' || 'trpfly' || 'trpsea':
+			if (type === 'freeLand') {
+				// for stealing unused land, the 'gain' percent is zero
+				gain = loss
+				// so we need to use the 'loss' value instead
+			}
+
+			defender.land -= gain
+			// 	$emp2->subData($type, $loss);
+			buildLoss[type] += loss
+			defender.freeLand += loss - gain
+			buildLoss['freeLand'] -= loss - gain
+
+			attacker.land += gain
+			attacker.freeLand += gain
+			buildGain['freeland'] += gain
+			break
+	}
+
+	return { buildGain, buildLoss }
+}
+
 const attack = async (req: Request, res: Response) => {
 	const { attackType, defenderId } = req.body
 	const { uuid } = req.params
@@ -225,6 +304,95 @@ const attack = async (req: Request, res: Response) => {
 					attackLosses = { unit: 'trpsea', amount: result.attackLosses }
 					defenseLosses = { unit: 'trpsea', amount: result.defendLosses }
 				// TODO: suprise attack and standard attack
+			}
+
+			let won = false
+
+			if (offPower > defPower * 1.05) {
+				won = true
+				let buildLoss = {}
+				let buildGain = {}
+
+				destroyBuildings(
+					attackType,
+					0.07,
+					0.7,
+					'e_bldcash',
+					defender,
+					attacker,
+					buildLoss,
+					buildGain
+				)
+				destroyBuildings(
+					attackType,
+					0.07,
+					0.7,
+					'e_bldpop',
+					defender,
+					attacker,
+					buildLoss,
+					buildGain
+				)
+				destroyBuildings(
+					attackType,
+					0.07,
+					0.5,
+					'e_bldtrp',
+					defender,
+					attacker,
+					buildLoss,
+					buildGain
+				)
+				destroyBuildings(
+					attackType,
+					0.07,
+					0.7,
+					'e_bldcost',
+					defender,
+					attacker,
+					buildLoss,
+					buildGain
+				)
+				destroyBuildings(
+					attackType,
+					0.07,
+					0.3,
+					'e_bldfood',
+					defender,
+					attacker,
+					buildLoss,
+					buildGain
+				)
+				destroyBuildings(
+					attackType,
+					0.07,
+					0.6,
+					'e_bldwiz',
+					defender,
+					attacker,
+					buildLoss,
+					buildGain
+				)
+				destroyBuildings(
+					attackType,
+					0.11,
+					0.6,
+					'e_blddef',
+					defender,
+					attacker,
+					buildLoss,
+					buildGain
+				) // towers more likely to be taken, since they are encountered first
+				destroyBuildings(
+					attackType,
+					0.1,
+					0.0,
+					'e_freeland',
+					defender,
+					attacker,
+					buildLoss,
+					buildGain
+				) // 3rd argument MUST be 0 (for Standard attacks)
 			}
 		}
 	} catch (err) {
