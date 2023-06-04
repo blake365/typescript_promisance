@@ -33,7 +33,7 @@ export default class Empire extends Model {
 	clanId: number
 
 	@ManyToOne(() => User, (user) => user.empires)
-	@JoinColumn({name: 'username', referencedColumnName: 'username'})
+	@JoinColumn({ name: 'username', referencedColumnName: 'username' })
 	user: User
 
 	// @CreateDateColumn()
@@ -42,7 +42,7 @@ export default class Empire extends Model {
 	// @UpdateDateColumn()
 	// updatedAt: Date
 
-	@Column({default: ''})
+	@Column({ default: '' })
 	mode: string
 
 	@Column({
@@ -455,7 +455,8 @@ export default class Empire extends Model {
 	})
 	valCode: number
 
-	
+	@Column({ type: 'simple-array', nullable: true })
+	favorites: string[]
 
 	// @Column()
 	// turns: number

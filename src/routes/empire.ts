@@ -353,6 +353,31 @@ const addEmpireEffect = async (req: Request, res: Response) => {
 	}
 }
 
+const updateEmpireFavorite = async (req: Request, res: Response) => {
+	const { uuid } = req.params
+	const { favorite } = req.body
+
+	console.log(favorite)
+
+	try {
+		const empire = await Empire.findOneOrFail({ uuid })
+
+		if (empire.favorites && empire.favorites.includes(favorite)) {
+			empire.favorites = empire.favorites.filter((f) => f !== favorite)
+		} else {
+			if (empire.favorites === null) empire.favorites = []
+			empire.favorites.push(favorite)
+		}
+
+		await empire.save()
+		console.log('favorite updated')
+		return res.status(201).json(empire)
+	} catch (error) {
+		console.log(error)
+		return res.status(404).json({ empire: 'empire not found' })
+	}
+}
+
 const router = Router()
 
 router.post('/', user, auth, createEmpire)
@@ -367,6 +392,7 @@ router.post('/:uuid/bank', user, auth, bank)
 router.post('/:uuid/tax', user, auth, updateTax)
 router.post('/:uuid/industry', user, auth, updateIndustry)
 router.post('/otherEmpires', user, auth, getOtherEmpires)
+router.post('/:uuid/favorite', user, auth, updateEmpireFavorite)
 
 // router.put('/give/resources', giveResources)
 // router.put('/give/turns', giveTurns)
