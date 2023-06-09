@@ -1,6 +1,8 @@
 import { Request, Response, Router } from 'express'
 import Empire from '../entity/Empire'
 import EmpireEffect from '../entity/EmpireEffect'
+import auth from '../middleware/auth'
+import user from '../middleware/user'
 
 import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
@@ -14,16 +16,26 @@ function getRandomInt(min, max) {
 }
 
 const calcUnitPower = (empire: Empire, unit: string, mode: string) => {
+	// convert unit from trparm to trpArm
+	let unitM =
+		unit.substring(0, 3) + unit.charAt(3).toUpperCase() + unit.substring(4)
+
 	let lookup = ''
 	if ((mode = 'o')) {
 		lookup = 'o_' + unit
 	} else if ((mode = 'd')) {
 		lookup = 'd_' + unit
 	}
+	// console.log(empire)
+	// console.log(unit)
+	// console.log(lookup)
 
-	let quantity = empire[unit]
+	let quantity = empire[unitM]
+	// console.log('quantity: ', quantity)
 
 	let power = eraArray[empire.era][lookup] * quantity
+
+	// console.log('power: ', power)
 	return power
 }
 
@@ -36,6 +48,13 @@ const calcUnitLosses = (
 	omod: number,
 	dmod: number
 ) => {
+	// console.log('attackUnits: ', attackUnits)
+	// console.log('defendUnits: ', defendUnits)
+	// console.log('oper: ', oper)
+	// console.log('dper: ', dper)
+	// console.log('omod: ', omod)
+	// console.log('dmod: ', dmod)
+
 	let attackLosses = Math.min(
 		getRandomInt(0, Math.ceil(attackUnits * oper * omod) + 1),
 		attackUnits
@@ -50,6 +69,9 @@ const calcUnitLosses = (
 		defendUnits,
 		maxKill
 	)
+
+	console.log('attackLosses: ', attackLosses)
+	console.log('defendLosses: ', defendLosses)
 
 	return { attackLosses: attackLosses, defendLosses: defendLosses }
 }
@@ -79,6 +101,14 @@ interface UnitLoss {
 	defendLosses: number
 }
 
+interface buildGain {
+	[key: string]: number
+}
+
+interface buildLoss {
+	[key: string]: number
+}
+
 function isTimeGate(effect: Effect) {
 	if (effect.empireEffectName === 'time gate') {
 		return false
@@ -87,13 +117,13 @@ function isTimeGate(effect: Effect) {
 
 const destroyBuildings = async (
 	attackType: string,
-	pcloss,
-	pcgain,
-	type,
+	pcloss: number,
+	pcgain: number,
+	type: string,
 	defender: Empire,
 	attacker: Empire,
-	buildLoss,
-	buildGain
+	buildLoss: buildLoss,
+	buildGain: buildGain
 ) => {
 	if (
 		attackType === 'trplnd' ||
@@ -104,7 +134,7 @@ const destroyBuildings = async (
 			// air strikes destroy more, take more land, but gain fewer buildings
 			pcloss *= 1.25
 			pcgain *= 0.72
-		} else if (type === 'blddef' || type === 'bldwiz') {
+		} else if (type === 'bldDef' || type === 'bldWiz') {
 			// towers are even more likely to be destroyed by land/sea attacks (and more likely to be destroyed)
 			pcloss *= 1.3
 			pcgain *= 0.7
@@ -119,30 +149,45 @@ const destroyBuildings = async (
 		defender[type]
 	)
 
+	// console.log(attacker.freeLand)
+	// console.log(defender.freeLand)
+	// console.log(type)
+	// console.log('loss: ', loss)
+
 	let gain = Math.ceil(loss * pcgain)
+	// console.log('gain: ', gain)
+
+	if (typeof buildLoss[type] === 'undefined') buildLoss[type] = 0
+	if (typeof buildGain[type] === 'undefined') buildGain[type] = 0
+	if (typeof buildGain['freeLand'] === 'undefined') buildGain['freeLand'] = 0
+	if (typeof buildLoss['freeLand'] === 'undefined') buildLoss['freeLand'] = 0
 
 	switch (attackType) {
 		case 'standard':
 			defender.land -= loss
-			// $emp2->subData($type, $loss); ?? what is this
+			defender[type] -= loss
 			buildLoss[type] += loss
-
 			attacker.land += loss
-			// $emp1->addData($type, $loss); ?? what is this
+			attacker[type] += gain
 			buildGain[type] += gain
 			attacker.freeLand += loss - gain
 			buildGain['freeLand'] += loss - gain
 			break
-		case 'surprise' || 'trparm':
+		case 'surprise':
+		case 'trparm':
+			// attacks don't steal buildings, they just destroy them
 			defender.land -= loss
-			// $emp2->subData($type, $loss); ?? what is this
+			defender[type] -= loss
 			buildLoss[type] += loss
-
 			attacker.land += loss
 			attacker.freeLand += loss
 			buildGain['freeLand'] += loss
 			break
-		case 'trplnd' || 'trpfly' || 'trpsea':
+		case 'trplnd':
+		case 'trpfly':
+		case 'trpsea':
+			// console.log(buildGain.freeLand)
+			// console.log(buildLoss.freeLand)
 			if (type === 'freeLand') {
 				// for stealing unused land, the 'gain' percent is zero
 				gain = loss
@@ -150,23 +195,30 @@ const destroyBuildings = async (
 			}
 
 			defender.land -= gain
-			// 	$emp2->subData($type, $loss);
+			defender[type] -= loss
 			buildLoss[type] += loss
 			defender.freeLand += loss - gain
+			// buildLoss['freeLand'] will be negative because the free land is increasing as buildings are destroyed
 			buildLoss['freeLand'] -= loss - gain
 
 			attacker.land += gain
 			attacker.freeLand += gain
-			buildGain['freeland'] += gain
+			buildGain['freeLand'] += gain
 			break
 	}
+
+	// console.log('buildLoss: ', buildLoss)
+	// console.log('buildGain: ', buildGain)
 
 	return { buildGain, buildLoss }
 }
 
 const attack = async (req: Request, res: Response) => {
-	const { attackType, defenderId } = req.body
-	const { uuid } = req.params
+	// TODO: use two turns for attacks
+	// only send troops relevant to the attack type
+	console.log(req.body)
+	console.log(req.params)
+	const { attackType, defenderId, type, number, empireId } = req.body
 
 	let offPower = 0
 	let defPower = 0
@@ -175,7 +227,7 @@ const attack = async (req: Request, res: Response) => {
 	let returnText = ''
 
 	try {
-		const attacker = await Empire.findOneOrFail({ uuid })
+		const attacker = await Empire.findOneOrFail({ empireId: empireId })
 
 		const defender = await Empire.findOneOrFail({ empireId: defenderId })
 
@@ -189,12 +241,12 @@ const attack = async (req: Request, res: Response) => {
 		})
 
 		// apply race bonus
-		offPower *= raceArray[attacker.race].mod_offense
-		defPower *= raceArray[defender.race].mod_defense
+		offPower *= (100 + raceArray[attacker.race].mod_offense) / 100
+		defPower *= (100 + raceArray[defender.race].mod_defense) / 100
 
 		// reduce power level based on health
-		offPower *= attacker.health
-		defPower *= defender.health
+		offPower *= attacker.health / 100
+		defPower *= defender.health / 100
 
 		//TODO: war flag +20% when at war with other clan
 
@@ -237,6 +289,7 @@ const attack = async (req: Request, res: Response) => {
 			}
 		}
 
+		console.log('can attack', canAttack)
 		if (canAttack) {
 			// TODO: clan stuff with shared def
 
@@ -245,8 +298,12 @@ const attack = async (req: Request, res: Response) => {
 				defender.bldDef *
 				450 *
 				Math.min(1, defender.trpArm / (150 * defender.bldDef + 1))
+
+			// console.log('tower def', towerDef)
 			defPower += towerDef
 
+			console.log('off power', offPower)
+			console.log('def power', defPower)
 			// determine how many units each empire is about to lose in battle
 
 			// modification to attacker losses (towers excluded)
@@ -270,54 +327,101 @@ const attack = async (req: Request, res: Response) => {
 					)
 					attackLosses = { unit: 'trparm', amount: result.attackLosses }
 					defenseLosses = { unit: 'trparm', amount: result.defendLosses }
+					break
 				case 'trplnd':
 					result = calcUnitLosses(
 						attacker.trpLnd,
 						defender.trpLnd,
-						0.1155,
-						0.0705,
+						0.0985,
+						0.053,
 						omod,
 						dmod
 					)
 					attackLosses = { unit: 'trplnd', amount: result.attackLosses }
 					defenseLosses = { unit: 'trplnd', amount: result.defendLosses }
+					break
 				case 'trpfly':
 					result = calcUnitLosses(
 						attacker.trpFly,
 						defender.trpFly,
-						0.1155,
-						0.0705,
+						0.0688,
+						0.0445,
 						omod,
 						dmod
 					)
 					attackLosses = { unit: 'trpfly', amount: result.attackLosses }
 					defenseLosses = { unit: 'trpfly', amount: result.defendLosses }
+					break
 				case 'trpsea':
 					result = calcUnitLosses(
 						attacker.trpSea,
 						defender.trpSea,
-						0.1155,
-						0.0705,
+						0.045,
+						0.0355,
 						omod,
 						dmod
 					)
 					attackLosses = { unit: 'trpsea', amount: result.attackLosses }
 					defenseLosses = { unit: 'trpsea', amount: result.defendLosses }
+					break
 				// TODO: suprise attack and standard attack
+				case 'suprise':
+					omod *= 1.2
+				case 'standard':
+					result = calcUnitLosses(
+						attacker.trpArm,
+						defender.trpArm,
+						0.1455,
+						0.0805,
+						omod,
+						dmod
+					)
+					attackLosses = { unit: 'trparm', amount: result.attackLosses }
+					defenseLosses = { unit: 'trparm', amount: result.defendLosses }
+					result = calcUnitLosses(
+						attacker.trpLnd,
+						defender.trpLnd,
+						0.1285,
+						0.073,
+						omod,
+						dmod
+					)
+					attackLosses = { unit: 'trplnd', amount: result.attackLosses }
+					defenseLosses = { unit: 'trplnd', amount: result.defendLosses }
+					result = calcUnitLosses(
+						attacker.trpFly,
+						defender.trpFly,
+						0.0788,
+						0.0675,
+						omod,
+						dmod
+					)
+					attackLosses = { unit: 'trpfly', amount: result.attackLosses }
+					defenseLosses = { unit: 'trpfly', amount: result.defendLosses }
+					result = calcUnitLosses(
+						attacker.trpSea,
+						defender.trpSea,
+						0.065,
+						0.0555,
+						omod,
+						dmod
+					)
+					attackLosses = { unit: 'trpsea', amount: result.attackLosses }
+					defenseLosses = { unit: 'trpsea', amount: result.defendLosses }
 			}
 
-			let won = false
+			// let won: boolean
 
 			if (offPower > defPower * 1.05) {
-				won = true
-				let buildLoss = {}
-				let buildGain = {}
+				// won = true
+				let buildLoss: buildLoss = {}
+				let buildGain: buildGain = {}
 
 				destroyBuildings(
 					attackType,
 					0.07,
 					0.7,
-					'e_bldcash',
+					'bldCash',
 					defender,
 					attacker,
 					buildLoss,
@@ -327,7 +431,7 @@ const attack = async (req: Request, res: Response) => {
 					attackType,
 					0.07,
 					0.7,
-					'e_bldpop',
+					'bldPop',
 					defender,
 					attacker,
 					buildLoss,
@@ -337,7 +441,7 @@ const attack = async (req: Request, res: Response) => {
 					attackType,
 					0.07,
 					0.5,
-					'e_bldtrp',
+					'bldTroop',
 					defender,
 					attacker,
 					buildLoss,
@@ -347,7 +451,7 @@ const attack = async (req: Request, res: Response) => {
 					attackType,
 					0.07,
 					0.7,
-					'e_bldcost',
+					'bldCost',
 					defender,
 					attacker,
 					buildLoss,
@@ -357,7 +461,7 @@ const attack = async (req: Request, res: Response) => {
 					attackType,
 					0.07,
 					0.3,
-					'e_bldfood',
+					'bldFood',
 					defender,
 					attacker,
 					buildLoss,
@@ -367,7 +471,7 @@ const attack = async (req: Request, res: Response) => {
 					attackType,
 					0.07,
 					0.6,
-					'e_bldwiz',
+					'bldWiz',
 					defender,
 					attacker,
 					buildLoss,
@@ -377,7 +481,7 @@ const attack = async (req: Request, res: Response) => {
 					attackType,
 					0.11,
 					0.6,
-					'e_blddef',
+					'bldDef',
 					defender,
 					attacker,
 					buildLoss,
@@ -387,15 +491,56 @@ const attack = async (req: Request, res: Response) => {
 					attackType,
 					0.1,
 					0.0,
-					'e_freeland',
+					'freeLand',
 					defender,
 					attacker,
 					buildLoss,
 					buildGain
 				) // 3rd argument MUST be 0 (for Standard attacks)
+
+				// console.log('buildGain', buildGain)
+				// console.log('buildLoss', buildLoss)
+
+				// take enemy land
+				attacker.land += buildGain.freeLand
+
+				returnText +=
+					' ' +
+					buildGain.freeLand +
+					' acres of land were captured from ' +
+					defender.name +
+					'(' +
+					defender.id +
+					')' +
+					'.'
+
+				// attacker off success
+				attacker.offSucc++
+
+				// check for kill
+			} else {
+				let landLoss = 0
+
+				// defender def success
+				defender.defSucc++
 			}
 		}
+
+		// save updated attacker and defender
+		// await attacker.save()
+		// await defender.save()
+
+		// still need news system
+		// figure out return object
+
+		return returnText
 	} catch (err) {
 		console.log(err)
 	}
 }
+
+const router = Router()
+
+router.post('/', user, auth, attack)
+
+export default router

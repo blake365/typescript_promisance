@@ -10,7 +10,7 @@ import { advance_allow, advance_cast, advance_cost } from './spells/advance'
 import { food_cast, food_cost } from './spells/food'
 import { cash_cast, cash_cost } from './spells/cash'
 
-// FIXME: internal turns not working
+// FIXED: internal turns not working
 
 const magic = async (req: Request, res: Response) => {
 	// request will have object with type of spell as a number and number of times to cast spell
