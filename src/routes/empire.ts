@@ -188,7 +188,8 @@ const bank = async (req: Request, res: Response) => {
 		// const size = calcSizeBonus(empire)
 
 		const maxLoan = empire.networth * 50
-		const maxSavings = empire.networth * 100
+		let maxSavings = empire.networth * 100
+		if (empire.cash < maxSavings) maxSavings = empire.cash
 
 		if (repayAmt > empire.loan) {
 			repayAmt = empire.loan
