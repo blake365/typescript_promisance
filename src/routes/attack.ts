@@ -368,8 +368,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses['trpArm'] = result.attackLosses
-					defenseLosses['trpArm'] = result.defendLosses
+					attackLosses['trparm'] = result.attackLosses
+					defenseLosses['trparm'] = result.defendLosses
 					break
 				case 'trplnd':
 					result = calcUnitLosses(
@@ -380,8 +380,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses['trpLnd'] = result.attackLosses
-					defenseLosses['trpLnd'] = result.defendLosses
+					attackLosses['trplnd'] = result.attackLosses
+					defenseLosses['trplnd'] = result.defendLosses
 					break
 				case 'trpfly':
 					result = calcUnitLosses(
@@ -392,8 +392,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses['trpFly'] = result.attackLosses
-					defenseLosses['trpFly'] = result.defendLosses
+					attackLosses['trpfly'] = result.attackLosses
+					defenseLosses['trpfly'] = result.defendLosses
 					break
 				case 'trpsea':
 					result = calcUnitLosses(
@@ -404,8 +404,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses['trpSea'] = result.attackLosses
-					defenseLosses['trpSea'] = result.defendLosses
+					attackLosses['trpsea'] = result.attackLosses
+					defenseLosses['trpsea'] = result.defendLosses
 					break
 				//FIXME: surprise attack and standard attack losses
 				case 'surprise':
@@ -419,8 +419,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses['trpArm'] = result.attackLosses
-					defenseLosses['trpArm'] = result.defendLosses
+					attackLosses['trparm'] = result.attackLosses
+					defenseLosses['trparm'] = result.defendLosses
 					result = calcUnitLosses(
 						attacker.trpLnd,
 						defender.trpLnd,
@@ -429,8 +429,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses['trpLnd'] = result.attackLosses
-					defenseLosses['trpLnd'] = result.defendLosses
+					attackLosses['trplnd'] = result.attackLosses
+					defenseLosses['trplnd'] = result.defendLosses
 					result = calcUnitLosses(
 						attacker.trpFly,
 						defender.trpFly,
@@ -439,8 +439,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses['trpFly'] = result.attackLosses
-					defenseLosses['trpFly'] = result.defendLosses
+					attackLosses['trpfly'] = result.attackLosses
+					defenseLosses['trpfly'] = result.defendLosses
 					result = calcUnitLosses(
 						attacker.trpSea,
 						defender.trpSea,
@@ -449,31 +449,31 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses['trpSea'] = result.attackLosses
-					defenseLosses['trpSea'] = result.defendLosses
+					attackLosses['trpsea'] = result.attackLosses
+					defenseLosses['trpsea'] = result.defendLosses
 			}
 
 			if (attackType === 'trparm') {
-				attacker.trpArm -= attackLosses.trpArm
-				defender.trpArm -= defenseLosses.trpArm
+				attacker.trpArm -= attackLosses.trparm
+				defender.trpArm -= defenseLosses.trparm
 			} else if (attackType === 'trplnd') {
-				attacker.trpLnd -= attackLosses.trpLnd
-				defender.trpLnd -= defenseLosses.trpLnd
+				attacker.trpLnd -= attackLosses.trplnd
+				defender.trpLnd -= defenseLosses.trplnd
 			} else if (attackType === 'trpfly') {
-				attacker.trpFly -= attackLosses.trpFly
-				defender.trpFly -= defenseLosses.trpFly
+				attacker.trpFly -= attackLosses.trpfly
+				defender.trpFly -= defenseLosses.trpfly
 			} else if (attackType === 'trpsea') {
-				attacker.trpSea -= attackLosses.trpSea
-				defender.trpSea -= defenseLosses.trpSea
+				attacker.trpSea -= attackLosses.trpsea
+				defender.trpSea -= defenseLosses.trpsea
 			} else if (attackType === 'surprise' || attackType === 'standard') {
-				attacker.trpArm -= attackLosses.trpArm
-				defender.trpArm -= defenseLosses.trpArm
-				attacker.trpLnd -= attackLosses.trpLnd
-				defender.trpLnd -= defenseLosses.trpLnd
-				attacker.trpFly -= attackLosses.trpFly
-				defender.trpFly -= defenseLosses.trpFly
-				attacker.trpSea -= attackLosses.trpSea
-				defender.trpSea -= defenseLosses.trpSea
+				attacker.trpArm -= attackLosses.trparm
+				defender.trpArm -= defenseLosses.trparm
+				attacker.trpLnd -= attackLosses.trplnd
+				defender.trpLnd -= defenseLosses.trplnd
+				attacker.trpFly -= attackLosses.trpfly
+				defender.trpFly -= defenseLosses.trpfly
+				attacker.trpSea -= attackLosses.trpsea
+				defender.trpSea -= defenseLosses.trpsea
 			}
 
 			// let won: boolean
@@ -572,7 +572,7 @@ const attack = async (req: Request, res: Response) => {
 				// attacker.land += buildGain.freeLand
 
 				returnText +=
-					' ' +
+					'' +
 					buildGain.freeLand +
 					' acres of land were captured from ' +
 					defender.name +
@@ -582,6 +582,8 @@ const attack = async (req: Request, res: Response) => {
 
 				attackDescription = {
 					result: 'success',
+					attackType: attackType,
+					troopType: eraArray[attacker.era][attackType],
 					message: returnText,
 					troopLoss: attackLosses,
 					troopKilled: defenseLosses,
@@ -596,6 +598,8 @@ const attack = async (req: Request, res: Response) => {
 
 				attackDescription = {
 					result: 'fail',
+					attackType: attackType,
+					troopType: eraArray[attacker.era][attackType],
 					message: returnText,
 					troopLoss: attackLosses,
 					troopKilled: defenseLosses,
@@ -620,6 +624,7 @@ const attack = async (req: Request, res: Response) => {
 			// console.log(returnText)
 		}
 
+		console.log('resultArray', resultArray)
 		return res.json(resultArray)
 	} catch (err) {
 		console.log(err)
