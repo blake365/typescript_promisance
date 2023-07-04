@@ -3,9 +3,11 @@ import Empire from '../entity/Empire'
 import EmpireEffect from '../entity/EmpireEffect'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
+import { useTurnInternal } from './useturns'
 
 import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
+import { getNetworth } from './actions/actions'
 
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
@@ -106,6 +108,14 @@ interface buildGain {
 }
 
 interface buildLoss {
+	[key: string]: number
+}
+
+interface attackLosses {
+	[key: string]: number
+}
+
+interface defendLosses {
 	[key: string]: number
 }
 
@@ -225,6 +235,8 @@ const attack = async (req: Request, res: Response) => {
 	let canAttack = false
 
 	let returnText = ''
+	let attackDescription = {}
+	let resultArray = []
 
 	try {
 		const attacker = await Empire.findOneOrFail({ empireId: empireId })
@@ -232,13 +244,18 @@ const attack = async (req: Request, res: Response) => {
 		const defender = await Empire.findOneOrFail({ empireId: defenderId })
 
 		// calculate power levels
-		troopTypes.forEach((type) => {
-			offPower += calcUnitPower(attacker, type, 'o')
-		})
+		if (attackType === 'standard') {
+			troopTypes.forEach((type) => {
+				offPower += calcUnitPower(attacker, type, 'o')
+			})
 
-		troopTypes.forEach((type) => {
-			defPower += calcUnitPower(defender, type, 'd')
-		})
+			troopTypes.forEach((type) => {
+				defPower += calcUnitPower(defender, type, 'd')
+			})
+		} else {
+			offPower = calcUnitPower(attacker, attackType, 'o')
+			defPower = calcUnitPower(defender, attackType, 'd')
+		}
 
 		// apply race bonus
 		offPower *= (100 + raceArray[attacker.race].mod_offense) / 100
@@ -291,6 +308,32 @@ const attack = async (req: Request, res: Response) => {
 
 		console.log('can attack', canAttack)
 		if (canAttack) {
+			let attackTurns = useTurnInternal('attack', 2, attacker, true)
+
+			let attackRes = attackTurns[0]
+			attackTurns = attackTurns[0]
+			console.log(attackRes)
+
+			attacker.cash =
+				attacker.cash +
+				attackRes.withdraw +
+				attackRes.money -
+				attackRes.loanpayed
+
+			attacker.loan -= attackRes.loanpayed + attackRes?.loanInterest
+			attacker.trpArm += attackRes.trpArm
+			attacker.trpLnd += attackRes.trpLnd
+			attacker.trpFly += attackRes.trpFly
+			attacker.trpSea += attackRes.trpSea
+			attacker.food += attackRes.food
+			attacker.peasants += attackRes.peasants
+			attacker.runes += attackRes.runes
+			attacker.trpWiz += attackRes.trpWiz
+			attacker.turns -= 2
+			attacker.turnsUsed += 2
+
+			attacker.offTotal++
+			defender.defTotal++
 			// TODO: clan stuff with shared def
 
 			// add defense for guard towers
@@ -311,8 +354,8 @@ const attack = async (req: Request, res: Response) => {
 			// modification to enemy losses
 			let dmod = Math.sqrt(offPower / (defPower + 1))
 
-			let attackLosses = {}
-			let defenseLosses = {}
+			let attackLosses: attackLosses = {}
+			let defenseLosses: defendLosses = {}
 			let result: UnitLoss
 
 			switch (attackType) {
@@ -325,8 +368,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses = { unit: 'trparm', amount: result.attackLosses }
-					defenseLosses = { unit: 'trparm', amount: result.defendLosses }
+					attackLosses['trpArm'] = result.attackLosses
+					defenseLosses['trpArm'] = result.defendLosses
 					break
 				case 'trplnd':
 					result = calcUnitLosses(
@@ -337,8 +380,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses = { unit: 'trplnd', amount: result.attackLosses }
-					defenseLosses = { unit: 'trplnd', amount: result.defendLosses }
+					attackLosses['trpLnd'] = result.attackLosses
+					defenseLosses['trpLnd'] = result.defendLosses
 					break
 				case 'trpfly':
 					result = calcUnitLosses(
@@ -349,8 +392,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses = { unit: 'trpfly', amount: result.attackLosses }
-					defenseLosses = { unit: 'trpfly', amount: result.defendLosses }
+					attackLosses['trpFly'] = result.attackLosses
+					defenseLosses['trpFly'] = result.defendLosses
 					break
 				case 'trpsea':
 					result = calcUnitLosses(
@@ -361,11 +404,11 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses = { unit: 'trpsea', amount: result.attackLosses }
-					defenseLosses = { unit: 'trpsea', amount: result.defendLosses }
+					attackLosses['trpSea'] = result.attackLosses
+					defenseLosses['trpSea'] = result.defendLosses
 					break
-				// TODO: suprise attack and standard attack
-				case 'suprise':
+				//FIXME: surprise attack and standard attack losses
+				case 'surprise':
 					omod *= 1.2
 				case 'standard':
 					result = calcUnitLosses(
@@ -376,8 +419,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses = { unit: 'trparm', amount: result.attackLosses }
-					defenseLosses = { unit: 'trparm', amount: result.defendLosses }
+					attackLosses['trpArm'] = result.attackLosses
+					defenseLosses['trpArm'] = result.defendLosses
 					result = calcUnitLosses(
 						attacker.trpLnd,
 						defender.trpLnd,
@@ -386,8 +429,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses = { unit: 'trplnd', amount: result.attackLosses }
-					defenseLosses = { unit: 'trplnd', amount: result.defendLosses }
+					attackLosses['trpLnd'] = result.attackLosses
+					defenseLosses['trpLnd'] = result.defendLosses
 					result = calcUnitLosses(
 						attacker.trpFly,
 						defender.trpFly,
@@ -396,8 +439,8 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses = { unit: 'trpfly', amount: result.attackLosses }
-					defenseLosses = { unit: 'trpfly', amount: result.defendLosses }
+					attackLosses['trpFly'] = result.attackLosses
+					defenseLosses['trpFly'] = result.defendLosses
 					result = calcUnitLosses(
 						attacker.trpSea,
 						defender.trpSea,
@@ -406,8 +449,31 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					attackLosses = { unit: 'trpsea', amount: result.attackLosses }
-					defenseLosses = { unit: 'trpsea', amount: result.defendLosses }
+					attackLosses['trpSea'] = result.attackLosses
+					defenseLosses['trpSea'] = result.defendLosses
+			}
+
+			if (attackType === 'trparm') {
+				attacker.trpArm -= attackLosses.trpArm
+				defender.trpArm -= defenseLosses.trpArm
+			} else if (attackType === 'trplnd') {
+				attacker.trpLnd -= attackLosses.trpLnd
+				defender.trpLnd -= defenseLosses.trpLnd
+			} else if (attackType === 'trpfly') {
+				attacker.trpFly -= attackLosses.trpFly
+				defender.trpFly -= defenseLosses.trpFly
+			} else if (attackType === 'trpsea') {
+				attacker.trpSea -= attackLosses.trpSea
+				defender.trpSea -= defenseLosses.trpSea
+			} else if (attackType === 'surprise' || attackType === 'standard') {
+				attacker.trpArm -= attackLosses.trpArm
+				defender.trpArm -= defenseLosses.trpArm
+				attacker.trpLnd -= attackLosses.trpLnd
+				defender.trpLnd -= defenseLosses.trpLnd
+				attacker.trpFly -= attackLosses.trpFly
+				defender.trpFly -= defenseLosses.trpFly
+				attacker.trpSea -= attackLosses.trpSea
+				defender.trpSea -= defenseLosses.trpSea
 			}
 
 			// let won: boolean
@@ -498,42 +564,63 @@ const attack = async (req: Request, res: Response) => {
 					buildGain
 				) // 3rd argument MUST be 0 (for Standard attacks)
 
-				// console.log('buildGain', buildGain)
+				console.log('buildGain', buildGain)
 				// console.log('buildLoss', buildLoss)
+				// TODO: create return text for captured buildings
 
 				// take enemy land
-				attacker.land += buildGain.freeLand
+				// attacker.land += buildGain.freeLand
 
 				returnText +=
 					' ' +
 					buildGain.freeLand +
 					' acres of land were captured from ' +
 					defender.name +
-					'(' +
+					'(#' +
 					defender.id +
-					')' +
-					'.'
+					')'
 
+				attackDescription = {
+					result: 'success',
+					message: returnText,
+					troopLoss: attackLosses,
+					troopKilled: defenseLosses,
+					buildingGain: buildGain,
+				}
 				// attacker off success
 				attacker.offSucc++
 
-				// check for kill
+				//TODO: check for kill
 			} else {
 				let landLoss = 0
 
+				attackDescription = {
+					result: 'fail',
+					message: returnText,
+					troopLoss: attackLosses,
+					troopKilled: defenseLosses,
+					buildingGain: null,
+				}
 				// defender def success
 				defender.defSucc++
 			}
+
+			attackTurns['attack'] = attackDescription
+			resultArray.push(attackTurns)
+			// attacker.networth = getNetworth(attacker)
+			// defender.networth = getNetworth(defender)
+
+			// save updated attacker and defender
+			await attacker.save()
+			await defender.save()
+
+			//TODO: still need news system
+			// figure out return object
+			// console.log(attackTurns)
+			// console.log(returnText)
 		}
 
-		// save updated attacker and defender
-		// await attacker.save()
-		// await defender.save()
-
-		// still need news system
-		// figure out return object
-
-		return returnText
+		return res.json(resultArray)
 	} catch (err) {
 		console.log(err)
 	}
