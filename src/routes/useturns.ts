@@ -109,7 +109,7 @@ export const useTurn = async (
 				empire.trpWiz * 0.5
 		)
 
-		//TODO: set up race/era modifier
+		//set up race/era modifier
 		let expensesBonus = Math.min(
 			0.5,
 			(raceArray[empire.race].mod_expenses + 100) / 100 -
@@ -127,6 +127,9 @@ export const useTurn = async (
 		let wartax = 0
 
 		// net income
+		if (type === 'heal') {
+			income = income * 0.75
+		}
 		let money = income - (expenses + wartax)
 
 		empire.cash += money
@@ -137,7 +140,7 @@ export const useTurn = async (
 			troubleCash = true
 		}
 
-		//TODO: more loan stuff
+		//more loan stuff
 		let loanpayed = 0
 		let loanEmergencyLimit = loanMax * 2
 
@@ -169,6 +172,9 @@ export const useTurn = async (
 		let indMultiplier = 1
 		if (type === 'industry') {
 			indMultiplier = 1.25
+		}
+		if (type === 'heal') {
+			indMultiplier = 0.75
 		}
 
 		let trparm = Math.ceil(
@@ -250,6 +256,10 @@ export const useTurn = async (
 		if (type === 'farm') {
 			foodpro = Math.round(1.25 * foodpro)
 		}
+		if (type === 'heal') {
+			foodpro = Math.round(0.75 * foodpro)
+		}
+
 		let food = foodpro - foodcon
 		empire.food += food
 		if (type === 'farm') {
@@ -268,6 +278,11 @@ export const useTurn = async (
 		// health
 		if (empire.health < 100 - Math.max((empire.tax - 10) / 2, 0)) {
 			empire.health++
+		}
+
+		// gain 1 additional health per turn used healing
+		if (type === 'heal') {
+			empire.health += 1
 		}
 
 		// update population
@@ -312,6 +327,9 @@ export const useTurn = async (
 		let runeMultiplier = 1
 		if (type === 'meditate') {
 			runeMultiplier = 1.25
+		}
+		if (type === 'heal') {
+			runeMultiplier = 0.75
 		}
 
 		let runes = 0

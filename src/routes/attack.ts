@@ -609,6 +609,8 @@ const attack = async (req: Request, res: Response) => {
 				defender.defSucc++
 			}
 
+			attacker.health -= 6
+
 			attackTurns['attack'] = attackDescription
 			resultArray.push(attackTurns)
 			// attacker.networth = getNetworth(attacker)
