@@ -112,7 +112,6 @@ const getScores = async (_: Request, res: Response) => {
 				rank: 'ASC',
 			},
 		})
-
 		return res.json(empires)
 	} catch (error) {
 		console.log(error)

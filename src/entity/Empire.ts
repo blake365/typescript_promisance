@@ -458,6 +458,9 @@ export default class Empire extends Model {
 	@Column({ type: 'simple-array', nullable: true })
 	favorites: string[]
 
+	@Column({ type: 'varchar', nullable: true, length: 1000 })
+	profile: string
+
 	// @Column()
 	// turns: number
 

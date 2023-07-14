@@ -277,14 +277,17 @@ export const useTurn = async (
 		current['food'] = food
 
 		// health
-		if (empire.health < 100 - Math.max((empire.tax - 10) / 2, 0)) {
+		// gain 1 additional health per turn used healing
+
+		if (empire.health < 100 - Math.max((empire.tax - 25) / 2, 0)) {
 			empire.health++
-			if (type === 'heal') {
-				empire.health += 1
+			if (type === 'heal' && empire.health < 100) {
+				empire.health++
 			}
 		}
-
-		// gain 1 additional health per turn used healing
+		if (empire.health > 100) {
+			empire.health = 100
+		}
 
 		// update population
 		let taxrate = empire.tax / 100
