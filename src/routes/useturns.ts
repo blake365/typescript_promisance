@@ -122,14 +122,15 @@ export const useTurn = async (
 		if (type === 'cash') {
 			income = Math.round(income * 1.25)
 		}
+		if (type === 'heal') {
+			income = Math.round(income * 0.75)
+		}
 
 		//TODO: war tax
 		let wartax = 0
 
 		// net income
-		if (type === 'heal') {
-			income = income * 0.75
-		}
+
 		let money = income - (expenses + wartax)
 
 		empire.cash += money
@@ -278,12 +279,12 @@ export const useTurn = async (
 		// health
 		if (empire.health < 100 - Math.max((empire.tax - 10) / 2, 0)) {
 			empire.health++
+			if (type === 'heal') {
+				empire.health += 1
+			}
 		}
 
 		// gain 1 additional health per turn used healing
-		if (type === 'heal') {
-			empire.health += 1
-		}
 
 		// update population
 		let taxrate = empire.tax / 100
