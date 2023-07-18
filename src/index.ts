@@ -28,6 +28,7 @@ import pubSellMine from './routes/publicMarket'
 import pubSellOthers from './routes/publicMarket'
 import otherEmpires from './routes/empire'
 import attack from './routes/attack'
+import news from './routes/news'
 
 import { hourlyUpdate, promTurns, updateRanks } from './jobs/promTurns'
 
@@ -69,6 +70,7 @@ app.use('/api/market', pubSellMine)
 app.use('/api/market', pubSellOthers)
 app.use('/api/market', pubBuy)
 app.use('/api/attack', attack)
+app.use('/api/news', news)
 // app.use('/api/empire', otherEmpires)
 
 app.listen(PORT, async () => {

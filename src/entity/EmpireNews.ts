@@ -37,59 +37,11 @@ export default class EmpireNews extends Model {
 	})
 	empireIdSource: number
 
-	@Column({
-		type: 'bigint',
-		default: 0,
-	})
-	news_d0: number
+	@Column({ default: '' })
+	sourceName: string
 
-	@Column({
-		type: 'bigint',
-		default: 0,
-	})
-	news_d1: number
-
-	@Column({
-		type: 'bigint',
-		default: 0,
-	})
-	news_d2: number
-
-	@Column({
-		type: 'bigint',
-		default: 0,
-	})
-	news_d3: number
-
-	@Column({
-		type: 'bigint',
-		default: 0,
-	})
-	news_d4: number
-
-	@Column({
-		type: 'bigint',
-		default: 0,
-	})
-	news_d5: number
-
-	@Column({
-		type: 'bigint',
-		default: 0,
-	})
-	news_d6: number
-
-	@Column({
-		type: 'bigint',
-		default: 0,
-	})
-	news_d7: number
-
-	@Column({
-		type: 'bigint',
-		default: 0,
-	})
-	news_d8: number
+	@Column({ default: '' })
+	destinationName: string
 
 	@Index()
 	@Column({
@@ -114,6 +66,15 @@ export default class EmpireNews extends Model {
 	@Column({ default: '' })
 	content: string
 
+	@Column({ default: '' })
+	type: string
+
+	@Column({ default: '' })
+	result: string
+
 	@Column({ default: false })
 	seen: boolean
+
+	@Column({ default: true })
+	public: boolean
 }

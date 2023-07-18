@@ -5,6 +5,7 @@ import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { useTurnInternal } from './useturns'
 
+import EmpireNews from '../entity/EmpireNews'
 import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
 import { getNetworth } from './actions/actions'
@@ -268,7 +269,7 @@ const attack = async (req: Request, res: Response) => {
 		//TODO: war flag +20% when at war with other clan
 
 		// check eras and time gates
-		if (attacker.era === defender.era) {
+		if (attacker.era === defender.era && attacker.turns > 2) {
 			canAttack = true
 		} else if (attacker.era !== defender.era) {
 			// use attacker time gate first then try defender
@@ -573,7 +574,7 @@ const attack = async (req: Request, res: Response) => {
 
 				returnText +=
 					'' +
-					buildGain.freeLand +
+					buildGain.freeLand.toLocaleString() +
 					' acres of land were captured from ' +
 					defender.name +
 					'(#' +
@@ -592,6 +593,27 @@ const attack = async (req: Request, res: Response) => {
 				// attacker off success
 				attacker.offSucc++
 
+				let content = `${attacker.name} (#${attacker.id}) attacked you with ${
+					eraArray[attacker.era][attackType]
+				} and captured ${buildGain.freeLand.toLocaleString()} acres of land. /n In the battle you lost: ${defenseLosses[
+					attackType
+				].toLocaleString()} ${
+					eraArray[defender.era][attackType]
+				} /n You killed: ${attackLosses[attackType].toLocaleString()} ${
+					eraArray[attacker.era][attackType]
+				}.`
+
+				let newsItem = new EmpireNews()
+				newsItem.content = content
+				newsItem.empireIdSource = attacker.id
+				newsItem.sourceName = attacker.name
+				newsItem.empireIdDestination = defender.id
+				newsItem.destinationName = defender.name
+				newsItem.type = 'attack'
+				newsItem.result = 'fail'
+				console.log(newsItem)
+				await newsItem.save()
+
 				//TODO: check for kill
 			} else {
 				let landLoss = 0
@@ -607,6 +629,29 @@ const attack = async (req: Request, res: Response) => {
 				}
 				// defender def success
 				defender.defSucc++
+
+				let content = `You successfully defended your empire. /n ${
+					attacker.name
+				} (#${attacker.id}) attacked you with ${
+					eraArray[attacker.era][attackType]
+				}. /n In the battle you lost: ${defenseLosses[
+					attackType
+				].toLocaleString()} ${
+					eraArray[defender.era][attackType]
+				} /n You killed: ${attackLosses[attackType].toLocaleString()} ${
+					eraArray[attacker.era][attackType]
+				}. `
+
+				let newsItem = new EmpireNews()
+				newsItem.content = content
+				newsItem.empireIdSource = attacker.id
+				newsItem.sourceName = attacker.name
+				newsItem.empireIdDestination = defender.id
+				newsItem.destinationName = defender.name
+				newsItem.type = 'attack'
+				newsItem.result = 'success'
+				console.log(newsItem)
+				await newsItem.save()
 			}
 
 			attacker.health -= 6

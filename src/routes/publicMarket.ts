@@ -74,7 +74,11 @@ const pubBuy = async (req: Request, res: Response) => {
 	let newsItem = new EmpireNews()
 	newsItem.content = content
 	newsItem.empireIdSource = buyerId
+	newsItem.sourceName = buyer.name
 	newsItem.empireIdDestination = sellerId
+	newsItem.destinationName = seller.name
+	newsItem.type = 'market'
+	newsItem.result = 'success'
 	console.log(newsItem)
 	await newsItem.save()
 

@@ -7,6 +7,7 @@ import cookie from 'cookie'
 import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
+import Session from '../entity/Session'
 
 const mapErrors = (errors: Object[]) => {
 	return errors.reduce((prev: any, err: any) => {
@@ -74,17 +75,29 @@ const login = async (req: Request, res: Response) => {
 		}
 
 		const token = jwt.sign({ username }, process.env.JWT_SECRET!)
+
+		const data = token
+		const time = 3600
 		// console.log(token)
-		res.set(
-			'Set-Cookie',
-			cookie.serialize('token', token, {
-				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production',
-				sameSite: 'strict',
-				maxAge: 3600,
-				path: '/',
-			})
-		)
+		try {
+			res.set(
+				'Set-Cookie',
+				cookie.serialize('token', token, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+					maxAge: time,
+					path: '/',
+				})
+			)
+		} catch (error) {
+			console.log(error)
+		}
+
+		const session = new Session()
+		session.data = data
+		session.time = time
+		await session.save()
 
 		return res.json(user)
 	} catch (err) {
@@ -183,6 +196,9 @@ const demoAccount = async (req: Request, res: Response) => {
 
 		// console.log(user)
 		const token = jwt.sign({ username }, process.env.JWT_SECRET!)
+
+		const data = token
+		const time = 3600
 		// console.log(token)
 		res.set(
 			'Set-Cookie',
@@ -190,10 +206,15 @@ const demoAccount = async (req: Request, res: Response) => {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
 				sameSite: 'strict',
-				maxAge: 3600,
+				maxAge: time,
 				path: '/',
 			})
 		)
+
+		const session = new Session()
+		session.data = data
+		session.time = time
+		await session.save()
 
 		// Return the user
 		return res.json(user)

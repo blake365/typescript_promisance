@@ -1,8 +1,6 @@
 import { Entity, Column, Index, PrimaryGeneratedColumn } from 'typeorm'
 import Model from './Model'
 
-// import Empire from './Empire'
-
 @Entity('session')
 export default class Session extends Model {
 	@Index()

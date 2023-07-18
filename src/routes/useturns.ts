@@ -278,7 +278,6 @@ export const useTurn = async (
 
 		// health
 		// gain 1 additional health per turn used healing
-
 		if (empire.health < 100 - Math.max((empire.tax - 25) / 2, 0)) {
 			empire.health++
 			if (type === 'heal' && empire.health < 100) {
