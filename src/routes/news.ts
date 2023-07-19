@@ -48,6 +48,27 @@ const getAllNews = async (_: Request, res: Response) => {
 		const news = await EmpireNews.find({
 			where: { public: true },
 			order: { createdAt: 'DESC' },
+			skip: 0,
+			take: 100,
+		})
+
+		return res.json(news)
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
+//TODO: set up route for pagination of news data
+const getPageNews = async (req: Request, res: Response) => {
+	const { skip, take, view } = req.body
+
+	try {
+		const news = await EmpireNews.find({
+			where: { public: view },
+			order: { createdAt: 'DESC' },
+			skip: skip,
+			take: take,
 		})
 
 		return res.json(news)

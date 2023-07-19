@@ -8,7 +8,7 @@ import auth from '../middleware/auth'
 import user from '../middleware/user'
 
 import { Not } from 'typeorm'
-import EmpireNews from '../entity/EmpireNews'
+import { createNewsEvent } from '../util/helpers'
 
 interface ReturnObject {
 	amount: number
@@ -69,18 +69,23 @@ const pubBuy = async (req: Request, res: Response) => {
 
 	// create news entry
 	let content: string = `You sold ${amount.toLocaleString()} ${item} for $${cost}`
+	let pubContent: string = `${
+		buyer.name
+	} (#{buyerId}) purchased ${amount.toLocaleString()} ${item} for $${cost} from ${
+		seller.name
+	} (#{sellerId}) `
 
 	// create news event for seller that goods have been purchased
-	let newsItem = new EmpireNews()
-	newsItem.content = content
-	newsItem.empireIdSource = buyerId
-	newsItem.sourceName = buyer.name
-	newsItem.empireIdDestination = sellerId
-	newsItem.destinationName = seller.name
-	newsItem.type = 'market'
-	newsItem.result = 'success'
-	console.log(newsItem)
-	await newsItem.save()
+	await createNewsEvent(
+		content,
+		pubContent,
+		buyerId,
+		buyer.name,
+		sellerId,
+		seller.name,
+		'market',
+		'success'
+	)
 
 	// delete market entry
 	await Market.delete({ market_id: itemBought.id })

@@ -10,6 +10,8 @@ import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
 import { getNetworth } from './actions/actions'
 
+import { createNewsEvent } from '../util/helpers'
+
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
 function getRandomInt(min, max) {
@@ -603,16 +605,28 @@ const attack = async (req: Request, res: Response) => {
 					eraArray[attacker.era][attackType]
 				}.`
 
-				let newsItem = new EmpireNews()
-				newsItem.content = content
-				newsItem.empireIdSource = attacker.id
-				newsItem.sourceName = attacker.name
-				newsItem.empireIdDestination = defender.id
-				newsItem.destinationName = defender.name
-				newsItem.type = 'attack'
-				newsItem.result = 'fail'
-				console.log(newsItem)
-				await newsItem.save()
+				let pubContent = `${attacker.name} (#${attacker.id}) attacked ${
+					defender.name
+				} (#${defender.id}) with ${
+					eraArray[attacker.era][attackType]
+				} and captured ${buildGain.freeLand.toLocaleString()} acres of land. /n In the battle ${
+					defender.name
+				} lost: ${defenseLosses[attackType].toLocaleString()} ${
+					eraArray[defender.era][attackType]
+				} /n ${attacker.name} lost: ${attackLosses[
+					attackType
+				].toLocaleString()} ${eraArray[attacker.era][attackType]}.`
+
+				await createNewsEvent(
+					content,
+					pubContent,
+					attacker.id,
+					attacker.name,
+					defender.id,
+					defender.name,
+					'attack',
+					'fail'
+				)
 
 				//TODO: check for kill
 			} else {
@@ -642,16 +656,28 @@ const attack = async (req: Request, res: Response) => {
 					eraArray[attacker.era][attackType]
 				}. `
 
-				let newsItem = new EmpireNews()
-				newsItem.content = content
-				newsItem.empireIdSource = attacker.id
-				newsItem.sourceName = attacker.name
-				newsItem.empireIdDestination = defender.id
-				newsItem.destinationName = defender.name
-				newsItem.type = 'attack'
-				newsItem.result = 'success'
-				console.log(newsItem)
-				await newsItem.save()
+				let pubContent = `${defender.name} (#${
+					defender.id
+				}) successfully defended their empire against ${attacker.name} (#${
+					attacker.id
+				}). /n In the battle ${defender.name} lost: ${defenseLosses[
+					attackType
+				].toLocaleString()} ${eraArray[defender.era][attackType]} /n ${
+					attacker.name
+				} lost: ${attackLosses[attackType].toLocaleString()} ${
+					eraArray[attacker.era][attackType]
+				}.`
+
+				await createNewsEvent(
+					content,
+					pubContent,
+					attacker.id,
+					attacker.name,
+					defender.id,
+					defender.name,
+					'attack',
+					'success'
+				)
 			}
 
 			attacker.health -= 6

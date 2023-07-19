@@ -64,7 +64,10 @@ export default class EmpireNews extends Model {
 	newsTime: number
 
 	@Column({ default: '' })
-	content: string
+	personalContent: string
+
+	@Column({ default: '' })
+	publicContent: string
 
 	@Column({ default: '' })
 	type: string
