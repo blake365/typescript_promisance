@@ -77,9 +77,87 @@ const checkForNew = async (req: Request, res: Response) => {
 	}
 }
 
+const searchNews = async (req: Request, res: Response) => {
+	console.log(req.body)
+	const { skip, take, view, empire, type } = req.body
+
+	let searchType = ''
+	if (type) {
+		searchType = type
+	}
+
+	try {
+		if (empire && type) {
+			const news = await EmpireNews.find({
+				where: [
+					{
+						public: view,
+						empireIdDestination: empire,
+						type: searchType,
+					},
+					{
+						public: view,
+						empireIdSource: empire,
+						type: searchType,
+					},
+				],
+				order: { createdAt: 'DESC' },
+				skip: skip,
+				take: take,
+			})
+			return res.json(news)
+		}
+		if (type && !empire) {
+			const news = await EmpireNews.find({
+				where: {
+					public: view,
+					type: searchType,
+				},
+				order: { createdAt: 'DESC' },
+				skip: skip,
+				take: take,
+			})
+			return res.json(news)
+		}
+		if (empire && !type) {
+			const news = await EmpireNews.find({
+				where: [
+					{
+						public: view,
+						empireIdDestination: empire,
+					},
+					{
+						public: view,
+						empireIdSource: empire,
+					},
+				],
+				order: { createdAt: 'DESC' },
+				skip: skip,
+				take: take,
+			})
+			return res.json(news)
+		}
+		if (!empire && !type) {
+			const news = await EmpireNews.find({
+				where: {
+					public: view,
+				},
+				order: { createdAt: 'DESC' },
+				skip: skip,
+				take: take,
+			})
+			return res.json(news)
+		}
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
 const router = Router()
 
-router.get('/', getPageNews)
+router.post('/', getPageNews)
+router.post('/search', searchNews)
 router.get('/:id', user, auth, getEmpireNews)
 router.get('/:id/read', user, auth, markRead)
 router.get('/:id/check', user, auth, checkForNew)

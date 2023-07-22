@@ -71,7 +71,11 @@ const createEmpire = async (req: Request, res: Response) => {
 // READ
 const getEmpires = async (_: Request, res: Response) => {
 	try {
-		const empires = await Empire.find()
+		const empires = await Empire.find({
+			order: {
+				id: 'ASC',
+			},
+		})
 		return res.json(empires)
 	} catch (error) {
 		console.log(error)
