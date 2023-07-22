@@ -58,10 +58,30 @@ const markRead = async (req: Request, res: Response) => {
 	return res.json({ success: true })
 }
 
+const checkForNew = async (req: Request, res: Response) => {
+	const { id } = req.params
+
+	try {
+		const news = await EmpireNews.find({
+			where: { empireIdDestination: id },
+			order: { createdAt: 'DESC' },
+			skip: 0,
+			take: 1,
+		})
+
+		let check = news[0].seen
+		return res.json({ new: !check })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
 const router = Router()
 
 router.get('/', getPageNews)
 router.get('/:id', user, auth, getEmpireNews)
 router.get('/:id/read', user, auth, markRead)
+router.get('/:id/check', user, auth, checkForNew)
 
 export default router
