@@ -2,64 +2,12 @@
 // fetch all public news items
 
 import { Request, Response, Router } from 'express'
-import Empire from '../entity/Empire'
 import EmpireNews from '../entity/EmpireNews'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
-import { Not } from 'typeorm'
+import { getConnection } from 'typeorm'
 
-const getAllEmpireNews = async (req: Request, res: Response) => {
-	const { id } = req.body
-
-	try {
-		const news = await EmpireNews.find({
-			where: { empireIdDestination: id },
-			order: { createdAt: 'DESC' },
-		})
-
-		return res.json(news)
-	} catch (error) {
-		console.log(error)
-		return res.status(500).json(error)
-	}
-}
-
-const getUnseenEmpireNews = async (req: Request, res: Response) => {
-	const { id } = req.body
-
-	try {
-		const news = await EmpireNews.find({
-			where: {
-				empireIdDestination: id,
-				seen: false,
-			},
-			order: { createdAt: 'DESC' },
-		})
-
-		return res.json(news)
-	} catch (error) {
-		console.log(error)
-		return res.status(500).json(error)
-	}
-}
-
-const getAllNews = async (_: Request, res: Response) => {
-	try {
-		const news = await EmpireNews.find({
-			where: { public: true },
-			order: { createdAt: 'DESC' },
-			skip: 0,
-			take: 100,
-		})
-
-		return res.json(news)
-	} catch (error) {
-		console.log(error)
-		return res.status(500).json(error)
-	}
-}
-
-//TODO: set up route for pagination of news data
+// set up route for pagination of news data
 const getPageNews = async (req: Request, res: Response) => {
 	const { skip, take, view } = req.body
 
@@ -78,10 +26,42 @@ const getPageNews = async (req: Request, res: Response) => {
 	}
 }
 
+const getEmpireNews = async (req: Request, res: Response) => {
+	const { id } = req.params
+
+	try {
+		const news = await EmpireNews.find({
+			where: { empireIdDestination: id },
+			order: { createdAt: 'DESC' },
+			skip: 0,
+			take: 50,
+		})
+
+		return res.json(news)
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
+const markRead = async (req: Request, res: Response) => {
+	console.log('marking news as read')
+	const { id } = req.params
+
+	await getConnection()
+		.createQueryBuilder()
+		.update(EmpireNews)
+		.set({ seen: true })
+		.where({ empireIdDestination: id })
+		.execute()
+
+	return res.json({ success: true })
+}
+
 const router = Router()
 
-router.get('/', getAllNews)
-router.post('/news', user, auth, getAllEmpireNews)
-router.post('/news/unseen', user, auth, getUnseenEmpireNews)
+router.get('/', getPageNews)
+router.get('/:id', user, auth, getEmpireNews)
+router.get('/:id/read', user, auth, markRead)
 
 export default router
