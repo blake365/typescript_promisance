@@ -3,14 +3,30 @@ import { raceArray } from '../config/races'
 import { eraArray } from '../config/eras'
 import Empire from '../entity/Empire'
 
-import { useTurn, useTurnInternal } from './useturns'
+import { useTurnInternal } from './useturns'
 import { baseCost } from './spells/general'
 import { regress_allow, regress_cast, regress_cost } from './spells/regress'
 import { advance_allow, advance_cast, advance_cost } from './spells/advance'
 import { food_cast, food_cost } from './spells/food'
 import { cash_cast, cash_cost } from './spells/cash'
+import auth from '../middleware/auth'
+import user from '../middleware/user'
 
 // FIXED: internal turns not working
+
+const spellCheck = (empire: Empire, cost: number, turns: number) => {
+	if (empire.runes < cost) {
+		return {
+			error: `You do not have enough ${
+				eraArray[empire.era].runes
+			} to cast this spell.`,
+		}
+	} else if (empire.turns < turns) {
+		return { error: 'You do not have enough turns to cast this spell.' }
+	} else if (empire.health < 20) {
+		return { error: 'You do not have enough health to cast this spell.' }
+	} else return 'passed'
+}
 
 const magic = async (req: Request, res: Response) => {
 	// request will have object with type of spell as a number and number of times to cast spell
@@ -32,20 +48,6 @@ const magic = async (req: Request, res: Response) => {
 
 	// TODO: handle errors
 	// TODO: add break if spell check is false
-
-	const spellCheck = (empire: Empire, cost: number, turns: number) => {
-		if (empire.runes < cost) {
-			return {
-				error: `You do not have enough ${
-					eraArray[empire.era].runes
-				} to cast this spell.`,
-			}
-		} else if (empire.turns < turns) {
-			return { error: 'You do not have enough turns to cast this spell.' }
-		} else if (empire.health < 20) {
-			return { error: 'You do not have enough health to cast this spell.' }
-		} else return 'passed'
-	}
 
 	let resultArray = []
 
@@ -296,9 +298,11 @@ const magic = async (req: Request, res: Response) => {
 	return res.json(resultArray)
 }
 
+// route to cast spells on enemy
+
 const router = Router()
 
-//TODO: needs user and auth middleware
-router.post('/', magic)
+router.post('/', user, auth, magic)
+// router.post('/spell', magic)
 
 export default router

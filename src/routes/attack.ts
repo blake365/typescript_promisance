@@ -128,7 +128,7 @@ function isTimeGate(effect: Effect) {
 	} else true
 }
 
-const destroyBuildings = async (
+export const destroyBuildings = async (
 	attackType: string,
 	pcloss: number,
 	pcgain: number,

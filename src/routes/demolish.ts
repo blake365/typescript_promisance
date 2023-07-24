@@ -4,6 +4,8 @@ import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 
 import { useTurnInternal } from './useturns'
+import auth from '../middleware/auth'
+import user from '../middleware/user'
 
 // FIXME: result of turns is not being saved to empire
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
@@ -158,6 +160,6 @@ const demolish = async (req: Request, res: Response) => {
 const router = Router()
 
 //TODO: needs user and auth middleware
-router.post('/', demolish)
+router.post('/', user, auth, demolish)
 
 export default router
