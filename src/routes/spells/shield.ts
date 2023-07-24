@@ -3,8 +3,8 @@ import Empire from '../../entity/Empire'
 import EmpireEffect from '../../entity/EmpireEffect'
 import { getPower_self, getWizLoss_self } from './general'
 
-export const gate_cost = (baseCost: number) => {
-	return Math.ceil(20.0 * baseCost)
+export const shield_cost = (baseCost: number) => {
+	return Math.ceil(4.9 * baseCost)
 }
 
 interface recentObject {
@@ -14,11 +14,11 @@ interface recentObject {
 	empireOwnerId?: number
 }
 
-export const gate_cast = async (empire: Empire) => {
+export const shield_cast = async (empire: Empire) => {
 	let now = new Date()
 	let recent: recentObject
 	const effects = await EmpireEffect.find({
-		where: { empireOwnerId: empire.id, empireEffectName: 'time gate' },
+		where: { empireOwnerId: empire.id, empireEffectName: 'spell shield' },
 		order: { createdAt: 'DESC' },
 	})
 
@@ -35,12 +35,12 @@ export const gate_cast = async (empire: Empire) => {
 
 	console.log(recent)
 
-	if (getPower_self(empire) >= 75) {
+	if (getPower_self(empire) >= 15) {
 		if (recent) {
 			if (effectAge < 9 * 60) {
 				console.log('renew')
 				// renew effect
-				let empireEffectName = 'time gate'
+				let empireEffectName = 'spell shield'
 				let empireEffectValue = 12 * 60
 				let effectOwnerId = empire.id
 
@@ -56,14 +56,14 @@ export const gate_cast = async (empire: Empire) => {
 				let result = {
 					result: 'success',
 					message: `Your ${eraArray[empire.era].trpwiz} cast ${
-						eraArray[empire.era].spell_gate
-					}. /n Your time gate is has been renewed to 12 hours.`,
+						eraArray[empire.era].spell_shield
+					}. /n Your shield is has been renewed to 12 hours.`,
 				}
 				return result
 			} else {
 				console.log('extend')
 				// extend effect
-				let empireEffectName = 'time gate'
+				let empireEffectName = 'spell shield'
 				let empireEffectValue = recent.empireEffectValue + 3 * 60
 				let effectOwnerId = empire.id
 
@@ -79,15 +79,16 @@ export const gate_cast = async (empire: Empire) => {
 				let result = {
 					result: 'success',
 					message: `Your ${eraArray[empire.era].trpwiz} cast ${
-						eraArray[empire.era].spell_gate
-					}. /n Your time gate has been extended by 3 hours.`,
+						eraArray[empire.era].spell_shield
+					}. /n Your spell shield has been extended by 3 hours.`,
 				}
 				return result
 			}
 		} else {
+			// expired
 			console.log('create')
 			// create effect
-			let empireEffectName = 'time gate'
+			let empireEffectName = 'spell shield'
 			let empireEffectValue = 12 * 60
 			let effectOwnerId = empire.id
 
@@ -103,8 +104,8 @@ export const gate_cast = async (empire: Empire) => {
 			let result = {
 				result: 'success',
 				message: `Your ${eraArray[empire.era].trpwiz} cast ${
-					eraArray[empire.era].spell_gate
-				}. /n Your time gate is now active for 12 hours.`,
+					eraArray[empire.era].spell_shield
+				}. /n Your spell shield is now active for 12 hours.`,
 			}
 			return result
 		}
@@ -113,7 +114,7 @@ export const gate_cast = async (empire: Empire) => {
 		let result = {
 			result: 'fail',
 			message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
-				eraArray[empire.era].spell_gate
+				eraArray[empire.era].spell_shield
 			}`,
 			wizloss: wizloss,
 			descriptor: eraArray[empire.era].trpwiz,

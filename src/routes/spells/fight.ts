@@ -35,15 +35,6 @@ const destroyBuildings = async (
 }
 
 export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
-	const enemyEffects = await EmpireEffect.find({
-		where: { empireEffect_id: enemyEmpire.empireId },
-	})
-
-	let activeEffects = []
-	if (enemyEffects && enemyEffects.length > 0) {
-		activeEffects = enemyEffects.map((effect) => effect.empireEffectName)
-	}
-
 	if (getPower_self(empire) < 50) {
 		// spell failed to cast
 		let wizloss = getWizLoss_enemy(empire)
@@ -151,6 +142,7 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 		return attackDescription
 	} else {
+		// spell casts but attack fails
 		let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.08 + 1))
 		let eloss = randomIntFromInterval(
 			0,
@@ -173,10 +165,6 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		empire.offTotal++
 		enemyEmpire.defTotal++
 		enemyEmpire.defSucc++
-
-		//TODO: drop land delay empire effect
-
-		//TODO: handle kills
 
 		let returnText = `Your attack was repelled by ${enemyEmpire.name}(#${
 			enemyEmpire.id

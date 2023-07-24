@@ -1,11 +1,15 @@
 import { eraArray } from '../../config/eras'
 import Empire from '../../entity/Empire'
-import { getPower_enemy, getWizLoss_enemy } from './general'
+import {
+	getPower_enemy,
+	getWizLoss_enemy,
+	randomIntFromInterval,
+} from './general'
 import EmpireEffect from '../../entity/EmpireEffect'
 import { createNewsEvent } from '../../util/helpers'
 
-export const blast_cost = (baseCost: number) => {
-	return Math.ceil(2.5 * baseCost)
+export const storm_cost = (baseCost: number) => {
+	return Math.ceil(7.25 * baseCost)
 }
 
 interface recentObject {
@@ -15,7 +19,7 @@ interface recentObject {
 	empireOwnerId?: number
 }
 
-export const blast_cast = async (empire: Empire, enemyEmpire: Empire) => {
+export const storm_cast = async (empire: Empire, enemyEmpire: Empire) => {
 	let now = new Date()
 	let recent: recentObject
 	const enemyEffects = await EmpireEffect.find({
@@ -32,30 +36,34 @@ export const blast_cast = async (empire: Empire, enemyEmpire: Empire) => {
 	console.log(effectAge)
 	effectAge = Math.floor(effectAge)
 
-	if (getPower_enemy(empire, enemyEmpire) >= 1.15) {
+	if (getPower_enemy(empire, enemyEmpire) > 1.21) {
 		let result = {}
 		if (effectAge < recent.empireEffectValue) {
-			enemyEmpire.trpArm -= Math.ceil(enemyEmpire.trpArm * 0.01)
-			enemyEmpire.trpLnd -= Math.ceil(enemyEmpire.trpLnd * 0.01)
-			enemyEmpire.trpFly -= Math.ceil(enemyEmpire.trpFly * 0.01)
-			enemyEmpire.trpSea -= Math.ceil(enemyEmpire.trpSea * 0.01)
-			enemyEmpire.trpWiz -= Math.ceil(enemyEmpire.trpWiz * 0.01)
+			let food = Math.ceil(enemyEmpire.food * 0.0304)
+			let cash = Math.ceil(enemyEmpire.cash * 0.0422)
+			enemyEmpire.food -= food
+			enemyEmpire.cash -= cash
 
 			result = {
 				result: 'shielded',
-				message:
-					'The spell was successful, but the enemy had a spell shield up. /n You eliminated 1% of the enemy forces. ',
+				message: `The spell was successful, but the enemy had a spell shield up. /n You destroyed $${cash} and ${food} ${
+					eraArray[enemyEmpire.era].food
+				}. `,
 			}
 
 			let pubContent = `${empire.name}(#${empire.id}) cast ${
-				eraArray[empire.era].spell_blast
+				eraArray[empire.era].spell_storm
 			} on ${enemyEmpire.name}(#${
 				enemyEmpire.id
-			}). /n The spell was shielded and eliminated 1% of their forces.`
+			}). /n The spell was shielded but $${cash} and ${food} ${
+				eraArray[enemyEmpire.era].food
+			} were destroyed.`
 
 			let content = `${empire.name}(#${empire.id}) cast ${
-				eraArray[empire.era].spell_blast
-			} against you. /n Your shield protected you. They eliminated 1% of your forces.`
+				eraArray[empire.era].spell_storm
+			} against you. /n Your shield protected you but they stole $${cash} and ${food} ${
+				eraArray[enemyEmpire.era].food
+			} were destroyed.`
 
 			await createNewsEvent(
 				content,
@@ -68,27 +76,29 @@ export const blast_cast = async (empire: Empire, enemyEmpire: Empire) => {
 				'shielded'
 			)
 		} else {
-			enemyEmpire.trpArm -= Math.ceil(enemyEmpire.trpArm * 0.03)
-			enemyEmpire.trpLnd -= Math.ceil(enemyEmpire.trpLnd * 0.03)
-			enemyEmpire.trpFly -= Math.ceil(enemyEmpire.trpFly * 0.03)
-			enemyEmpire.trpSea -= Math.ceil(enemyEmpire.trpSea * 0.03)
-			enemyEmpire.trpWiz -= Math.ceil(enemyEmpire.trpWiz * 0.03)
+			let food = Math.ceil(enemyEmpire.food * 0.0912)
+			let cash = Math.ceil(enemyEmpire.cash * 0.1266)
+			enemyEmpire.food -= food
+			enemyEmpire.cash -= cash
 
 			result = {
 				result: 'success',
-				message:
-					'The spell was successful! /n You eliminated 3% of the enemy forces. ',
+				message: `The spell was successful! /n You destroyed $${cash} and ${food} ${
+					eraArray[enemyEmpire.era].food
+				}.`,
 			}
 
 			let pubContent = `${empire.name}(#${empire.id}) cast ${
-				eraArray[empire.era].spell_blast
+				eraArray[empire.era].spell_storm
 			} on ${enemyEmpire.name}(#${
 				enemyEmpire.id
-			}) and eliminated 3% of their forces.`
+			}) and destroyed $${cash} and ${food} ${eraArray[enemyEmpire.era].food}.`
 
 			let content = `${empire.name}(#${empire.id}) cast ${
-				eraArray[empire.era].spell_blast
-			} against you and eliminated 3% of your forces.`
+				eraArray[empire.era].spell_storm
+			} against you and destroyed $${cash} and ${food} ${
+				eraArray[enemyEmpire.era].food
+			}.`
 
 			await createNewsEvent(
 				content,
@@ -114,7 +124,7 @@ export const blast_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		let result = {
 			result: 'fail',
 			message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
-				eraArray[empire.era].spell_blast
+				eraArray[empire.era].spell_storm
 			} on your opponent.`,
 			wizloss: wizloss,
 			descriptor: eraArray[empire.era].trpwiz,
@@ -128,11 +138,11 @@ export const blast_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		await enemyEmpire.save()
 
 		let content = `${empire.name}(#${empire.id}) attempted to cast ${
-			eraArray[empire.era].spell_blast
+			eraArray[empire.era].spell_storm
 		} against you and failed. `
 
 		let pubContent = `${empire.name}(#${empire.id}) attempted to cast ${
-			eraArray[empire.era].spell_blast
+			eraArray[empire.era].spell_storm
 		} on ${enemyEmpire.name}(#${enemyEmpire.id}) and failed.`
 
 		await createNewsEvent(
