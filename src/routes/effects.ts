@@ -19,26 +19,26 @@ const getEffects = async (req: Request, res: Response) => {
 			},
 		})
 
-		let recent = effects[0]
-		let now = new Date()
+		// let recent = effects[0]
+		// let now = new Date()
 
-		const checkEffect = (effect) => {
-			let effectAge =
-				(now.valueOf() - new Date(effect.createdAt).getTime()) / 60000
-			// age in minutes
-			console.log(effectAge)
-			effectAge = Math.floor(effectAge)
-			if (effectAge > effect.empireEffectValue) {
-				console.log('expired')
-				console.log('create')
-			} else if (effectAge < 9 * 60) {
-				console.log('renew')
-			} else {
-				console.log('extend')
-			}
-		}
+		// const checkEffect = (effect) => {
+		// 	let effectAge =
+		// 		(now.valueOf() - new Date(effect.createdAt).getTime()) / 60000
+		// 	// age in minutes
+		// 	console.log(effectAge)
+		// 	effectAge = Math.floor(effectAge)
+		// 	if (effectAge > effect.empireEffectValue) {
+		// 		console.log('expired')
+		// 		console.log('create')
+		// 	} else if (effectAge < 9 * 60) {
+		// 		console.log('renew')
+		// 	} else {
+		// 		console.log('extend')
+		// 	}
+		// }
 
-		checkEffect(recent)
+		// checkEffect(recent)
 
 		return res.json(effects)
 	} catch (error) {
