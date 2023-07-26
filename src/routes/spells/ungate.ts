@@ -7,46 +7,38 @@ export const ungate_cost = (baseCost: number) => {
 	return Math.ceil(14.5 * baseCost)
 }
 
-interface recentObject {
-	empireEffectName?: string
-	empireEffectValue?: number
-	createdAt?: Date
-	empireOwnerId?: number
-}
-
 export const ungate_cast = async (empire: Empire) => {
 	let now = new Date()
-	let recent: recentObject
-	const effects = await EmpireEffect.find({
+	const effect = await EmpireEffect.findOne({
 		where: { empireOwnerId: empire.id, empireEffectName: 'time gate' },
 		order: { createdAt: 'DESC' },
 	})
 
-	if (effects.length > 0) {
-		recent = effects[0]
-	}
 	// figure out age of effect and see if it is expired
 	// if expired, create new effect
 	// if not expired, renew or extend effect
-	let effectAge = (now.valueOf() - new Date(recent.createdAt).getTime()) / 60000
+	let effectAge = (now.valueOf() - new Date(effect.createdAt).getTime()) / 60000
+	let timeLeft = effect.empireEffectValue - effectAge
 	// age in minutes
-	console.log(effectAge)
+	// console.log(effectAge)
 	effectAge = Math.floor(effectAge)
 
-	console.log(recent)
-
 	if (getPower_self(empire) >= 80) {
-		if (recent) {
-			if (effectAge < recent.empireEffectValue) {
-				effects[0].empireEffectValue = 0
-				await effects[0].save()
-
+		if (effect) {
+			if (timeLeft < effect.empireEffectValue) {
+				effect.softRemove()
 				let result = {
 					result: 'success',
 					message: `You closed your ${eraArray[empire.era].spell_gate}`,
 				}
 				return result
 			}
+		} else {
+			let result = {
+				result: 'fail',
+				message: `You do not have a ${eraArray[empire.era].spell_gate} open`,
+			}
+			return result
 		}
 	} else {
 		let wizloss = getWizLoss_self(empire)

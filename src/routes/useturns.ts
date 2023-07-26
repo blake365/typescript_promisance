@@ -11,6 +11,8 @@ import {
 import { raceArray } from '../config/races'
 import { eraArray } from '../config/eras'
 import { INDUSTRY_MULT } from '../config/conifg'
+import user from '../middleware/user'
+import auth from '../middleware/auth'
 
 function getRandomInt(min, max) {
 	min = Math.ceil(min)
@@ -507,6 +509,7 @@ export const useTurnInternal = (
 		}
 
 		// FIXME: withdraw not accumulating in condensed view?
+		console.log(withdraw)
 		current['withdraw'] = withdraw
 
 		// loan interest
@@ -540,7 +543,7 @@ export const useTurnInternal = (
 				empire.trpWiz * 0.5
 		)
 
-		//TODO: set up race/era modifier
+		// set up race/era modifier
 		let expensesBonus = Math.min(
 			0.5,
 			(raceArray[empire.race].mod_expenses + 100) / 100 -
@@ -647,10 +650,10 @@ export const useTurnInternal = (
 					100)
 		)
 
-		// empire.trpArm += trparm
-		// empire.trpLnd += trplnd
-		// empire.trpFly += trpfly
-		// empire.trpSea += trpsea
+		empire.trpArm += trparm
+		empire.trpLnd += trplnd
+		empire.trpFly += trpfly
+		empire.trpSea += trpsea
 
 		current['trpArm'] = trparm
 		current['trpLnd'] = trplnd
@@ -805,6 +808,9 @@ export const useTurnInternal = (
 			}
 		})
 
+		// console.log(current)
+		// console.log(overall)
+
 		if (!condensed || taken === turns || trouble === 6) {
 			if (condensed) {
 				statsArray.push(overall)
@@ -845,6 +851,6 @@ export const useTurnInternal = (
 const router = Router()
 
 //TODO: move to empire route and require auth and user
-router.post('/', useTurns)
+router.post('/', user, auth, useTurns)
 
 export default router

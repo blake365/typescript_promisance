@@ -7,49 +7,58 @@ export const gate_cost = (baseCost: number) => {
 	return Math.ceil(20.0 * baseCost)
 }
 
-interface recentObject {
-	empireEffectName?: string
-	empireEffectValue?: number
-	createdAt?: Date
-	empireOwnerId?: number
-}
-
 export const gate_cast = async (empire: Empire) => {
 	let now = new Date()
-	let recent: recentObject
-	const effects = await EmpireEffect.find({
+	const effect = await EmpireEffect.findOne({
 		where: { empireOwnerId: empire.id, empireEffectName: 'time gate' },
 		order: { createdAt: 'DESC' },
 	})
 
-	if (effects.length > 0) {
-		recent = effects[0]
-	}
 	// figure out age of effect and see if it is expired
 	// if expired, create new effect
 	// if not expired, renew or extend effect
-	let effectAge = (now.valueOf() - new Date(recent.createdAt).getTime()) / 60000
+	let effectAge = (now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+	let timeLeft = effect.empireEffectValue - effectAge
+
 	// age in minutes
 	console.log(effectAge)
 	effectAge = Math.floor(effectAge)
 
-	console.log(recent)
+	console.log(effect)
 
 	if (getPower_self(empire) >= 75) {
-		if (recent) {
-			if (effectAge < 9 * 60) {
-				console.log('renew')
-				// renew effect
+		if (effect) {
+			if (timeLeft <= 0) {
+				effect.softRemove()
+				console.log('expired')
+				// create effect
 				let empireEffectName = 'time gate'
 				let empireEffectValue = 12 * 60
 				let effectOwnerId = empire.id
 
-				let effect: EmpireEffect
-				effect = new EmpireEffect({
+				let newEffect: EmpireEffect
+				newEffect = new EmpireEffect({
 					effectOwnerId,
 					empireEffectName,
 					empireEffectValue,
 				})
+				// console.log(effect)
+				await newEffect.save()
+
+				let result = {
+					result: 'success',
+					message: `Your ${eraArray[empire.era].trpwiz} cast ${
+						eraArray[empire.era].spell_gate
+					}. /n Your spell shield is now active for 12 hours.`,
+					wizloss: 0,
+					descriptor: eraArray[empire.era].trpwiz,
+				}
+				return result
+			} else if (timeLeft < 9 * 60) {
+				console.log('renew')
+				// renew effect
+				effect.empireEffectValue = 12 * 60
+
 				// console.log(effect)
 				await effect.save()
 
@@ -63,16 +72,8 @@ export const gate_cast = async (empire: Empire) => {
 			} else {
 				console.log('extend')
 				// extend effect
-				let empireEffectName = 'time gate'
-				let empireEffectValue = recent.empireEffectValue + 3 * 60
-				let effectOwnerId = empire.id
+				effect.empireEffectValue += 3 * 60
 
-				let effect: EmpireEffect
-				effect = new EmpireEffect({
-					effectOwnerId,
-					empireEffectName,
-					empireEffectValue,
-				})
 				// console.log(effect)
 				await effect.save()
 
