@@ -13,19 +13,24 @@ export const shield_cast = async (empire: Empire) => {
 	let now = new Date()
 	const effect = await EmpireEffect.findOne({
 		where: { effectOwnerId: empire.id, empireEffectName: 'spell shield' },
-		order: { createdAt: 'DESC' },
+		order: { updatedAt: 'DESC' },
 	})
 
 	// figure out age of effect and see if it is expired
 	// if expired, create new effect
 	// if not expired, renew or extend effect
-	let effectAge = (now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
-	let timeLeft = effect.empireEffectValue - effectAge
-	// age in minutes
-	console.log(effectAge)
-	effectAge = Math.floor(effectAge)
+	let timeLeft = 0
 
-	console.log(effect)
+	if (effect) {
+		let effectAge =
+			(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+		timeLeft = effect.empireEffectValue - effectAge
+		// age in minutes
+		console.log(effectAge)
+		effectAge = Math.floor(effectAge)
+
+		console.log(effect)
+	}
 
 	if (getPower_self(empire) >= 15) {
 		if (effect) {

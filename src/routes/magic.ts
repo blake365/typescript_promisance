@@ -12,6 +12,15 @@ import { cash_cast, cash_cost } from './spells/cash'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { shield_cast, shield_cost } from './spells/shield'
+import { gate_cast, gate_cost } from './spells/gate'
+import { ungate_cast, ungate_cost } from './spells/ungate'
+import EmpireEffect from '../entity/EmpireEffect'
+import { blast_cast, blast_cost } from './spells/blast'
+import { struct_cast, struct_cost } from './spells/struct'
+import { storm_cast, storm_cost } from './spells/storm'
+import { steal_cast, steal_cost } from './spells/steal'
+import { runes_cast, runes_cost } from './spells/runes'
+import { fight_cast, fight_cost } from './spells/fight'
 
 // FIXED: internal turns not working
 
@@ -30,11 +39,12 @@ const spellCheck = (empire: Empire, cost: number, turns: number) => {
 }
 
 interface Cast {
-	result: string
+	result?: string
 	message?: string
 	wizloss?: number
 	food?: number
 	cash?: number
+	descriptor?: string
 }
 
 const magic = async (req: Request, res: Response) => {
@@ -55,8 +65,8 @@ const magic = async (req: Request, res: Response) => {
 
 	const base = baseCost(empire)
 
-	// TODO: handle errors
-	// TODO: add break if spell check is false
+	// handle errors
+	// add break if spell check is false
 
 	let resultArray = []
 	if (spell === 0) {
@@ -354,17 +364,297 @@ const magic = async (req: Request, res: Response) => {
 			let spellTurns = spellCheck(empire, cost, turns)
 			resultArray.push(spellTurns)
 		}
+	} else if (spell === 5) {
+		// open time gate
+		const cost = gate_cost(base)
+		const turns = 2
+		if (spellCheck(empire, cost, turns) === 'passed') {
+			for (let i = 0; i < 1; i++) {
+				if (spellCheck(empire, cost, turns) === 'passed') {
+					empire.runes -= cost
+					// use two turns to cast spell
+					let spellTurns = useTurnInternal('magic', turns, empire, true)
+					let spellRes = spellTurns[0]
+					spellTurns = spellTurns[0]
+
+					let cast: Cast = await gate_cast(empire)
+					// console.log(cast)
+
+					if (cast.result === 'fail') {
+						empire.trpWiz -= cast.wizloss
+					}
+
+					spellTurns['cast'] = cast
+					resultArray.push(spellTurns)
+					empire.cash =
+						empire.cash +
+						spellRes.withdraw +
+						spellRes.money -
+						spellRes.loanpayed
+
+					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
+					empire.trpArm += spellRes.trpArm
+					empire.trpLnd += spellRes.trpLnd
+					empire.trpFly += spellRes.trpFly
+					empire.trpSea += spellRes.trpSea
+					empire.food += spellRes.food
+					empire.peasants += spellRes.peasants
+					empire.runes += spellRes.runes
+					empire.trpWiz += spellRes.trpWiz
+					empire.turns -= turns
+					empire.turnsUsed += turns
+
+					await empire.save()
+				} else {
+					let spellTurns = spellCheck(empire, cost, turns)
+					resultArray.push(spellTurns)
+					break
+				}
+			}
+		} else {
+			let spellTurns = spellCheck(empire, cost, turns)
+			resultArray.push(spellTurns)
+		}
+	} else if (spell === 6) {
+		// close time gate
+		const cost = ungate_cost(base)
+		const turns = 2
+		if (spellCheck(empire, cost, turns) === 'passed') {
+			for (let i = 0; i < 1; i++) {
+				if (spellCheck(empire, cost, turns) === 'passed') {
+					empire.runes -= cost
+					// use two turns to cast spell
+					let spellTurns = useTurnInternal('magic', turns, empire, true)
+					let spellRes = spellTurns[0]
+					spellTurns = spellTurns[0]
+
+					let cast: Cast = await ungate_cast(empire)
+					// console.log(cast)
+
+					if (cast.result === 'fail') {
+						empire.trpWiz -= cast.wizloss
+					}
+
+					spellTurns['cast'] = cast
+					resultArray.push(spellTurns)
+					empire.cash =
+						empire.cash +
+						spellRes.withdraw +
+						spellRes.money -
+						spellRes.loanpayed
+
+					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
+					empire.trpArm += spellRes.trpArm
+					empire.trpLnd += spellRes.trpLnd
+					empire.trpFly += spellRes.trpFly
+					empire.trpSea += spellRes.trpSea
+					empire.food += spellRes.food
+					empire.peasants += spellRes.peasants
+					empire.runes += spellRes.runes
+					empire.trpWiz += spellRes.trpWiz
+					empire.turns -= turns
+					empire.turnsUsed += turns
+
+					await empire.save()
+				} else {
+					let spellTurns = spellCheck(empire, cost, turns)
+					resultArray.push(spellTurns)
+					break
+				}
+			}
+		} else {
+			let spellTurns = spellCheck(empire, cost, turns)
+			resultArray.push(spellTurns)
+		}
 	}
 	// console.log(resultArray)
 
 	return res.json(resultArray)
 }
 
+const attackSpell = async (attacker, spellCost, spell) => {
+	const cost = spellCost
+	const turns = 2
+	if (spellCheck(attacker, cost, turns) === 'passed') {
+		attacker.runes -= cost
+		// use two turns to cast spell
+		let spellTurns = useTurnInternal('magic', turns, attacker, true)
+		let spellRes = spellTurns[0]
+		spellTurns = spellTurns[0]
+		let cast: Cast = await spell
+		// console.log(cast)
+
+		if (cast.result === 'fail') {
+			attacker.trpWiz -= cast.wizloss
+		}
+		spellTurns['cast'] = cast
+		// console.log(spellTurns)
+		// cast the spell and get result
+
+		attacker.cash =
+			attacker.cash + spellRes.withdraw + spellRes.money - spellRes.loanpayed
+
+		attacker.loan -= spellRes.loanpayed + spellRes.loanInterest
+		attacker.trpArm += spellRes.trpArm
+		attacker.trpLnd += spellRes.trpLnd
+		attacker.trpFly += spellRes.trpFly
+		attacker.trpSea += spellRes.trpSea
+		attacker.food += spellRes.food
+		attacker.peasants += spellRes.peasants
+		attacker.runes += spellRes.runes
+		attacker.trpWiz += spellRes.trpWiz
+		attacker.turns -= turns
+		attacker.turnsUsed += turns
+
+		await attacker.save()
+
+		return spellTurns
+	} else {
+		let spellTurns = spellCheck(attacker, cost, turns)
+		return spellTurns
+	}
+}
+
 // route to cast spells on enemy
+const magicAttack = async (req: Request, res: Response) => {
+	// request will have object with spell, attacker, defender
+	const { type, attackerId, defenderId, spell } = req.body
+
+	if (type !== 'magic attack') {
+		return res.json({ error: 'Something went wrong' })
+	}
+
+	let canAttack = false
+
+	let returnText = ''
+	let attackDescription = {}
+
+	const attacker = await Empire.findOne({ id: attackerId })
+	const defender = await Empire.findOne({ id: defenderId })
+	// console.log('food:', empire.food, 'cash:', empire.cash, empire.turns, empire.runes)
+	if (attacker.trpWiz === 0) {
+		return res.json({
+			error: `You must have ${eraArray[attacker.era].trpwiz} to cast spells`,
+		})
+	}
+
+	const base = baseCost(attacker)
+
+	if (attacker.era === defender.era && attacker.turns > 2) {
+		canAttack = true
+	} else if (attacker.era !== defender.era) {
+		// use attacker time gate first then try defender
+		const effect = await EmpireEffect.findOneOrFail({
+			where: { effectOwnerId: attacker.id, empireEffectName: 'time gate' },
+			order: { createdAt: 'DESC' },
+		})
+
+		if (effect) {
+			let now = new Date()
+
+			let effectAge =
+				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+			let timeLeft = effect.empireEffectValue - effectAge
+
+			if (timeLeft > 0) {
+				canAttack = true
+				returnText = 'Your army travels through your Time Gate...'
+			}
+		} else {
+			// try defender time gate
+			const defEffect = await EmpireEffect.findOneOrFail({
+				where: {
+					effectOwnerId: defender.empireId,
+					empireEffectName: 'time gate',
+				},
+				order: { createdAt: 'DESC' },
+			})
+
+			if (defEffect) {
+				let now = new Date()
+				let effectAge =
+					(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
+				let timeLeft = defEffect.empireEffectValue - effectAge
+				if (timeLeft > 0) {
+					canAttack = true
+					returnText = 'Your army travels through your opponents Time Gate...'
+				} else {
+					returnText =
+						'You must open a Time Gate to attack players in another Era'
+				}
+			} else {
+				canAttack = false
+				returnText =
+					'You must open a Time Gate to attack players in another Era'
+			}
+		}
+	}
+
+	console.log('can attack', canAttack)
+	// handle errors
+	// add break if spell check is false
+
+	if (canAttack) {
+		if (spell === 'blast') {
+			// blast
+			console.log('blast start')
+			let blast = await attackSpell(
+				attacker,
+				blast_cost(base),
+				blast_cast(attacker, defender)
+			)
+			console.log(blast)
+		} else if (spell === 'struct') {
+			// struct
+			console.log('struct start')
+			let struct = await attackSpell(
+				attacker,
+				struct_cost(base),
+				struct_cast(attacker, defender)
+			)
+			console.log(struct)
+		} else if (spell === 'storm') {
+			console.log('storm start')
+			let storm = await attackSpell(
+				attacker,
+				storm_cost(base),
+				storm_cast(attacker, defender)
+			)
+			console.log(storm)
+		} else if (spell === 'steal') {
+			console.log('steal start')
+			let steal = await attackSpell(
+				attacker,
+				steal_cost(base),
+				steal_cast(attacker, defender)
+			)
+			console.log(steal)
+		} else if (spell === 'runes') {
+			console.log('runes start')
+			let runes = await attackSpell(
+				attacker,
+				runes_cost(base),
+				runes_cast(attacker, defender)
+			)
+			console.log(runes)
+		} else if (spell === 'fight') {
+			console.log('fight start')
+			let fight = await attackSpell(
+				attacker,
+				fight_cost(base),
+				fight_cast(attacker, defender)
+			)
+			console.log(fight)
+		}
+	}
+
+	return res.json('something happened')
+}
 
 const router = Router()
 
 router.post('/', user, auth, magic)
+router.post('/attack', magicAttack)
 // router.post('/spell', magic)
 
 export default router

@@ -81,19 +81,19 @@ const calcUnitLosses = (
 	return { attackLosses: attackLosses, defendLosses: defendLosses }
 }
 
-function isOld(createdAt: Date, effectValue: number) {
-	let effectAge = (Date.now().valueOf() - new Date(createdAt).getTime()) / 60000
-	effectAge = Math.floor(effectAge)
+// function isOld(createdAt: Date, effectValue: number) {
+// 	let effectAge = (Date.now().valueOf() - new Date(createdAt).getTime()) / 60000
+// 	effectAge = Math.floor(effectAge)
 
-	// console.log(effectAge)
-	// console.log(effectValue)
+// 	// console.log(effectAge)
+// 	// console.log(effectValue)
 
-	if (effectAge > effectValue) {
-		return false
-	} else {
-		return true
-	}
-}
+// 	if (effectAge > effectValue) {
+// 		return false
+// 	} else {
+// 		return true
+// 	}
+// }
 
 interface Effect {
 	empireEffectValue: number
@@ -122,11 +122,11 @@ interface defendLosses {
 	[key: string]: number
 }
 
-function isTimeGate(effect: Effect) {
-	if (effect.empireEffectName === 'time gate') {
-		return false
-	} else true
-}
+// function isTimeGate(effect: Effect) {
+// 	if (effect.empireEffectName === 'time gate') {
+// 		return false
+// 	} else true
+// }
 
 export const destroyBuildings = async (
 	attackType: string,
@@ -242,9 +242,9 @@ const attack = async (req: Request, res: Response) => {
 	let resultArray = []
 
 	try {
-		const attacker = await Empire.findOneOrFail({ empireId: empireId })
+		const attacker = await Empire.findOneOrFail({ id: empireId })
 
-		const defender = await Empire.findOneOrFail({ empireId: defenderId })
+		const defender = await Empire.findOneOrFail({ id: defenderId })
 
 		// calculate power levels
 		if (attackType === 'standard') {
@@ -275,34 +275,46 @@ const attack = async (req: Request, res: Response) => {
 			canAttack = true
 		} else if (attacker.era !== defender.era) {
 			// use attacker time gate first then try defender
-			let effects = await EmpireEffect.find({
-				where: { effectOwnerId: attacker.empireId },
+			const effect = await EmpireEffect.findOne({
+				where: { effectOwnerId: attacker.id, empireEffectName: 'time gate' },
+				order: { createdAt: 'DESC' },
 			})
-			let currentEffects = effects.filter((effect) =>
-				isOld(effect.createdAt, effect.empireEffectValue)
-			)
-			let timeEffects = currentEffects.filter((effect) => isTimeGate(effect))
-			console.log(timeEffects)
 
-			if (timeEffects[0]) {
-				canAttack = true
-				returnText = 'Your army travels through your Time Gate...'
+			if (effect) {
+				let now = new Date()
+
+				let effectAge =
+					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+				let timeLeft = effect.empireEffectValue - effectAge
+
+				if (timeLeft > 0) {
+					canAttack = true
+					returnText = 'Your army travels through your Time Gate...'
+				}
 			} else {
 				// try defender time gate
-				let effects = await EmpireEffect.find({
+				const defEffect = await EmpireEffect.findOne({
 					where: {
 						effectOwnerId: defender.empireId,
+						empireEffectName: 'time gate',
 					},
+					order: { createdAt: 'DESC' },
 				})
-				let currentEffects = effects.filter((effect) =>
-					isOld(effect.createdAt, effect.empireEffectValue)
-				)
-				let timeEffects = currentEffects.filter((effect) => isTimeGate(effect))
-				console.log(timeEffects)
-				if (timeEffects[0]) {
-					canAttack = true
-					returnText = 'Your army travels through your opponents Time Gate...'
+
+				if (defEffect) {
+					let now = new Date()
+					let effectAge =
+						(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
+					let timeLeft = defEffect.empireEffectValue - effectAge
+					if (timeLeft > 0) {
+						canAttack = true
+						returnText = 'Your army travels through your opponents Time Gate...'
+					} else {
+						returnText =
+							'You must open a Time Gate to attack players in another Era'
+					}
 				} else {
+					canAttack = false
 					returnText =
 						'You must open a Time Gate to attack players in another Era'
 				}

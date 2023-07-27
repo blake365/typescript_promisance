@@ -6,7 +6,6 @@ import {
 	getPower_self,
 	randomIntFromInterval,
 } from './general'
-import EmpireEffect from '../../entity/EmpireEffect'
 import { createNewsEvent } from '../../util/helpers'
 
 export const fight_cost = (baseCost: number) => {

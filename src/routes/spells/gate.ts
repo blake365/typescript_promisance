@@ -10,7 +10,7 @@ export const gate_cost = (baseCost: number) => {
 export const gate_cast = async (empire: Empire) => {
 	let now = new Date()
 	const effect = await EmpireEffect.findOne({
-		where: { empireOwnerId: empire.id, empireEffectName: 'time gate' },
+		where: { effectOwnerId: empire.id, empireEffectName: 'time gate' },
 		order: { createdAt: 'DESC' },
 	})
 

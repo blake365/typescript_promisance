@@ -8,13 +8,6 @@ export const struct_cost = (baseCost: number) => {
 	return Math.ceil(18.0 * baseCost)
 }
 
-interface recentObject {
-	empireEffectName?: string
-	empireEffectValue?: number
-	createdAt?: Date
-	empireOwnerId?: number
-}
-
 const destroyBuildings = async (
 	type: string,
 	percent: number,
@@ -31,25 +24,29 @@ const destroyBuildings = async (
 }
 
 export const struct_cast = async (empire: Empire, enemyEmpire: Empire) => {
-	let now = new Date()
-	let recent: recentObject
-	const enemyEffects = await EmpireEffect.find({
+	const enemyEffect = await EmpireEffect.findOne({
 		where: { effectOwnerId: enemyEmpire.id, empireEffectName: 'spell shield' },
-		order: { createdAt: 'DESC' },
+		order: { updatedAt: 'DESC' },
 	})
 
-	if (enemyEffects.length > 0) {
-		recent = enemyEffects[0]
-	}
+	let timeLeft = 0
 
-	let effectAge = (now.valueOf() - new Date(recent.createdAt).getTime()) / 60000
-	// age in minutes
-	console.log(effectAge)
-	effectAge = Math.floor(effectAge)
+	if (enemyEffect) {
+		let now = new Date()
+
+		let effectAge =
+			(now.valueOf() - new Date(enemyEffect.updatedAt).getTime()) / 60000
+		timeLeft = enemyEffect.empireEffectValue - effectAge
+		// age in minutes
+		console.log(effectAge)
+		effectAge = Math.floor(effectAge)
+
+		console.log(enemyEffect)
+	}
 
 	if (getPower_enemy(empire, enemyEmpire) > 1.7) {
 		let result = {}
-		if (effectAge < recent.empireEffectValue) {
+		if (timeLeft > 0) {
 			let build = 0
 			build += await destroyBuildings('bldCash', 0.01, 100, enemyEmpire)
 			build += await destroyBuildings('bldPop', 0.01, 100, enemyEmpire)
