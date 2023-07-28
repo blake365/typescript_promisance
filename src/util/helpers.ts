@@ -52,6 +52,6 @@ export async function createNewsEvent(
 	newsItem.destinationName = destinationName
 	newsItem.type = type
 	newsItem.result = result
-	console.log(newsItem)
+	// console.log(newsItem)
 	await newsItem.save()
 }

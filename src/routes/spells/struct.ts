@@ -38,72 +38,118 @@ export const struct_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			(now.valueOf() - new Date(enemyEffect.updatedAt).getTime()) / 60000
 		timeLeft = enemyEffect.empireEffectValue - effectAge
 		// age in minutes
-		console.log(effectAge)
+		// console.log(effectAge)
 		effectAge = Math.floor(effectAge)
 
-		console.log(enemyEffect)
+		// console.log(enemyEffect)
 	}
 
-	if (getPower_enemy(empire, enemyEmpire) > 1.7) {
-		let result = {}
-		if (timeLeft > 0) {
-			let build = 0
-			build += await destroyBuildings('bldCash', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldPop', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldTrp', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldCost', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldFood', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldWiz', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldDef', 0.01, 150, enemyEmpire)
+	try {
+		if (getPower_enemy(empire, enemyEmpire) > 1.7) {
+			let result = {}
+			if (timeLeft > 0) {
+				let build = 0
+				build += await destroyBuildings('bldCash', 0.01, 100, enemyEmpire)
+				build += await destroyBuildings('bldPop', 0.01, 100, enemyEmpire)
+				build += await destroyBuildings('bldTrp', 0.01, 100, enemyEmpire)
+				build += await destroyBuildings('bldCost', 0.01, 100, enemyEmpire)
+				build += await destroyBuildings('bldFood', 0.01, 100, enemyEmpire)
+				build += await destroyBuildings('bldWiz', 0.01, 100, enemyEmpire)
+				build += await destroyBuildings('bldDef', 0.01, 150, enemyEmpire)
 
-			result = {
-				result: 'shielded',
-				message: `The spell was successful, but the enemy had a spell shield up. /n You destroyed ${build} buildings. `,
+				result = {
+					result: 'shielded',
+					message: `The spell was successful, but the enemy had a spell shield up. /n You destroyed ${build} buildings. `,
+				}
+
+				let pubContent = `${empire.name}(#${empire.id}) cast ${
+					eraArray[empire.era].spell_struct
+				} on ${enemyEmpire.name}(#${
+					enemyEmpire.id
+				}). /n The spell was shielded but ${build} buildings were destroyed.`
+				let content = `${empire.name}(#${empire.id}) cast ${
+					eraArray[empire.era].spell_struct
+				} against you. /n Your shield protected you but ${build} buildings were destroyed.`
+
+				await createNewsEvent(
+					content,
+					pubContent,
+					empire.id,
+					empire.name,
+					enemyEmpire.id,
+					enemyEmpire.name,
+					'spell',
+					'shielded'
+				)
+			} else {
+				let build = 0
+				build += await destroyBuildings('bldCash', 0.03, 100, enemyEmpire)
+				build += await destroyBuildings('bldPop', 0.03, 100, enemyEmpire)
+				build += await destroyBuildings('bldTrp', 0.03, 100, enemyEmpire)
+				build += await destroyBuildings('bldCost', 0.03, 100, enemyEmpire)
+				build += await destroyBuildings('bldFood', 0.03, 100, enemyEmpire)
+				build += await destroyBuildings('bldWiz', 0.03, 100, enemyEmpire)
+				build += await destroyBuildings('bldDef', 0.03, 150, enemyEmpire)
+
+				result = {
+					result: 'success',
+					message: `The spell was successful! /n You destroyed ${build} buildings.`,
+				}
+
+				let pubContent = `${empire.name}(#${empire.id}) cast ${
+					eraArray[empire.era].spell_struct
+				} on ${enemyEmpire.name}(#${
+					enemyEmpire.id
+				}) and destroyed ${build} buildings.`
+
+				let content = `${empire.name}(#${empire.id}) cast ${
+					eraArray[empire.era].spell_struct
+				} against you and destroyed ${build} buildings.`
+
+				await createNewsEvent(
+					content,
+					pubContent,
+					empire.id,
+					empire.name,
+					enemyEmpire.id,
+					enemyEmpire.name,
+					'spell',
+					'fail'
+				)
 			}
 
-			let pubContent = `${empire.name}(#${empire.id}) cast ${
-				eraArray[empire.era].spell_struct
-			} on ${enemyEmpire.name}(#${
-				enemyEmpire.id
-			}). /n The spell was shielded but ${build} buildings were destroyed.`
-			let content = `${empire.name}(#${empire.id}) cast ${
-				eraArray[empire.era].spell_struct
-			} against you. /n Your shield protected you but ${build} buildings were destroyed.`
+			empire.offSucc++
+			empire.offTotal++
+			enemyEmpire.defTotal++
 
-			await createNewsEvent(
-				content,
-				pubContent,
-				empire.id,
-				empire.name,
-				enemyEmpire.id,
-				enemyEmpire.name,
-				'spell',
-				'shielded'
-			)
+			await empire.save()
+			await enemyEmpire.save()
+			return result
 		} else {
-			let build = 0
-			build += await destroyBuildings('bldCash', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldPop', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldTrp', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldCost', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldFood', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldWiz', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldDef', 0.03, 150, enemyEmpire)
-
-			result = {
-				result: 'success',
-				message: `The spell was successful! /n You destroyed ${build} buildings.`,
+			let wizloss = getWizLoss_enemy(empire)
+			let result = {
+				result: 'fail',
+				message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
+					eraArray[empire.era].spell_struct
+				} on your opponent.`,
+				wizloss: wizloss,
+				descriptor: eraArray[empire.era].trpwiz,
 			}
 
-			let pubContent = `${empire.name}(#${empire.id}) cast ${
-				eraArray[empire.era].spell_struct
-			} on ${enemyEmpire.name}(#${
-				enemyEmpire.id
-			}) and destroyed ${build} buildings.`
+			empire.offTotal++
+			enemyEmpire.defSucc++
+			enemyEmpire.defTotal++
 
-			let content = `${empire.name}(#${empire.id}) cast ${
+			await empire.save()
+			await enemyEmpire.save()
+
+			let content = `${empire.name}(#${empire.id}) attempted to cast ${
 				eraArray[empire.era].spell_struct
-			} against you and destroyed ${build} buildings.`
+			} against you and failed. `
+
+			let pubContent = `${empire.name}(#${empire.id}) attempted to cast ${
+				eraArray[empire.era].spell_struct
+			} on ${enemyEmpire.name}(#${enemyEmpire.id}) and failed.`
 
 			await createNewsEvent(
 				content,
@@ -113,54 +159,12 @@ export const struct_cast = async (empire: Empire, enemyEmpire: Empire) => {
 				enemyEmpire.id,
 				enemyEmpire.name,
 				'spell',
-				'fail'
+				'success'
 			)
+
+			return result
 		}
-
-		empire.offSucc++
-		empire.offTotal++
-		enemyEmpire.defTotal++
-
-		await empire.save()
-		await enemyEmpire.save()
-		return result
-	} else {
-		let wizloss = getWizLoss_enemy(empire)
-		let result = {
-			result: 'fail',
-			message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
-				eraArray[empire.era].spell_struct
-			} on your opponent.`,
-			wizloss: wizloss,
-			descriptor: eraArray[empire.era].trpwiz,
-		}
-
-		empire.offTotal++
-		enemyEmpire.defSucc++
-		enemyEmpire.defTotal++
-
-		await empire.save()
-		await enemyEmpire.save()
-
-		let content = `${empire.name}(#${empire.id}) attempted to cast ${
-			eraArray[empire.era].spell_struct
-		} against you and failed. `
-
-		let pubContent = `${empire.name}(#${empire.id}) attempted to cast ${
-			eraArray[empire.era].spell_struct
-		} on ${enemyEmpire.name}(#${enemyEmpire.id}) and failed.`
-
-		await createNewsEvent(
-			content,
-			pubContent,
-			empire.id,
-			empire.name,
-			enemyEmpire.id,
-			enemyEmpire.name,
-			'spell',
-			'success'
-		)
-
-		return result
+	} catch (err) {
+		console.log(err)
 	}
 }

@@ -472,7 +472,7 @@ const magic = async (req: Request, res: Response) => {
 	return res.json(resultArray)
 }
 
-const attackSpell = async (attacker, spellCost, spell) => {
+const attackSpell = async (attacker: Empire, spellCost: number, spell) => {
 	const cost = spellCost
 	const turns = 2
 	if (spellCheck(attacker, cost, turns) === 'passed') {
@@ -505,9 +505,11 @@ const attackSpell = async (attacker, spellCost, spell) => {
 		attacker.trpWiz += spellRes.trpWiz
 		attacker.turns -= turns
 		attacker.turnsUsed += turns
+		attacker.health -= 6
 
 		await attacker.save()
 
+		console.log('returning with spellTurns')
 		return spellTurns
 	} else {
 		let spellTurns = spellCheck(attacker, cost, turns)
@@ -529,132 +531,135 @@ const magicAttack = async (req: Request, res: Response) => {
 	let returnText = ''
 	let attackDescription = {}
 
-	const attacker = await Empire.findOne({ id: attackerId })
-	const defender = await Empire.findOne({ id: defenderId })
-	// console.log('food:', empire.food, 'cash:', empire.cash, empire.turns, empire.runes)
-	if (attacker.trpWiz === 0) {
-		return res.json({
-			error: `You must have ${eraArray[attacker.era].trpwiz} to cast spells`,
-		})
-	}
+	try {
+		const attacker = await Empire.findOne({ id: attackerId })
+		const defender = await Empire.findOne({ id: defenderId })
+		// console.log('food:', empire.food, 'cash:', empire.cash, empire.turns, empire.runes)
+		if (attacker.trpWiz === 0) {
+			return res.json({
+				error: `You must have ${eraArray[attacker.era].trpwiz} to cast spells`,
+			})
+		}
 
-	const base = baseCost(attacker)
+		const base = baseCost(attacker)
 
-	if (attacker.era === defender.era && attacker.turns > 2) {
-		canAttack = true
-	} else if (attacker.era !== defender.era) {
-		// use attacker time gate first then try defender
-		const effect = await EmpireEffect.findOneOrFail({
-			where: { effectOwnerId: attacker.id, empireEffectName: 'time gate' },
-			order: { createdAt: 'DESC' },
-		})
-
-		if (effect) {
-			let now = new Date()
-
-			let effectAge =
-				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
-			let timeLeft = effect.empireEffectValue - effectAge
-
-			if (timeLeft > 0) {
-				canAttack = true
-				returnText = 'Your army travels through your Time Gate...'
-			}
-		} else {
-			// try defender time gate
-			const defEffect = await EmpireEffect.findOneOrFail({
-				where: {
-					effectOwnerId: defender.empireId,
-					empireEffectName: 'time gate',
-				},
+		if (attacker.era === defender.era && attacker.turns > 2) {
+			canAttack = true
+		} else if (attacker.era !== defender.era) {
+			// use attacker time gate first then try defender
+			const effect = await EmpireEffect.findOneOrFail({
+				where: { effectOwnerId: attacker.id, empireEffectName: 'time gate' },
 				order: { createdAt: 'DESC' },
 			})
 
-			if (defEffect) {
+			if (effect) {
 				let now = new Date()
+
 				let effectAge =
-					(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
-				let timeLeft = defEffect.empireEffectValue - effectAge
+					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+				let timeLeft = effect.empireEffectValue - effectAge
+
 				if (timeLeft > 0) {
 					canAttack = true
-					returnText = 'Your army travels through your opponents Time Gate...'
+					returnText = 'Your army travels through your Time Gate...'
+				}
+			} else {
+				// try defender time gate
+				const defEffect = await EmpireEffect.findOneOrFail({
+					where: {
+						effectOwnerId: defender.empireId,
+						empireEffectName: 'time gate',
+					},
+					order: { createdAt: 'DESC' },
+				})
+
+				if (defEffect) {
+					let now = new Date()
+					let effectAge =
+						(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
+					let timeLeft = defEffect.empireEffectValue - effectAge
+					if (timeLeft > 0) {
+						canAttack = true
+						returnText = 'Your army travels through your opponents Time Gate...'
+					} else {
+						returnText =
+							'You must open a Time Gate to attack players in another Era'
+					}
 				} else {
+					canAttack = false
 					returnText =
 						'You must open a Time Gate to attack players in another Era'
 				}
-			} else {
-				canAttack = false
-				returnText =
-					'You must open a Time Gate to attack players in another Era'
 			}
 		}
-	}
 
-	console.log('can attack', canAttack)
-	// handle errors
-	// add break if spell check is false
+		console.log('can attack', canAttack)
+		// handle errors
+		// add break if spell check is false
+		let spellTurns = {}
 
-	if (canAttack) {
-		if (spell === 'blast') {
-			// blast
-			console.log('blast start')
-			let blast = await attackSpell(
-				attacker,
-				blast_cost(base),
-				blast_cast(attacker, defender)
-			)
-			console.log(blast)
-		} else if (spell === 'struct') {
-			// struct
-			console.log('struct start')
-			let struct = await attackSpell(
-				attacker,
-				struct_cost(base),
-				struct_cast(attacker, defender)
-			)
-			console.log(struct)
-		} else if (spell === 'storm') {
-			console.log('storm start')
-			let storm = await attackSpell(
-				attacker,
-				storm_cost(base),
-				storm_cast(attacker, defender)
-			)
-			console.log(storm)
-		} else if (spell === 'steal') {
-			console.log('steal start')
-			let steal = await attackSpell(
-				attacker,
-				steal_cost(base),
-				steal_cast(attacker, defender)
-			)
-			console.log(steal)
-		} else if (spell === 'runes') {
-			console.log('runes start')
-			let runes = await attackSpell(
-				attacker,
-				runes_cost(base),
-				runes_cast(attacker, defender)
-			)
-			console.log(runes)
-		} else if (spell === 'fight') {
-			console.log('fight start')
-			let fight = await attackSpell(
-				attacker,
-				fight_cost(base),
-				fight_cast(attacker, defender)
-			)
-			console.log(fight)
+		if (canAttack) {
+			if (spell === 'blast') {
+				// blast
+				console.log('blast start')
+				spellTurns = await attackSpell(
+					attacker,
+					blast_cost(base),
+					blast_cast(attacker, defender)
+				)
+				// console.log(spellTurns)
+			} else if (spell === 'struct') {
+				// struct
+				console.log('struct start')
+				spellTurns = await attackSpell(
+					attacker,
+					struct_cost(base),
+					struct_cast(attacker, defender)
+				)
+				console.log(spellTurns)
+			} else if (spell === 'storm') {
+				console.log('storm start')
+				spellTurns = await attackSpell(
+					attacker,
+					storm_cost(base),
+					storm_cast(attacker, defender)
+				)
+			} else if (spell === 'steal') {
+				console.log('steal start')
+				spellTurns = await attackSpell(
+					attacker,
+					steal_cost(base),
+					steal_cast(attacker, defender)
+				)
+			} else if (spell === 'runes') {
+				console.log('runes start')
+				spellTurns = await attackSpell(
+					attacker,
+					runes_cost(base),
+					runes_cast(attacker, defender)
+				)
+			} else if (spell === 'fight') {
+				console.log('fight start')
+				spellTurns = await attackSpell(
+					attacker,
+					fight_cost(base),
+					fight_cast(attacker, defender)
+				)
+			}
 		}
-	}
 
-	return res.json('something happened')
+		console.log('test', spellTurns)
+		return res.json(spellTurns)
+	} catch (e) {
+		console.log(e)
+		return res.json({ error: 'Something went wrong' })
+	}
 }
 
 const router = Router()
 
 router.post('/', user, auth, magic)
-router.post('/attack', magicAttack)
+router.post('/attack', user, auth, magicAttack)
 // router.post('/spell', magic)
 
 export default router

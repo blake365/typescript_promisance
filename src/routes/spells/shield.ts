@@ -35,7 +35,7 @@ export const shield_cast = async (empire: Empire) => {
 	if (getPower_self(empire) >= 15) {
 		if (effect) {
 			if (timeLeft <= 0) {
-				effect.softRemove()
+				effect.remove()
 				console.log('expired')
 				// create effect
 				let empireEffectName = 'spell shield'

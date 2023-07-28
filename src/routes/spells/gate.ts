@@ -29,7 +29,7 @@ export const gate_cast = async (empire: Empire) => {
 	if (getPower_self(empire) >= 75) {
 		if (effect) {
 			if (timeLeft <= 0) {
-				effect.softRemove()
+				effect.remove()
 				console.log('expired')
 				// create effect
 				let empireEffectName = 'time gate'

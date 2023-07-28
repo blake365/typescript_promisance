@@ -227,11 +227,15 @@ export const destroyBuildings = async (
 }
 
 const attack = async (req: Request, res: Response) => {
-	// TODO: use two turns for attacks
+	// use two turns for attacks
 	// only send troops relevant to the attack type
 	console.log(req.body)
 	console.log(req.params)
 	const { attackType, defenderId, type, number, empireId } = req.body
+
+	if (type !== 'attack') {
+		return res.status(500).send('Invalid')
+	}
 
 	let offPower = 0
 	let defPower = 0

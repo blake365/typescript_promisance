@@ -23,10 +23,10 @@ export const blast_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			(now.valueOf() - new Date(enemyEffect.updatedAt).getTime()) / 60000
 		timeLeft = enemyEffect.empireEffectValue - effectAge
 		// age in minutes
-		console.log(effectAge)
+		// console.log(effectAge)
 		effectAge = Math.floor(effectAge)
 
-		console.log(enemyEffect)
+		// console.log(enemyEffect)
 	}
 
 	if (getPower_enemy(empire, enemyEmpire) >= 1.15) {
@@ -64,6 +64,8 @@ export const blast_cast = async (empire: Empire, enemyEmpire: Empire) => {
 				'spell',
 				'shielded'
 			)
+
+			return result
 		} else {
 			enemyEmpire.trpArm -= Math.ceil(enemyEmpire.trpArm * 0.03)
 			enemyEmpire.trpLnd -= Math.ceil(enemyEmpire.trpLnd * 0.03)
@@ -105,6 +107,7 @@ export const blast_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 		await empire.save()
 		await enemyEmpire.save()
+		// console.log(result)
 		return result
 	} else {
 		let wizloss = getWizLoss_enemy(empire)
