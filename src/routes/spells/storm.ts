@@ -43,7 +43,7 @@ export const storm_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 			result = {
 				result: 'shielded',
-				message: `The spell was successful, but the enemy had a spell shield up. /n You destroyed $${cash} and ${food} ${
+				message: `The spell was successful, but the enemy had a spell shield up. /n You destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
 					eraArray[enemyEmpire.era].food
 				}. `,
 			}
@@ -52,15 +52,15 @@ export const storm_cast = async (empire: Empire, enemyEmpire: Empire) => {
 				eraArray[empire.era].spell_storm
 			} on ${enemyEmpire.name}(#${
 				enemyEmpire.id
-			}). /n The spell was shielded but $${cash} and ${food} ${
+			}). /n The spell was shielded but $${cash.toLocaleString()} and ${food.toLocaleString()} ${
 				eraArray[enemyEmpire.era].food
 			} were destroyed.`
 
 			let content = `${empire.name}(#${empire.id}) cast ${
 				eraArray[empire.era].spell_storm
-			} against you. /n Your shield protected you but they stole $${cash} and ${food} ${
+			} against you. /n Your shield protected you but they destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
 				eraArray[enemyEmpire.era].food
-			} were destroyed.`
+			}.`
 
 			await createNewsEvent(
 				content,
@@ -80,7 +80,7 @@ export const storm_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 			result = {
 				result: 'success',
-				message: `The spell was successful! /n You destroyed $${cash} and ${food} ${
+				message: `The spell was successful! /n You destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
 					eraArray[enemyEmpire.era].food
 				}.`,
 			}
@@ -89,7 +89,9 @@ export const storm_cast = async (empire: Empire, enemyEmpire: Empire) => {
 				eraArray[empire.era].spell_storm
 			} on ${enemyEmpire.name}(#${
 				enemyEmpire.id
-			}) and destroyed $${cash} and ${food} ${eraArray[enemyEmpire.era].food}.`
+			}) and destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
+				eraArray[enemyEmpire.era].food
+			}.`
 
 			let content = `${empire.name}(#${empire.id}) cast ${
 				eraArray[empire.era].spell_storm
