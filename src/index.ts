@@ -30,6 +30,7 @@ import otherEmpires from './routes/empire'
 import attack from './routes/attack'
 import news from './routes/news'
 import effects from './routes/effects'
+import intel from './routes/intel'
 
 import { hourlyUpdate, promTurns, updateRanks } from './jobs/promTurns'
 
@@ -73,6 +74,7 @@ app.use('/api/market', pubBuy)
 app.use('/api/attack', attack)
 app.use('/api/news', news)
 app.use('/api/effects', effects)
+app.use('/api/intel', intel)
 // app.use('/api/empire', otherEmpires)
 
 app.listen(PORT, async () => {

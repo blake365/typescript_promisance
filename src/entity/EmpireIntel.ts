@@ -1,17 +1,6 @@
-import {
-	Entity,
-	Column,
-	PrimaryGeneratedColumn,
-	Index,
-	ManyToOne,
-	JoinColumn,
-	OneToOne,
-	OneToMany,
-} from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm'
 
 import Model from './Model'
-import User from './User'
-import EmpireEffect from './EmpireEffect'
 
 @Entity('empire intel')
 export default class EmpireIntel extends Model {

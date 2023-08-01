@@ -21,7 +21,7 @@ import { storm_cast, storm_cost } from './spells/storm'
 import { steal_cast, steal_cost } from './spells/steal'
 import { runes_cast, runes_cost } from './spells/runes'
 import { fight_cast, fight_cost } from './spells/fight'
-
+import { spy_cast, spy_cost } from './spells/spy'
 // FIXED: internal turns not working
 
 const spellCheck = (empire: Empire, cost: number, turns: number) => {
@@ -644,6 +644,13 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					fight_cost(base),
 					fight_cast(attacker, defender)
+				)
+			} else if (spell === 'spy') {
+				console.log('spy start')
+				spellTurns = await attackSpell(
+					attacker,
+					spy_cost(base),
+					spy_cast(attacker, defender)
 				)
 			}
 		}
