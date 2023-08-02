@@ -653,6 +653,13 @@ const magicAttack = async (req: Request, res: Response) => {
 					spy_cast(attacker, defender)
 				)
 			}
+		} else {
+			// console.log('not allowed')
+			return res.json({
+				error: `${
+					eraArray[attacker.era].effectname_gate
+				} is required to cast a spell on this empire.`,
+			})
 		}
 
 		console.log('test', spellTurns)

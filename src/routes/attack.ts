@@ -5,11 +5,8 @@ import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { useTurnInternal } from './useturns'
 
-import EmpireNews from '../entity/EmpireNews'
 import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
-import { getNetworth } from './actions/actions'
-
 import { createNewsEvent } from '../util/helpers'
 
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
@@ -331,7 +328,7 @@ const attack = async (req: Request, res: Response) => {
 
 			let attackRes = attackTurns[0]
 			attackTurns = attackTurns[0]
-			console.log(attackRes)
+			// console.log(attackRes)
 
 			attacker.cash =
 				attacker.cash +
@@ -711,6 +708,13 @@ const attack = async (req: Request, res: Response) => {
 			// figure out return object
 			// console.log(attackTurns)
 			// console.log(returnText)
+		} else {
+			// console.log('not allowed')
+			return res.json({
+				error: `${
+					eraArray[attacker.era].effectname_gate
+				} is required to attack this empire.`,
+			})
 		}
 
 		console.log('resultArray', resultArray)
