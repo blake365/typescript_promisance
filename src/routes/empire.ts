@@ -285,7 +285,7 @@ const findOneEmpire = async (req: Request, res: Response) => {
 			where: { effectOwnerId: empire.empireId },
 		})
 		// console.log('user', user)
-		console.log(effects)
+		// console.log(effects)
 		if (user.username !== empire.user.username) {
 			return res.status(403).json({ error: 'unauthorized' })
 		}

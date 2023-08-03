@@ -144,6 +144,8 @@ const build = async (req: Request, res: Response) => {
 				empire.turns--
 				empire.turnsUsed++
 
+				// FIXME: handle trouble in internal turn function
+
 				await empire.save()
 			}
 		}
