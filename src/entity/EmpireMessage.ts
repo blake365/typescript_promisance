@@ -36,12 +36,29 @@ export default class EmpireMessage extends Model {
 	})
 	empireIdSource: number
 
+	@Column({
+		default: '',
+	})
+	empireSourceName: string
+
 	@Index()
 	@Column({
 		type: 'int',
 		default: 0,
 	})
 	empireIdDestination: number
+
+	@Column({
+		default: '',
+	})
+	empireDestinationName: string
+
+	@Index()
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	conversationId: number
 
 	@Column()
 	messageSubject: string
