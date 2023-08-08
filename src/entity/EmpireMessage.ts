@@ -67,4 +67,7 @@ export default class EmpireMessage extends Model {
 		type: 'text',
 	})
 	messageBody: string
+
+	@Column({ default: false })
+	seen: boolean
 }

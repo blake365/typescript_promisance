@@ -2,6 +2,7 @@ import EmpireMessage from '../entity/EmpireMessage'
 import { Router, Request, Response } from 'express'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
+import { getConnection } from 'typeorm'
 
 const Filter = require('bad-words')
 
@@ -173,6 +174,38 @@ const postMessage = async (req: Request, res: Response) => {
 	}
 }
 
+const checkForNew = async (req: Request, res: Response) => {
+	const { id } = req.params
+
+	try {
+		const news = await EmpireMessage.find({
+			where: { empireIdDestination: id },
+			order: { createdAt: 'DESC' },
+			skip: 0,
+			take: 1,
+		})
+		let check = news[0].seen
+		return res.json({ new: !check })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
+const markRead = async (req: Request, res: Response) => {
+	console.log('marking mail as read')
+	const { id } = req.params
+
+	await getConnection()
+		.createQueryBuilder()
+		.update(EmpireMessage)
+		.set({ seen: true })
+		.where({ conversationId: id })
+		.execute()
+
+	return res.json({ success: true })
+}
+
 const deleteMessage = async (req: Request, res: Response) => {}
 
 const router = Router()
@@ -180,6 +213,8 @@ const router = Router()
 router.post('/conversations', user, auth, getConversations)
 router.post('/messages', user, auth, getMessages)
 router.post('/message/new', user, auth, postMessage)
+router.get('/:id/check', user, auth, checkForNew)
+router.get('/:id/read', user, auth, markRead)
 // router.delete('/message', deleteMessage)
 
 export default router
