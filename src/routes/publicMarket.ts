@@ -16,6 +16,99 @@ interface ReturnObject {
 	error?: string
 }
 
+const pubBuyTwo = async (req: Request, res: Response) => {
+	const { empireId, action, type, buy, item } = req.body
+
+	console.log(req.body)
+	if (action !== 'buy') {
+		return res.json({ error: 'Something went wrong' })
+	}
+
+	if (buy < 1) {
+		return res.status(500).json({ error: 'Invalid purchase amount' })
+	}
+
+	const buyer = await Empire.findOne({ id: empireId })
+	const seller = await Empire.findOne({ id: item.empire_id })
+	const itemBought = await Market.findOne({ id: item.id })
+
+	let amount: number = buy
+	let cost: number = item.price * buy
+
+	if (cost > buyer.cash) {
+		return res.status(500).json({ error: 'Not enough money to make purchase' })
+	}
+	if (type !== itemBought.type) {
+		return res.status(500).json({ error: 'Invalid purchase' })
+	}
+
+	let itemName: string
+	// add bought item to empire
+	if (itemBought.type === 0) {
+		buyer.trpArm += amount
+		seller.trpArm -= amount
+		itemName = eraArray[seller.era].trparm
+	} else if (itemBought.type === 1) {
+		buyer.trpLnd += amount
+		seller.trpLnd -= amount
+		itemName = eraArray[seller.era].trplnd
+	} else if (itemBought.type === 2) {
+		buyer.trpFly += amount
+		seller.trpFly -= amount
+		itemName = eraArray[seller.era].trpfly
+	} else if (itemBought.type === 3) {
+		buyer.trpSea += amount
+		seller.trpSea -= amount
+		itemName = eraArray[seller.era].trpsea
+	} else if (itemBought.type === 4) {
+		buyer.food += amount
+		seller.food -= amount
+		itemName = eraArray[seller.era].food
+	} else if (itemBought.type === 5) {
+		buyer.runes += amount
+		seller.runes -= amount
+		itemName = eraArray[seller.era].runes
+	}
+
+	// deduct cost from buyer cash
+	buyer.cash -= cost
+
+	// add cost to seller cash
+	seller.cash += cost
+
+	buyer.networth = getNetworth(buyer)
+	seller.networth = getNetworth(seller)
+
+	await buyer.save()
+	await seller.save()
+
+	// create news entry
+	let content: string = `You sold ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}`
+	let pubContent: string = `${buyer.name} (#${
+		buyer.id
+	}) purchased ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()} from ${
+		seller.name
+	} (#${seller.id}) `
+
+	// create news event for seller that goods have been purchased
+	await createNewsEvent(
+		content,
+		pubContent,
+		buyer.id,
+		buyer.name,
+		seller.id,
+		seller.name,
+		'market',
+		'success'
+	)
+
+	if (item.amount - buy <= 0) {
+		await Market.delete({ id: item.id })
+	}
+
+	return res.json({ success: 'item purchased' })
+}
+
 const pubBuy = async (req: Request, res: Response) => {
 	const { buyerId, sellerId, id, amount, cost } = req.body
 
@@ -128,6 +221,7 @@ const pubSell = async (req: Request, res: Response) => {
 		empire.trpSea,
 		empire.food,
 	]
+
 	let itemsEraArray = [
 		eraArray[empire.era].trparm,
 		eraArray[empire.era].trplnd,
@@ -230,32 +324,99 @@ const getMyItems = async (req: Request, res: Response) => {
 }
 
 const getOtherItems = async (req: Request, res: Response) => {
-	const empire_id = res.locals.user.empires[0].id
+	// const empire_id = res.locals.user.empires[0].id
 	// console.log(res.locals.user)
 	// console.log(empire_id)
 	const { empireId } = req.body
 	// console.log(req.body)
 
-	if (empire_id !== empireId) {
-		return res.status(500).json({ error: 'Empire ID mismatch' })
+	// if (empire_id !== empireId) {
+	// 	return res.status(500).json({ error: 'Empire ID mismatch' })
+	// }
+	let returnObject = {
+		arm: null,
+		lnd: null,
+		fly: null,
+		sea: null,
+		food: null,
+		runes: null,
 	}
 
-	const otherItems = await Market.find({
-		where: { empire_id: Not(empire_id) },
+	returnObject.arm = await Market.find({
+		where: { type: 0, empire_id: Not(empireId), amount: Not(0) },
 		order: {
-			type: 'ASC',
 			price: 'ASC',
 		},
+		take: 1,
 	})
 
-	// console.log(otherItems)
-	return res.json(otherItems)
+	returnObject.lnd = await Market.find({
+		where: { type: 1, empire_id: Not(empireId), amount: Not(0) },
+		order: {
+			price: 'ASC',
+		},
+		take: 1,
+	})
+
+	returnObject.fly = await Market.find({
+		where: { type: 2, empire_id: Not(empireId), amount: Not(0) },
+		order: {
+			price: 'ASC',
+		},
+		take: 1,
+	})
+
+	returnObject.sea = await Market.find({
+		where: { type: 3, empire_id: Not(empireId), amount: Not(0) },
+		order: {
+			price: 'ASC',
+		},
+		take: 1,
+	})
+
+	returnObject.food = await Market.find({
+		where: { type: 4, empire_id: Not(empireId), amount: Not(0) },
+		order: {
+			price: 'ASC',
+		},
+		take: 1,
+	})
+
+	returnObject.runes = await Market.find({
+		where: { type: 5, empire_id: Not(empireId), amount: Not(0) },
+		order: {
+			price: 'ASC',
+		},
+		take: 1,
+	})
+
+	if (returnObject.arm.length < 1) {
+		returnObject.arm.push({ price: 0, amount: 0, type: 0 })
+	}
+	if (returnObject.lnd.length < 1) {
+		returnObject.lnd.push({ price: 0, amount: 0, type: 1 })
+	}
+	if (returnObject.fly.length < 1) {
+		returnObject.fly.push({ price: 0, amount: 0, type: 2 })
+	}
+	if (returnObject.sea.length < 1) {
+		returnObject.sea.push({ price: 0, amount: 0, type: 3 })
+	}
+	if (returnObject.food.length < 1) {
+		returnObject.food.push({ price: 0, amount: 0, type: 4 })
+	}
+	if (returnObject.runes.length < 1) {
+		returnObject.runes.push({ price: 0, amount: 0, type: 5 })
+	}
+	// console.log(returnObject)
+	return res.json(returnObject)
 }
 
 const router = Router()
 
-//TODO: needs user and auth middleware
+// needs user and auth middleware
 router.post('/pubBuy', user, auth, pubBuy)
+router.post('/pubBuy2', user, auth, pubBuyTwo)
 router.post('/pubSell', user, auth, pubSell)
 router.post('/pubSellMine', user, auth, getMyItems)
 router.post('/pubSellOthers', user, auth, getOtherItems)

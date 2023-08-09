@@ -20,13 +20,9 @@ import build from './routes/build'
 import demolish from './routes/demolish'
 import drop from './routes/dropLand'
 import magic from './routes/magic'
-import buy from './routes/privateMarket'
-import sell from './routes/privateMarket'
-import pubSell from './routes/publicMarket'
-import pubBuy from './routes/publicMarket'
-import pubSellMine from './routes/publicMarket'
-import pubSellOthers from './routes/publicMarket'
-import otherEmpires from './routes/empire'
+import privateMarket from './routes/privateMarket'
+import publicMarket from './routes/publicMarket'
+// import otherEmpires from './routes/empire'
 import attack from './routes/attack'
 import news from './routes/news'
 import effects from './routes/effects'
@@ -66,12 +62,8 @@ app.use('/api/demolish', demolish)
 app.use('/api/demolish', demolish)
 app.use('/api/drop', drop)
 app.use('/api/magic', magic)
-app.use('/api/market', buy)
-app.use('/api/market', sell)
-app.use('/api/market', pubSell)
-app.use('/api/market', pubSellMine)
-app.use('/api/market', pubSellOthers)
-app.use('/api/market', pubBuy)
+app.use('/api/privatemarket', privateMarket)
+app.use('/api/publicmarket', publicMarket)
 app.use('/api/attack', attack)
 app.use('/api/news', news)
 app.use('/api/effects', effects)

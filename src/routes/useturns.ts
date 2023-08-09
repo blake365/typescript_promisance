@@ -95,14 +95,14 @@ export const useTurn = async (
 		// income/expenses/loan
 
 		// takes place of calcFinances function
-		let income =
-			Math.round(
-				calcPCI(empire) *
-					(empire.tax / 100) *
-					(empire.health / 100) *
-					empire.peasants +
-					empire.bldCash * 500
-			) / size
+		let income = Math.round(
+			(calcPCI(empire) *
+				(empire.tax / 100) *
+				(empire.health / 100) *
+				empire.peasants +
+				empire.bldCash * 500) /
+				size
+		)
 
 		if (type === 'cash') {
 			income = Math.round(income * 1.25)
