@@ -7,7 +7,7 @@ import { eraArray } from '../config/eras'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 
-import { Not } from 'typeorm'
+import { Not, Raw } from 'typeorm'
 import { createNewsEvent } from '../util/helpers'
 
 interface ReturnObject {
@@ -201,6 +201,8 @@ const pubSell = async (req: Request, res: Response) => {
 		priceSea,
 		sellFood,
 		priceFood,
+		sellRunes,
+		priceRunes,
 	} = req.body
 
 	if (type !== 'sell') {
@@ -210,16 +212,24 @@ const pubSell = async (req: Request, res: Response) => {
 	console.log('public market sale')
 
 	const empire = await Empire.findOne({ id: empireId })
-	console.log(empire.networth)
-	let priceArray = [priceArm, priceLnd, priceFly, priceSea, priceFood]
+	// console.log(empire.networth)
+	let priceArray = [
+		priceArm,
+		priceLnd,
+		priceFly,
+		priceSea,
+		priceFood,
+		priceRunes,
+	]
 
-	let sellArray = [sellArm, sellLnd, sellFly, sellSea, sellFood]
+	let sellArray = [sellArm, sellLnd, sellFly, sellSea, sellFood, sellRunes]
 	let trpArray = [
 		empire.trpArm,
 		empire.trpLnd,
 		empire.trpFly,
 		empire.trpSea,
 		empire.food,
+		empire.runes,
 	]
 
 	let itemsEraArray = [
@@ -228,6 +238,7 @@ const pubSell = async (req: Request, res: Response) => {
 		eraArray[empire.era].trpfly,
 		eraArray[empire.era].trpsea,
 		eraArray[empire.era].food,
+		eraArray[empire.era].runes,
 	]
 
 	// console.log(sellArray)
@@ -238,6 +249,7 @@ const pubSell = async (req: Request, res: Response) => {
 	let resultSellFly: ReturnObject = { amount: null, price: null }
 	let resultSellSea: ReturnObject = { amount: null, price: null }
 	let resultSellFood: ReturnObject = { amount: null, price: null }
+	let resultSellRunes: ReturnObject = { amount: null, price: null }
 
 	let returnArray = [
 		resultSellArm,
@@ -245,6 +257,7 @@ const pubSell = async (req: Request, res: Response) => {
 		resultSellFly,
 		resultSellSea,
 		resultSellFood,
+		resultSellRunes,
 	]
 
 	for (let index = 0; index < sellArray.length; index++) {
@@ -285,6 +298,8 @@ const pubSell = async (req: Request, res: Response) => {
 				empire.trpSea -= amount
 			} else if (index === 4) {
 				empire.food -= amount
+			} else if (index === 5) {
+				empire.runes -= amount
 			}
 			await empire.save()
 			marketItem = new Market({ type, amount, price, empire_id })
@@ -324,15 +339,15 @@ const getMyItems = async (req: Request, res: Response) => {
 }
 
 const getOtherItems = async (req: Request, res: Response) => {
-	// const empire_id = res.locals.user.empires[0].id
+	const empire_id = res.locals.user.empires[0].id
 	// console.log(res.locals.user)
 	// console.log(empire_id)
 	const { empireId } = req.body
 	// console.log(req.body)
 
-	// if (empire_id !== empireId) {
-	// 	return res.status(500).json({ error: 'Empire ID mismatch' })
-	// }
+	if (empire_id !== empireId) {
+		return res.status(500).json({ error: 'Empire ID mismatch' })
+	}
 	let returnObject = {
 		arm: null,
 		lnd: null,
@@ -343,7 +358,12 @@ const getOtherItems = async (req: Request, res: Response) => {
 	}
 
 	returnObject.arm = await Market.find({
-		where: { type: 0, empire_id: Not(empireId), amount: Not(0) },
+		where: {
+			type: 0,
+			empire_id: Not(empireId),
+			amount: Not(0),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+		},
 		order: {
 			price: 'ASC',
 		},
@@ -351,7 +371,12 @@ const getOtherItems = async (req: Request, res: Response) => {
 	})
 
 	returnObject.lnd = await Market.find({
-		where: { type: 1, empire_id: Not(empireId), amount: Not(0) },
+		where: {
+			type: 1,
+			empire_id: Not(empireId),
+			amount: Not(0),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+		},
 		order: {
 			price: 'ASC',
 		},
@@ -359,7 +384,12 @@ const getOtherItems = async (req: Request, res: Response) => {
 	})
 
 	returnObject.fly = await Market.find({
-		where: { type: 2, empire_id: Not(empireId), amount: Not(0) },
+		where: {
+			type: 2,
+			empire_id: Not(empireId),
+			amount: Not(0),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+		},
 		order: {
 			price: 'ASC',
 		},
@@ -367,7 +397,12 @@ const getOtherItems = async (req: Request, res: Response) => {
 	})
 
 	returnObject.sea = await Market.find({
-		where: { type: 3, empire_id: Not(empireId), amount: Not(0) },
+		where: {
+			type: 3,
+			empire_id: Not(empireId),
+			amount: Not(0),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+		},
 		order: {
 			price: 'ASC',
 		},
@@ -375,7 +410,12 @@ const getOtherItems = async (req: Request, res: Response) => {
 	})
 
 	returnObject.food = await Market.find({
-		where: { type: 4, empire_id: Not(empireId), amount: Not(0) },
+		where: {
+			type: 4,
+			empire_id: Not(empireId),
+			amount: Not(0),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+		},
 		order: {
 			price: 'ASC',
 		},
@@ -383,7 +423,12 @@ const getOtherItems = async (req: Request, res: Response) => {
 	})
 
 	returnObject.runes = await Market.find({
-		where: { type: 5, empire_id: Not(empireId), amount: Not(0) },
+		where: {
+			type: 5,
+			empire_id: Not(empireId),
+			amount: Not(0),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+		},
 		order: {
 			price: 'ASC',
 		},

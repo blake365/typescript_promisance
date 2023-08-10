@@ -92,7 +92,7 @@ export const MESSAGES_MAXCREDITS = 5 // Maximum number of new private messages t
 export const MESSAGES_DELAY = 10 * 60 // Once you send too many messages, how many seconds before you can send more
 export const FRIEND_MAGIC_ENABLE = false // Enable casting spells on friendly empires
 export const SCORE_ENABLE = false // Enable keeping score for empires attacking each other
-export const MAGIC_ALLOW_REGRESS = false // Enables usage of the "Regress to Previous Era" spell
+export const MAGIC_ALLOW_REGRESS = true // Enables usage of the "Regress to Previous Era" spell
 export const GRAVEYARD_DISCLOSE = false // Reveal user account name of empires in the Graveyard
 
 export const CLANSTATS_MINSIZE = 1 // Minimum member count for inclusion on Top Clans page

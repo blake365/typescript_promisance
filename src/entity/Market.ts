@@ -53,4 +53,10 @@ export default class Market extends Model {
 		default: 0,
 	})
 	time: number
+
+	@Column({
+		type: 'boolean',
+		default: false,
+	})
+	secret: boolean
 }
