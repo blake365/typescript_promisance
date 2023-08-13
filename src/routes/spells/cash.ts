@@ -13,7 +13,7 @@ export const cash_cast = (empire: Empire) => {
 		let cash = Math.round(
 			(empire.trpWiz *
 				(empire.health / 100) *
-				65 *
+				45 *
 				(1 + Math.sqrt(empire.bldWiz / empire.land) / 2) *
 				((100 + raceArray[empire.race].mod_magic) / 100)) /
 				(calcSizeBonus(empire) * calcSizeBonus(empire))

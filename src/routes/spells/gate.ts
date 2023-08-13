@@ -49,7 +49,7 @@ export const gate_cast = async (empire: Empire) => {
 					result: 'success',
 					message: `Your ${eraArray[empire.era].trpwiz} cast ${
 						eraArray[empire.era].spell_gate
-					}. /n Your spell shield is now active for 12 hours.`,
+					}. /n Your time gate is now active for 12 hours.`,
 					wizloss: 0,
 					descriptor: eraArray[empire.era].trpwiz,
 				}

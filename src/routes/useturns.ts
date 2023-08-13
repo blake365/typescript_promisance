@@ -804,13 +804,14 @@ export const useTurnInternal = (
 		if (empire.bldWiz / empire.land > 0.15) {
 			runes = Math.round(
 				getRandomInt(
-					Math.round(empire.bldWiz * 1.1),
-					Math.round(empire.bldWiz * 1.5)
+					Math.round(empire.bldWiz * 1.01),
+					Math.round(empire.bldWiz * 1.3)
 				) * runeMultiplier
 			)
 		} else {
-			runes = Math.round(empire.bldWiz * 1.1 * runeMultiplier)
+			runes = Math.round(empire.bldWiz * 1.01 * runeMultiplier)
 		}
+
 		runes = Math.round(
 			runes *
 				((100 +
@@ -825,13 +826,13 @@ export const useTurnInternal = (
 		let trpWiz = 0
 
 		if (empire.trpWiz < empire.bldWiz * 25) {
-			trpWiz = empire.bldWiz * 0.45
+			trpWiz = empire.bldWiz * 0.4
 		} else if (empire.trpWiz < empire.bldWiz * 50) {
-			trpWiz = empire.bldWiz * 0.3
+			trpWiz = empire.bldWiz * 0.25
 		} else if (empire.trpWiz < empire.bldWiz * 90) {
-			trpWiz = empire.bldWiz * 0.15
-		} else if (empire.trpWiz < empire.bldWiz * 100) {
 			trpWiz = empire.bldWiz * 0.1
+		} else if (empire.trpWiz < empire.bldWiz * 100) {
+			trpWiz = empire.bldWiz * 0.05
 		} else if (empire.trpWiz > empire.bldWiz * 175) {
 			trpWiz = empire.trpWiz * -0.05
 		}

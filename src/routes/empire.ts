@@ -7,6 +7,8 @@ import { getNetworth } from './actions/actions'
 import { Not } from 'typeorm'
 import EmpireEffect from '../entity/EmpireEffect'
 
+const Filter = require('bad-words')
+
 // interface resultObject {
 // 	name: string
 // 	land: number
@@ -17,6 +19,7 @@ import EmpireEffect from '../entity/EmpireEffect'
 
 //CREATE
 const createEmpire = async (req: Request, res: Response) => {
+	const filer = new Filter()
 	let { name, race } = req.body
 
 	const user: User = res.locals.user
@@ -40,6 +43,8 @@ const createEmpire = async (req: Request, res: Response) => {
 
 	try {
 		let empire: Empire = null
+
+		name = filer.clean(name)
 
 		if (user.role === 'demo') {
 			mode = 'demo'

@@ -506,6 +506,7 @@ const attackSpell = async (attacker: Empire, spellCost: number, spell) => {
 		attacker.turns -= turns
 		attacker.turnsUsed += turns
 		attacker.health -= 6
+		attacker.spells += 1
 
 		await attacker.save()
 
