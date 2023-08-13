@@ -46,27 +46,27 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 	// add bought item to empire
 	if (itemBought.type === 0) {
 		buyer.trpArm += amount
-		seller.trpArm -= amount
+		itemBought.amount -= amount
 		itemName = eraArray[seller.era].trparm
 	} else if (itemBought.type === 1) {
 		buyer.trpLnd += amount
-		seller.trpLnd -= amount
+		itemBought.amount -= amount
 		itemName = eraArray[seller.era].trplnd
 	} else if (itemBought.type === 2) {
 		buyer.trpFly += amount
-		seller.trpFly -= amount
+		itemBought.amount -= amount
 		itemName = eraArray[seller.era].trpfly
 	} else if (itemBought.type === 3) {
 		buyer.trpSea += amount
-		seller.trpSea -= amount
+		itemBought.amount -= amount
 		itemName = eraArray[seller.era].trpsea
 	} else if (itemBought.type === 4) {
 		buyer.food += amount
-		seller.food -= amount
+		itemBought.amount -= amount
 		itemName = eraArray[seller.era].food
 	} else if (itemBought.type === 5) {
 		buyer.runes += amount
-		seller.runes -= amount
+		itemBought.amount -= amount
 		itemName = eraArray[seller.era].runes
 	}
 
@@ -77,10 +77,11 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 	seller.cash += cost
 
 	buyer.networth = getNetworth(buyer)
-	seller.networth = getNetworth(seller)
+	// seller.networth = getNetworth(seller)
 
 	await buyer.save()
 	await seller.save()
+	await itemBought.save()
 
 	// create news entry
 	let content: string = `You sold ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}`

@@ -8,7 +8,11 @@ import {
 	TURNS_MAXIMUM,
 	TURNS_STORED,
 	TURNS_UNSTORE,
+	MAX_ATTACKS,
+	MAX_SPELLS,
+	DR_RATE,
 } from '../config/conifg'
+import { MAX } from 'class-validator'
 
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
@@ -38,50 +42,56 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 		})
 		.execute()
 
-	// reduce max private market sell percentage based on number of buildCash buildings
+	// Reduce maximum private market sell percentage (by 1% base, up to 2% if the player has nothing but bldcash)
+	// TODO: can't figure out what this is doing...
 	await getConnection()
 		.createQueryBuilder()
 		.update(Empire)
 		.set({
-			// update price on private market
 			mktPerArm: () =>
-				'mkt_Per_Arm - LEAST(mkt_Per_Arm, 100 * (1 + bld_Cash / land))',
-		})
-		.where('land != 0 AND id != 0')
-		.execute()
-
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update price on private market
+				'mkt_per_arm - LEAST(mkt_per_arm, 100 * (1 + bld_cash / land))',
 			mktPerLnd: () =>
-				'mkt_Per_Lnd - LEAST(mkt_Per_Lnd, 100 * (1 + bld_Cash / land))',
-		})
-		.where('land != 0 AND id != 0')
-		.execute()
-
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update price on private market
+				'mkt_per_lnd - LEAST(mkt_per_lnd, 100 * (1 + bld_cash / land))',
 			mktPerFly: () =>
-				'mkt_Per_Fly - LEAST(mkt_Per_Fly, 100 * (1 + bld_Cash / land))',
+				'mkt_per_fly - LEAST(mkt_per_fly, 100 * (1 + bld_cash / land))',
+			mktPerSea: () =>
+				'mkt_per_sea - LEAST(mkt_per_sea, 100 * (1 + bld_cash / land))',
 		})
 		.where('land != 0 AND id != 0')
 		.execute()
 
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update price on private market
-			mktPerSea: () =>
-				'mkt_Per_Sea - LEAST(mkt_Per_Sea, 100 * (1 + bld_Cash / land))',
-		})
-		.where('land != 0 AND id != 0')
-		.execute()
+	// await getConnection()
+	// 	.createQueryBuilder()
+	// 	.update(Empire)
+	// 	.set({
+	// 		// update price on private market
+	// 		mktPerLnd: () =>
+	// 			'mkt_Per_Lnd - LEAST(mkt_Per_Lnd, 100 * (1 + bld_Cash / land))',
+	// 	})
+	// 	.where('land != 0 AND id != 0')
+	// 	.execute()
+
+	// await getConnection()
+	// 	.createQueryBuilder()
+	// 	.update(Empire)
+	// 	.set({
+	// 		// update price on private market
+	// 		mktPerFly: () =>
+	// 			'mkt_Per_Fly - LEAST(mkt_Per_Fly, 100 * (1 + bld_Cash / land))',
+	// 	})
+	// 	.where('land != 0 AND id != 0')
+	// 	.execute()
+
+	// await getConnection()
+	// 	.createQueryBuilder()
+	// 	.update(Empire)
+	// 	.set({
+	// 		// update price on private market
+	// 		mktPerSea: () =>
+	// 			'mkt_Per_Sea - LEAST(mkt_Per_Sea, 100 * (1 + bld_Cash / land))',
+	// 	})
+	// 	.where('land != 0 AND id != 0')
+	// 	.execute()
 
 	// refill private market based on bldCost, except for food bldFood
 	await getConnection()
@@ -89,9 +99,12 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktArm: () => 'mkt_Arm + 8 * (land + bld_Cost)',
+			mktArm: () => 'mkt_arm + 8 * (land + bld_cost)',
+			// mktLnd: () => 'mkt_Lnd + 5 * (land + bld_cost)',
+			// mktFly: () => 'mkt_Fly + 3 * (land + bld_cost)',
+			// mktSea: () => 'mkt_Sea + 2 * (land + bld_cost)',
 		})
-		.where('mkt_Arm / 250 < land + 2 * bld_Cost AND id != 0')
+		.where('mkt_arm / 250 < land + 2 * bld_cost AND id != 0')
 		.execute()
 
 	await getConnection()
@@ -99,9 +112,9 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktLnd: () => 'mkt_Lnd + 5 * (land + bld_Cost)',
+			mktLnd: () => 'mkt_lnd + 5 * (land + bld_cost)',
 		})
-		.where('mkt_Lnd / 250 < land + 2 * bld_Cost AND id != 0')
+		.where('mkt_lnd / 250 < land + 2 * bld_cost AND id != 0')
 		.execute()
 
 	await getConnection()
@@ -109,9 +122,9 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktFly: () => 'mkt_Fly + 3 * (land + bld_Cost)',
+			mktFly: () => 'mkt_fly + 3 * (land + bld_cost)',
 		})
-		.where('mkt_Fly / 250 < land + 2 * bld_Cost AND id != 0')
+		.where('mkt_fly / 250 < land + 2 * bld_cost AND id != 0')
 		.execute()
 
 	await getConnection()
@@ -119,9 +132,9 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktSea: () => 'mkt_Sea + 2 * (land + bld_Cost)',
+			mktSea: () => 'mkt_sea + 2 * (land + bld_cost)',
 		})
-		.where('mkt_Sea / 250 < land + 2 * bld_Cost AND id != 0')
+		.where('mkt_sea / 250 < land + 2 * bld_cost AND id != 0')
 		.execute()
 
 	await getConnection()
@@ -129,32 +142,56 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktFood: () => 'mkt_Food + 50 * (land + bld_Food)',
+			mktFood: () => 'mkt_food + 50 * (land + bld_food)',
 		})
-		.where('mkt_Food / 2000 < land + 2 * bld_Food AND id != 0')
+		.where('mkt_food / 2000 < land + 2 * bld_food AND id != 0')
 		.execute()
 
 	// max attack counter
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update number of attacks
-			attacks: () => 'attacks - 1',
-		})
-		.where('attacks > 0 AND id != 0')
-		.execute()
+	if (MAX_ATTACKS > 0) {
+		await getConnection()
+			.createQueryBuilder()
+			.update(Empire)
+			.set({
+				// update number of attacks
+				attacks: () => 'attacks - 1',
+			})
+			.where('attacks > 0 AND id != 0')
+			.execute()
+	}
 
+	if (MAX_SPELLS > 0) {
+		await getConnection()
+			.createQueryBuilder()
+			.update(Empire)
+			.set({
+				// update number of spells
+				spells: () => 'spells - 1',
+			})
+			.where('spells > 0 AND id != 0')
+			.execute()
+	}
+
+	if (DR_RATE > 0) {
+		await getConnection()
+			.createQueryBuilder()
+			.update(Empire)
+			.set({
+				diminishingReturns: () => `diminishing_returns - ${DR_RATE}`,
+			})
+			.where('diminishing_returns > 0 AND id != 0')
+			.execute()
+	}
 	// clan troop sharing
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update available quantity on market
-			sharing: () => 'sharing - 1',
-		})
-		.where('sharing > 0 AND id != 0')
-		.execute()
+	// await getConnection()
+	// 	.createQueryBuilder()
+	// 	.update(Empire)
+	// 	.set({
+	// 		// update available quantity on market
+	// 		sharing: () => 'sharing - 1',
+	// 	})
+	// 	.where('sharing > 0 AND id != 0')
+	// 	.execute()
 
 	//TODO: clean up expired clan invites
 
@@ -164,16 +201,40 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 export const hourlyUpdate = new AsyncTask('hourly update', async () => {
 	console.log('performing hourly update')
 
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update number of attacks
-			attacks: () => 'attacks + 1',
-		})
-		.where('attacks < 0 AND id != 0')
-		.execute()
+	if (MAX_ATTACKS > 0) {
+		await getConnection()
+			.createQueryBuilder()
+			.update(Empire)
+			.set({
+				// update number of attacks
+				attacks: () => 'attacks + 1',
+			})
+			.where('attacks < 0 AND id != 0')
+			.execute()
+	}
 
+	if (MAX_SPELLS > 0) {
+		await getConnection()
+			.createQueryBuilder()
+			.update(Empire)
+			.set({
+				// update number of spells
+				spells: () => 'spells + 1',
+			})
+			.where('spells < 0 AND id != 0')
+			.execute()
+	}
+
+	if (DR_RATE > 0) {
+		await getConnection()
+			.createQueryBuilder()
+			.update(Empire)
+			.set({
+				diminishingReturns: () => `diminishing_returns + ${DR_RATE}`,
+			})
+			.where('diminishing_returns < 0 AND id != 0')
+			.execute()
+	}
 	//TODO: clean up expired effects
 })
 
@@ -183,14 +244,14 @@ export const cleanMarket = new AsyncTask('clean market', async () => {
 
 	let now = new Date()
 
-	const markets = await getConnection()
-		.createQueryBuilder()
-		.select()
-		.from(Market, 'market')
-		.where(`time < (${now} - 3600 * 72)`)
-		.getMany()
+	// const markets = await getConnection()
+	// 	.createQueryBuilder()
+	// 	.select()
+	// 	.from(Market, 'market')
+	// 	.where(`time < (${now} - 3600 * 72)`)
+	// 	.getMany()
 
-	console.log(markets)
+	// console.log(markets)
 
 	// defCosts = []
 

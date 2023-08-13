@@ -8,6 +8,7 @@ import { useTurnInternal } from './useturns'
 import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
 import { createNewsEvent } from '../util/helpers'
+import { DR_RATE } from '../config/conifg'
 
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
@@ -155,7 +156,10 @@ export const destroyBuildings = async (
 	}
 
 	let loss = Math.min(
-		getRandomInt(1, Math.ceil(defender[type] * pcloss + 2)),
+		getRandomInt(
+			1,
+			Math.ceil(((defender[type] * pcloss + 2) * (100 - DR_RATE)) / 100)
+		),
 		defender[type]
 	)
 
@@ -246,6 +250,23 @@ const attack = async (req: Request, res: Response) => {
 		const attacker = await Empire.findOneOrFail({ id: empireId })
 
 		const defender = await Empire.findOneOrFail({ id: defenderId })
+
+		if (attacker.attacks >= 25) {
+			canAttack = false
+			returnText =
+				'You have reached the max number of attacks. Wait a while before attacking.'
+		}
+
+		if (defender.turnsUsed <= 200) {
+			canAttack = false
+			returnText = 'You cannot attack such a young empire.'
+		}
+
+		if (defender.land <= 1000) {
+			canAttack = false
+			returnText =
+				'You cannot attack an empire with such a small amount of land.'
+		}
 
 		// calculate power levels
 		if (attackType === 'standard') {
@@ -347,6 +368,7 @@ const attack = async (req: Request, res: Response) => {
 			attacker.trpWiz += attackRes.trpWiz
 			attacker.turns -= 2
 			attacker.turnsUsed += 2
+			attacker.attacks++
 
 			attacker.offTotal++
 			defender.defTotal++
@@ -580,7 +602,7 @@ const attack = async (req: Request, res: Response) => {
 					buildGain
 				) // 3rd argument MUST be 0 (for Standard attacks)
 
-				console.log('buildGain', buildGain)
+				// console.log('buildGain', buildGain)
 				// console.log('buildLoss', buildLoss)
 				// TODO: create return text for captured buildings
 
@@ -694,6 +716,7 @@ const attack = async (req: Request, res: Response) => {
 			}
 
 			attacker.health -= 6
+			defender.diminishingReturns += DR_RATE
 
 			attackTurns['attack'] = attackDescription
 			resultArray.push(attackTurns)

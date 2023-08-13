@@ -112,6 +112,20 @@ const getOtherEmpires = async (req: Request, res: Response) => {
 const getScores = async (_: Request, res: Response) => {
 	try {
 		const empires = await Empire.find({
+			select: [
+				'id',
+				'name',
+				'networth',
+				'empireId',
+				'race',
+				'era',
+				'land',
+				'rank',
+				'mode',
+				'turnsUsed',
+				'profile',
+				'profileIcon',
+			],
 			order: {
 				rank: 'ASC',
 			},
