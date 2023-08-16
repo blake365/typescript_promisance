@@ -113,7 +113,7 @@ const me = (_: Request, res: Response) => {
 	return res.json(res.locals.user)
 }
 
-const logout = (_: Request, res: Response) => {
+const logout = async (_: Request, res: Response) => {
 	res.set(
 		'Set-Cookie',
 		cookie.serialize('token', '', {
@@ -124,6 +124,11 @@ const logout = (_: Request, res: Response) => {
 			path: '/',
 		})
 	)
+
+	const session = await Session.findOne({ user_id: res.locals.user.id })
+
+	session.time = 0
+	await session.save()
 
 	return res.status(200).json({ success: true })
 }

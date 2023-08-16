@@ -1,7 +1,7 @@
 // get session by empireId
 
 import { Request, Response, Router } from 'express'
-import { Raw } from 'typeorm'
+import { Not, Raw } from 'typeorm'
 import Session from '../entity/Session'
 
 // READ
@@ -13,6 +13,7 @@ const getSession = async (req: Request, res: Response) => {
 			where: {
 				empire_id: id,
 				createdAt: Raw((alias) => `${alias} > NOW() - INTERVAL '1 hour'`),
+				time: Not(0),
 			},
 			order: {
 				createdAt: 'DESC',
