@@ -723,6 +723,7 @@ const attack = async (req: Request, res: Response) => {
 			// attacker.networth = getNetworth(attacker)
 			// defender.networth = getNetworth(defender)
 
+			attacker.lastAction = new Date()
 			// save updated attacker and defender
 			await attacker.save()
 			await defender.save()

@@ -79,6 +79,8 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 	buyer.networth = getNetworth(buyer)
 	// seller.networth = getNetworth(seller)
 
+	buyer.lastAction = new Date()
+
 	await buyer.save()
 	await seller.save()
 	await itemBought.save()
@@ -311,6 +313,8 @@ const pubSell = async (req: Request, res: Response) => {
 	}
 
 	empire.networth = getNetworth(empire)
+	empire.lastAction = new Date()
+
 	await empire.save()
 
 	console.log(returnArray)

@@ -18,4 +18,22 @@ export default class Session extends Model {
 		type: 'text',
 	})
 	data: string
+
+	@Column({
+		type: 'text',
+		default: 'user',
+	})
+	role: string
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	user_id: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	empire_id: number
 }

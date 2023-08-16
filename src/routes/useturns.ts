@@ -472,6 +472,8 @@ export const useTurn = async (
 			}
 		}
 	}
+
+	empire.lastAction = new Date()
 	empire.networth = getNetworth(empire)
 	await empire.save()
 	console.log(statsArray)

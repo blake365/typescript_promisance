@@ -5,6 +5,7 @@ import {
 	Index,
 	ManyToOne,
 	JoinColumn,
+	AfterLoad,
 } from 'typeorm'
 
 import Model from './Model'
@@ -41,6 +42,8 @@ export default class Empire extends Model {
 
 	// @UpdateDateColumn()
 	// updatedAt: Date
+	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+	lastAction: Date
 
 	@Column({ default: '' })
 	mode: string
@@ -469,4 +472,10 @@ export default class Empire extends Model {
 
 	@Column({ type: 'int', default: 0 })
 	spells: number
+
+	// after load, set updatedAt to now
+	// @AfterLoad()
+	// updateDate() {
+	// 	this.updatedAt = new Date()
+	// }
 }

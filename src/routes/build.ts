@@ -146,6 +146,7 @@ const build = async (req: Request, res: Response) => {
 
 				// FIXME: handle trouble in internal turn function
 
+				empire.lastAction = new Date()
 				await empire.save()
 			}
 		}

@@ -130,6 +130,8 @@ const getScores = async (_: Request, res: Response) => {
 				'turnsUsed',
 				'profile',
 				'profileIcon',
+				'updatedAt',
+				'lastAction',
 			],
 			order: {
 				rank: 'ASC',

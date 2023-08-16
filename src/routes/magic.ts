@@ -109,7 +109,7 @@ const magic = async (req: Request, res: Response) => {
 					empire.trpWiz += spellRes.trpWiz
 					empire.turns -= turns
 					empire.turnsUsed += turns
-
+					empire.lastAction = new Date()
 					await empire.save()
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
@@ -165,7 +165,7 @@ const magic = async (req: Request, res: Response) => {
 					empire.trpWiz += spellRes.trpWiz
 					empire.turns -= turns
 					empire.turnsUsed += turns
-
+					empire.lastAction = new Date()
 					await empire.save()
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
@@ -222,7 +222,7 @@ const magic = async (req: Request, res: Response) => {
 
 					empire.turns -= turns
 					empire.turnsUsed += turns
-
+					empire.lastAction = new Date()
 					await empire.save()
 					// console.log('cash:', empire.cash, empire.turns, empire.runes)
 				} else {
@@ -286,7 +286,7 @@ const magic = async (req: Request, res: Response) => {
 					empire.trpWiz += spellRes.trpWiz
 					empire.turns -= turns
 					empire.turnsUsed += turns
-
+					empire.lastAction = new Date()
 					await empire.save()
 					// console.log(empire.era, empire.turns, empire.runes)
 				} else {
@@ -349,7 +349,7 @@ const magic = async (req: Request, res: Response) => {
 					empire.trpWiz += spellRes.trpWiz
 					empire.turns -= turns
 					empire.turnsUsed += turns
-
+					empire.lastAction = new Date()
 					await empire.save()
 					// console.log(empire.era, empire.turns, empire.runes)
 				} else {
@@ -403,7 +403,7 @@ const magic = async (req: Request, res: Response) => {
 					empire.trpWiz += spellRes.trpWiz
 					empire.turns -= turns
 					empire.turnsUsed += turns
-
+					empire.lastAction = new Date()
 					await empire.save()
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
@@ -454,7 +454,7 @@ const magic = async (req: Request, res: Response) => {
 					empire.trpWiz += spellRes.trpWiz
 					empire.turns -= turns
 					empire.turnsUsed += turns
-
+					empire.lastAction = new Date()
 					await empire.save()
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
@@ -507,6 +507,7 @@ const attackSpell = async (attacker: Empire, spellCost: number, spell) => {
 		attacker.turnsUsed += turns
 		attacker.health -= 6
 		attacker.spells += 1
+		attacker.lastAction = new Date()
 
 		await attacker.save()
 

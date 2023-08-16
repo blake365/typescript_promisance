@@ -97,6 +97,9 @@ const login = async (req: Request, res: Response) => {
 		const session = new Session()
 		session.data = data
 		session.time = time
+		session.user_id = user.id
+		session.empire_id = user.empires[0].id
+		session.role = 'user'
 		await session.save()
 
 		return res.json(user)
@@ -214,6 +217,9 @@ const demoAccount = async (req: Request, res: Response) => {
 		const session = new Session()
 		session.data = data
 		session.time = time
+		session.user_id = user.id
+		session.empire_id = user.empires[0].id
+		session.role = role
 		await session.save()
 
 		// Return the user
