@@ -458,7 +458,7 @@ export default class Empire extends Model {
 	})
 	valCode: number
 
-	@Column({ type: 'simple-array', nullable: true })
+	@Column({ type: 'simple-array', default: [], nullable: true })
 	favorites: string[]
 
 	@Column({ type: 'varchar', nullable: true, length: 1000 })
