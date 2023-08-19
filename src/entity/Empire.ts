@@ -5,7 +5,6 @@ import {
 	Index,
 	ManyToOne,
 	JoinColumn,
-	AfterLoad,
 } from 'typeorm'
 
 import Model from './Model'

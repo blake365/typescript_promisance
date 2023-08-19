@@ -161,6 +161,43 @@ const updateTax = async (req: Request, res: Response) => {
 	}
 }
 
+const updateProfile = async (req: Request, res: Response) => {
+	const { empireId, type, profile } = req.body
+
+	console.log(req.body)
+	const filter = new Filter()
+
+	try {
+		const empire = await Empire.findOneOrFail({ id: empireId })
+
+		if (type === 'profile') {
+			empire.profile = filter.clean(profile)
+			await empire.save()
+			return res.json(empire)
+		}
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({ error: 'something went wrong' })
+	}
+}
+
+const updateIcon = async (req: Request, res: Response) => {
+	const { empireId, type, icon } = req.body
+
+	try {
+		const empire = await Empire.findOneOrFail({ id: empireId })
+
+		if (type === 'icon') {
+			empire.profileIcon = `/icons/${icon}.svg`
+			await empire.save()
+			return res.json(empire)
+		}
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({ error: 'something went wrong' })
+	}
+}
+
 const updateIndustry = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { indArmy, indFly, indLnd, indSea } = req.body
@@ -418,6 +455,8 @@ router.post('/:uuid/tax', user, auth, updateTax)
 router.post('/:uuid/industry', user, auth, updateIndustry)
 router.post('/otherEmpires', user, auth, getOtherEmpires)
 router.post('/:uuid/favorite', user, auth, updateEmpireFavorite)
+router.post('/:uuid/profile', user, auth, updateProfile)
+router.post('/:uuid/icon', user, auth, updateIcon)
 
 // router.put('/give/resources', giveResources)
 // router.put('/give/turns', giveTurns)
