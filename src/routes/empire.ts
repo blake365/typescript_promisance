@@ -6,6 +6,7 @@ import user from '../middleware/user'
 import { getNetworth } from './actions/actions'
 import { Not } from 'typeorm'
 import EmpireEffect from '../entity/EmpireEffect'
+import { TURNS_DEMO, TURNS_MAXIMUM, TURNS_STORED } from '../config/conifg'
 
 const Filter = require('bad-words')
 
@@ -48,7 +49,7 @@ const createEmpire = async (req: Request, res: Response) => {
 
 		if (user.role === 'demo') {
 			mode = 'demo'
-			turns = 2000
+			turns = TURNS_DEMO
 			empire = new Empire({
 				name,
 				race,
@@ -64,8 +65,16 @@ const createEmpire = async (req: Request, res: Response) => {
 		} else {
 			empire = new Empire({ name, race, user, mode, turns })
 		}
-
 		await empire.save()
+
+		let effect: EmpireEffect = null
+		effect = new EmpireEffect({
+			effectOwnerId: empire.id,
+			empireEffectName: 'era delay',
+			empireEffectValue: 5760,
+		})
+		effect.save()
+
 		return res.status(201).json(empire)
 	} catch (error) {
 		console.log(error)
@@ -440,6 +449,75 @@ const updateEmpireFavorite = async (req: Request, res: Response) => {
 	}
 }
 
+const bonusTurns = async (req: Request, res: Response) => {
+	const { uuid } = req.params
+
+	const { empireId } = req.body
+
+	function isOld(createdAt, effectValue) {
+		let effectAge =
+			(Date.now().valueOf() - new Date(createdAt).getTime()) / 60000
+		effectAge = Math.floor(effectAge)
+
+		// console.log(effectAge)
+		// console.log(effectValue)
+
+		if (effectAge > effectValue) {
+			return false
+		} else {
+			return true
+		}
+	}
+
+	try {
+		let effects = await EmpireEffect.find({
+			where: { effectOwnerId: empireId },
+		})
+		// console.log('user', user)
+		// console.log(effects)
+
+		let filterEffects = effects.filter((effect) =>
+			isOld(effect.createdAt, effect.empireEffectValue)
+		)
+
+		const empire = await Empire.findOneOrFail({ uuid })
+
+		let receivedBonus = false
+		if (filterEffects.length > 0) {
+			filterEffects.forEach((effect) => {
+				if (effect.empireEffectName === 'bonus turns') {
+					receivedBonus = true
+				}
+			})
+		}
+		if (!receivedBonus) {
+			empire.turns += 10
+			if (empire.turns > TURNS_MAXIMUM) {
+				empire.storedturns += empire.turns - TURNS_MAXIMUM
+				empire.turns = TURNS_MAXIMUM
+				if (empire.storedturns > TURNS_STORED) {
+					empire.storedturns = TURNS_STORED
+				}
+			}
+
+			let effect: EmpireEffect = null
+			effect = new EmpireEffect({
+				effectOwnerId: empire.id,
+				empireEffectName: 'bonus turns',
+				empireEffectValue: 1440,
+			})
+
+			await effect.save()
+		}
+
+		await empire.save()
+
+		return res.status(201).json(empire)
+	} catch (error) {
+		console.log(error)
+	}
+}
+
 const router = Router()
 
 router.post('/', user, auth, createEmpire)
@@ -457,6 +535,7 @@ router.post('/otherEmpires', user, auth, getOtherEmpires)
 router.post('/:uuid/favorite', user, auth, updateEmpireFavorite)
 router.post('/:uuid/profile', user, auth, updateProfile)
 router.post('/:uuid/icon', user, auth, updateIcon)
+router.post('/:uuid/bonus', user, auth, bonusTurns)
 
 // router.put('/give/resources', giveResources)
 // router.put('/give/turns', giveTurns)

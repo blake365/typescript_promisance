@@ -22,6 +22,7 @@ import { steal_cast, steal_cost } from './spells/steal'
 import { runes_cast, runes_cost } from './spells/runes'
 import { fight_cast, fight_cost } from './spells/fight'
 import { spy_cast, spy_cost } from './spells/spy'
+import { MAX_SPELLS, TURNS_PROTECTION } from '../config/conifg'
 // FIXED: internal turns not working
 
 const spellCheck = (empire: Empire, cost: number, turns: number) => {
@@ -605,6 +606,23 @@ const magicAttack = async (req: Request, res: Response) => {
 						'You must open a Time Gate to attack players in another Era'
 				}
 			}
+		}
+
+		if (attacker.spells >= MAX_SPELLS) {
+			canAttack = false
+			returnText =
+				'You have cast the max number of offensive spells. Wait a while before casting another.'
+		}
+
+		if (defender.turnsUsed <= TURNS_PROTECTION) {
+			canAttack = false
+			returnText = 'You cannot cast spells against such a young empire.'
+		}
+
+		if (defender.land <= 1000) {
+			canAttack = false
+			returnText =
+				'You cannot cast spells on an empire with such a small amount of land.'
 		}
 
 		console.log('can attack', canAttack)

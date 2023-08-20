@@ -8,7 +8,7 @@ import { useTurnInternal } from './useturns'
 import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
 import { createNewsEvent } from '../util/helpers'
-import { DR_RATE } from '../config/conifg'
+import { DR_RATE, MAX_ATTACKS, TURNS_PROTECTION } from '../config/conifg'
 
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
@@ -251,23 +251,6 @@ const attack = async (req: Request, res: Response) => {
 
 		const defender = await Empire.findOneOrFail({ id: defenderId })
 
-		if (attacker.attacks >= 25) {
-			canAttack = false
-			returnText =
-				'You have reached the max number of attacks. Wait a while before attacking.'
-		}
-
-		if (defender.turnsUsed <= 200) {
-			canAttack = false
-			returnText = 'You cannot attack such a young empire.'
-		}
-
-		if (defender.land <= 1000) {
-			canAttack = false
-			returnText =
-				'You cannot attack an empire with such a small amount of land.'
-		}
-
 		// calculate power levels
 		if (attackType === 'standard') {
 			troopTypes.forEach((type) => {
@@ -341,6 +324,23 @@ const attack = async (req: Request, res: Response) => {
 						'You must open a Time Gate to attack players in another Era'
 				}
 			}
+		}
+
+		if (attacker.attacks >= MAX_ATTACKS) {
+			canAttack = false
+			returnText =
+				'You have reached the max number of attacks. Wait a while before attacking.'
+		}
+
+		if (defender.turnsUsed <= TURNS_PROTECTION) {
+			canAttack = false
+			returnText = 'You cannot attack such a young empire.'
+		}
+
+		if (defender.land <= 1000) {
+			canAttack = false
+			returnText =
+				'You cannot attack an empire with such a small amount of land.'
 		}
 
 		console.log('can attack', canAttack)
