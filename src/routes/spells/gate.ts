@@ -17,12 +17,15 @@ export const gate_cast = async (empire: Empire) => {
 	// figure out age of effect and see if it is expired
 	// if expired, create new effect
 	// if not expired, renew or extend effect
-	let effectAge = (now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
-	let timeLeft = effect.empireEffectValue - effectAge
-
+	let timeLeft = 0
+	if (effect) {
+		let effectAge =
+			(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+		timeLeft = effect.empireEffectValue - effectAge
+		console.log(effectAge)
+		effectAge = Math.floor(effectAge)
+	}
 	// age in minutes
-	console.log(effectAge)
-	effectAge = Math.floor(effectAge)
 
 	console.log(effect)
 

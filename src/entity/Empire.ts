@@ -5,10 +5,12 @@ import {
 	Index,
 	ManyToOne,
 	JoinColumn,
+	OneToMany,
 } from 'typeorm'
 
 import Model from './Model'
 import User from './User'
+import EmpireEffect from './EmpireEffect'
 
 @Entity('empires')
 export default class Empire extends Model {

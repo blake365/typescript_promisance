@@ -69,7 +69,10 @@ const checkForNew = async (req: Request, res: Response) => {
 			take: 1,
 		})
 
-		let check = news[0].seen
+		let check = true
+		if (news.length > 0) {
+			check = news[0].seen
+		}
 		return res.json({ new: !check })
 	} catch (error) {
 		console.log(error)

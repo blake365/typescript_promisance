@@ -1,22 +1,46 @@
 import { eraArray } from '../../config/eras'
 import Empire from '../../entity/Empire'
+import EmpireEffect from '../../entity/EmpireEffect'
 import { getPower_self, getWizLoss_self } from './general'
 
 export const advance_cost = (baseCost: number) => {
 	return Math.ceil(47.5 * baseCost)
 }
 
-export const advance_allow = ({ era }) => {
+export const advance_allow = ({ era }, effects) => {
+	// TODO: implement empire effects
+	// can't advance until acclimated to current era
+	// console.log(effects)
+
+	let errorMessage = null // Initialize the error message to null
+
+	effects.forEach((effect) => {
+		// console.log(effect)
+		if (effect.empireEffectName === 'era delay') {
+			errorMessage = 'You must wait a while before changing eras again.'
+		}
+	})
+
+	// console.log(errorMessage)
+
 	if (eraArray[era].era_next < 0) {
 		return false
-	} else return true
-
-	//TODO: implement empire effects
-	// can't advance until acclimated to current era
+	} else if (errorMessage !== null) return errorMessage
+	else {
+		return true
+	}
 }
 
 export const advance_cast = (empire: Empire) => {
 	if (getPower_self(empire) >= 90) {
+		let effect: EmpireEffect = null
+		effect = new EmpireEffect({
+			effectOwnerId: empire.id,
+			empireEffectName: 'era delay',
+			empireEffectValue: 5760,
+		})
+		effect.save()
+
 		let result = {
 			result: 'success',
 			message: 'You have advanced to the next era.',

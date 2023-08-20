@@ -338,10 +338,10 @@ const findOneEmpire = async (req: Request, res: Response) => {
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid }, { relations: ['user'] })
-		// console.log('empire', empire)
-		const effects = await EmpireEffect.find({
-			where: { effectOwnerId: empire.empireId },
-		})
+		// // console.log('empire', empire)
+		// const effects = await EmpireEffect.find({
+		// 	where: { effectOwnerId: empire.empireId },
+		// })
 		// console.log('user', user)
 		// console.log(effects)
 		if (user.username !== empire.user.username) {

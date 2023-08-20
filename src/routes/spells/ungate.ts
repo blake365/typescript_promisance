@@ -17,16 +17,20 @@ export const ungate_cast = async (empire: Empire) => {
 	// figure out age of effect and see if it is expired
 	// if expired, create new effect
 	// if not expired, renew or extend effect
-	let effectAge = (now.valueOf() - new Date(effect.createdAt).getTime()) / 60000
-	let timeLeft = effect.empireEffectValue - effectAge
-	// age in minutes
-	// console.log(effectAge)
-	effectAge = Math.floor(effectAge)
+	let timeLeft = 0
+	if (effect) {
+		let effectAge =
+			(now.valueOf() - new Date(effect.createdAt).getTime()) / 60000
+		timeLeft = effect.empireEffectValue - effectAge
+		// age in minutes
+		// console.log(effectAge)
+		effectAge = Math.floor(effectAge)
+	}
 
 	if (getPower_self(empire) >= 80) {
 		if (effect) {
 			if (timeLeft < effect.empireEffectValue) {
-				effect.softRemove()
+				effect.remove()
 				let result = {
 					result: 'success',
 					message: `You closed your ${eraArray[empire.era].spell_gate}`,

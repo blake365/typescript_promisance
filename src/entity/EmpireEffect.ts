@@ -1,5 +1,12 @@
-import { Entity, Column, Index, PrimaryGeneratedColumn } from 'typeorm'
+import {
+	Entity,
+	Column,
+	Index,
+	PrimaryGeneratedColumn,
+	ManyToOne,
+} from 'typeorm'
 import Model from './Model'
+import Empire from './Empire'
 
 // import Empire from './Empire'
 

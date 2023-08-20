@@ -56,6 +56,8 @@ const magic = async (req: Request, res: Response) => {
 	}
 
 	const empire = await Empire.findOne({ id: empireId })
+
+	const effects = await EmpireEffect.find({ effectOwnerId: empireId })
 	// console.log('food:', empire.food, 'cash:', empire.cash, empire.turns, empire.runes)
 	if (empire.trpWiz === 0) {
 		return res.json({
@@ -245,8 +247,13 @@ const magic = async (req: Request, res: Response) => {
 		if (spellCheck(empire, cost, turns) === 'passed') {
 			for (let i = 0; i < 1; i++) {
 				if (spellCheck(empire, cost, turns) === 'passed') {
-					if (!advance_allow(empire)) {
+					console.log('advance allow', advance_allow(empire, effects))
+					if (!advance_allow(empire, effects)) {
 						let spellTurns = { error: 'There is no era to advance to' }
+						resultArray.push(spellTurns)
+						break
+					} else if (typeof advance_allow(empire, effects) === 'string') {
+						let spellTurns = { error: advance_allow(empire, effects) }
 						resultArray.push(spellTurns)
 						break
 					}
@@ -309,11 +316,16 @@ const magic = async (req: Request, res: Response) => {
 		if (spellCheck(empire, cost, turns) === 'passed') {
 			for (let i = 0; i < 1; i++) {
 				if (spellCheck(empire, cost, turns) === 'passed') {
-					if (!regress_allow(empire)) {
+					if (!regress_allow(empire, effects)) {
 						let spellTurns = { error: 'There is no era to regress to' }
 						resultArray.push(spellTurns)
 						break
+					} else if (typeof regress_allow(empire, effects) === 'string') {
+						let spellTurns = { error: advance_allow(empire, effects) }
+						resultArray.push(spellTurns)
+						break
 					}
+
 					spellCheck(empire, cost, turns)
 					empire.runes -= cost
 					// use two turns to cast spell
