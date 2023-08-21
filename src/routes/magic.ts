@@ -83,14 +83,16 @@ const magic = async (req: Request, res: Response) => {
 					// use two turns to cast spell
 					let spellTurns = useTurnInternal('magic', turns, empire, true)
 					let spellRes = spellTurns[0]
+					console.log('spell res', spellRes)
 					spellTurns = spellTurns[0]
-					let cast: Cast = await shield_cast(empire)
-					// console.log(cast)
-
-					if (cast.result === 'fail') {
-						empire.trpWiz -= cast.wizloss
+					if (!spellRes?.messages?.desertion) {
+						let cast: Cast = await shield_cast(empire)
+						// console.log(cast)
+						if (cast.result === 'fail') {
+							empire.trpWiz -= cast.wizloss
+						}
+						spellTurns['cast'] = cast
 					}
-					spellTurns['cast'] = cast
 					// console.log(spellTurns)
 					resultArray.push(spellTurns)
 					// cast the spell and get result
@@ -138,15 +140,18 @@ const magic = async (req: Request, res: Response) => {
 					let spellTurns = useTurnInternal('magic', turns, empire, true)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
-					let cast = food_cast(empire)
-					// console.log(cast)
-					if (cast.result === 'success') {
-						empire.food += cast.food
+					if (!spellRes?.messages?.desertion) {
+						let cast: Cast = food_cast(empire)
+						// console.log(cast)
+						if (cast.result === 'success') {
+							empire.food += cast.food
+						}
+						if (cast.result === 'fail') {
+							empire.trpWiz -= cast.wizloss
+						}
+						spellTurns['cast'] = cast
 					}
-					if (cast.result === 'fail') {
-						empire.trpWiz -= cast.wizloss
-					}
-					spellTurns['cast'] = cast
+
 					// console.log(spellTurns)
 					resultArray.push(spellTurns)
 					// cast the spell and get result
@@ -194,17 +199,18 @@ const magic = async (req: Request, res: Response) => {
 					let spellTurns = useTurnInternal('magic', turns, empire, true)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
+					if (!spellRes?.messages?.desertion) {
+						let cast: Cast = cash_cast(empire)
+						// console.log(cast)
+						if (cast.result === 'success') {
+							empire.cash += cast.cash
+						}
+						if (cast.result === 'fail') {
+							empire.trpWiz -= cast.wizloss
+						}
+						spellTurns['cast'] = cast
+					}
 
-					// cast the spell and get result
-					let cast = cash_cast(empire)
-					// console.log(cast)
-					if (cast.result === 'success') {
-						empire.cash += cast.cash
-					}
-					if (cast.result === 'fail') {
-						empire.trpWiz -= cast.wizloss
-					}
-					spellTurns['cast'] = cast
 					resultArray.push(spellTurns)
 					// compose turn result and food result into a single object, insert into array
 					empire.cash =
@@ -264,18 +270,18 @@ const magic = async (req: Request, res: Response) => {
 					let spellTurns = useTurnInternal('magic', turns, empire, true)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
-
-					// cast the spell and get result
-					let cast = advance_cast(empire)
-					// console.log(cast)
-					if (cast.result === 'success') {
-						empire.era += 1
+					if (!spellRes?.messages?.desertion) {
+						let cast: Cast = advance_cast(empire)
+						// console.log(cast)
+						if (cast.result === 'success') {
+							empire.era += 1
+						}
+						if (cast.result === 'fail') {
+							empire.trpWiz -= cast.wizloss
+						}
+						spellTurns['cast'] = cast
 					}
-					if (cast.result === 'fail') {
-						empire.trpWiz -= cast.wizloss
-					}
 
-					spellTurns['cast'] = cast
 					resultArray.push(spellTurns)
 					empire.cash =
 						empire.cash +
@@ -333,17 +339,18 @@ const magic = async (req: Request, res: Response) => {
 					let spellTurns = useTurnInternal('magic', turns, empire, true)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
-
-					let cast = regress_cast(empire)
-					// console.log(cast)
-					if (cast.result === 'success') {
-						empire.era -= 1
+					if (!spellRes?.messages?.desertion) {
+						let cast: Cast = regress_cast(empire)
+						// console.log(cast)
+						if (cast.result === 'success') {
+							empire.era -= 1
+						}
+						if (cast.result === 'fail') {
+							empire.trpWiz -= cast.wizloss
+						}
+						spellTurns['cast'] = cast
 					}
-					if (cast.result === 'fail') {
-						empire.trpWiz -= cast.wizloss
-					}
 
-					spellTurns['cast'] = cast
 					resultArray.push(spellTurns)
 					empire.cash =
 						empire.cash +
@@ -389,15 +396,16 @@ const magic = async (req: Request, res: Response) => {
 					let spellTurns = useTurnInternal('magic', turns, empire, true)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
+					if (!spellRes?.messages?.desertion) {
+						let cast: Cast = await gate_cast(empire)
+						// console.log(cast)
 
-					let cast: Cast = await gate_cast(empire)
-					// console.log(cast)
-
-					if (cast.result === 'fail') {
-						empire.trpWiz -= cast.wizloss
+						if (cast.result === 'fail') {
+							empire.trpWiz -= cast.wizloss
+						}
+						spellTurns['cast'] = cast
 					}
 
-					spellTurns['cast'] = cast
 					resultArray.push(spellTurns)
 					empire.cash =
 						empire.cash +
@@ -440,15 +448,16 @@ const magic = async (req: Request, res: Response) => {
 					let spellTurns = useTurnInternal('magic', turns, empire, true)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
+					if (!spellRes?.messages?.desertion) {
+						let cast: Cast = await ungate_cast(empire)
+						// console.log(cast)
 
-					let cast: Cast = await ungate_cast(empire)
-					// console.log(cast)
-
-					if (cast.result === 'fail') {
-						empire.trpWiz -= cast.wizloss
+						if (cast.result === 'fail') {
+							empire.trpWiz -= cast.wizloss
+						}
+						spellTurns['cast'] = cast
 					}
 
-					spellTurns['cast'] = cast
 					resultArray.push(spellTurns)
 					empire.cash =
 						empire.cash +

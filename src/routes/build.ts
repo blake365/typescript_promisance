@@ -5,7 +5,6 @@ import Empire from '../entity/Empire'
 
 import { useTurn, useTurnInternal } from './useturns'
 
-// FIXME: result of turns is not being saved to empire
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
 interface oneTurn {
@@ -118,36 +117,58 @@ const build = async (req: Request, res: Response) => {
 				// use one turn
 				let oneTurn = useTurnInternal('build', 1, empire, true)
 				// console.log(oneTurn)
-				let turnRes: oneTurn = oneTurn[0]
-				// extract turn info from result and put individual object in result array
-				resultArray.push(turnRes)
-				// add value to empire.key
-				empire.cash =
-					empire.cash +
-					turnRes.withdraw +
-					turnRes.money -
-					turnRes.loanpayed -
-					buildAmount * buildCost
-				empire.loan -= turnRes.loanpayed + turnRes.loanInterest
-				empire.trpArm += turnRes.trpArm
-				empire.trpLnd += turnRes.trpLnd
-				empire.trpFly += turnRes.trpFly
-				empire.trpSea += turnRes.trpSea
-				empire.food += turnRes.food
-				empire.peasants += turnRes.peasants
-				empire.runes += turnRes.runes
-				empire.trpWiz += turnRes.trpWiz
-				empire[key] += buildAmount
-				empire.freeLand -= buildAmount
-				// empire.cash -= buildAmount * buildCost
-				leftToBuild -= buildAmount
-				empire.turns--
-				empire.turnsUsed++
+				let turnRes = oneTurn[0]
+				if (!turnRes?.messages?.desertion) {
+					empire.cash =
+						empire.cash +
+						turnRes.withdraw +
+						turnRes.money -
+						turnRes.loanpayed -
+						buildAmount * buildCost
+					empire[key] += buildAmount
+					empire.freeLand -= buildAmount
+					// empire.cash -= buildAmount * buildCost
+					leftToBuild -= buildAmount
+					// extract turn info from result and put individual object in result array
+					resultArray.push(turnRes)
+					// add value to empire.key
+					empire.loan -= turnRes.loanpayed + turnRes.loanInterest
+					empire.trpArm += turnRes.trpArm
+					empire.trpLnd += turnRes.trpLnd
+					empire.trpFly += turnRes.trpFly
+					empire.trpSea += turnRes.trpSea
+					empire.food += turnRes.food
+					empire.peasants += turnRes.peasants
+					empire.runes += turnRes.runes
+					empire.trpWiz += turnRes.trpWiz
 
-				// FIXME: handle trouble in internal turn function
+					empire.turns--
+					empire.turnsUsed++
 
-				empire.lastAction = new Date()
-				await empire.save()
+					empire.lastAction = new Date()
+					await empire.save()
+				} else {
+					resultArray.push(turnRes)
+					// add value to empire.key
+					empire.cash =
+						empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
+					empire.loan -= turnRes.loanpayed + turnRes.loanInterest
+					empire.trpArm += turnRes.trpArm
+					empire.trpLnd += turnRes.trpLnd
+					empire.trpFly += turnRes.trpFly
+					empire.trpSea += turnRes.trpSea
+					empire.food += turnRes.food
+					empire.peasants += turnRes.peasants
+					empire.runes += turnRes.runes
+					empire.trpWiz += turnRes.trpWiz
+
+					empire.turns--
+					empire.turnsUsed++
+
+					empire.lastAction = new Date()
+					await empire.save()
+					break
+				}
 			}
 		}
 		// console.log(resultArray)

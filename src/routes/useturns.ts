@@ -141,7 +141,7 @@ export const useTurn = async (
 		empire.cash += money
 
 		// handle loan separately
-		if (empire.cash < 0) {
+		if (empire.cash <= 0) {
 			trouble |= 1 // turns trouble cash
 			troubleCash = true
 		}
@@ -283,7 +283,7 @@ export const useTurn = async (
 		if (type === 'farm') {
 			turnResult += food
 		}
-		if (empire.food < 0) {
+		if (empire.food <= 0) {
 			empire.food = 0
 			trouble |= 4
 			troubleFood = true
@@ -425,8 +425,8 @@ export const useTurn = async (
 			}
 		})
 
-		console.log(trouble, troubleCash, troubleLoan, troubleFood)
-		console.log(taken)
+		// console.log(trouble, troubleCash, troubleLoan, troubleFood)
+		// console.log(taken)
 
 		if (trouble && (troubleLoan || troubleFood)) {
 			// console.log(empire.peasants)
@@ -444,16 +444,17 @@ export const useTurn = async (
 				let percent = condensed ? taken * 3 : 3
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
-				}, troops, and ${
+				}, Troops, and ${
 					eraArray[empire.era].trpwiz
 				} have deserted due to lack of resources.`
 				current['messages'] = message
+				statsArray.push(current)
 			} else {
 				let percent = condensed ? taken * 3 : 3
 				console.log(percent)
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
-				}, troops, and ${
+				}, Troops, and ${
 					eraArray[empire.era].trpwiz
 				} have deserted due to lack of resources. Turns have been stopped to prevent further losses.`
 				current['messages'] = message
@@ -559,8 +560,7 @@ export const useTurnInternal = (
 			}
 		}
 
-		// FIXME: withdraw not accumulating in condensed view?
-		// console.log(withdraw)
+		// withdraw not accumulating in condensed view?
 		current['withdraw'] = withdraw
 
 		// loan interest
@@ -568,20 +568,18 @@ export const useTurnInternal = (
 		let loanRate = BANK_LOANRATE + size
 		let loanInterest = Math.round(empire.loan * (loanRate / 52 / 100))
 		empire.loan += loanInterest
-
 		current['loanInterest'] = loanInterest
-
 		// income/expenses/loan
 
 		// takes place of calcFinances function
-		let income =
-			Math.round(
-				calcPCI(empire) *
-					(empire.tax / 100) *
-					(empire.health / 100) *
-					empire.peasants +
-					empire.bldCash * 500
-			) / size
+		let income = Math.round(
+			(calcPCI(empire) *
+				(empire.tax / 100) *
+				(empire.health / 100) *
+				empire.peasants +
+				empire.bldCash * 500) /
+				size
+		)
 
 		let loan = Math.round(empire.loan / 200)
 
@@ -617,7 +615,7 @@ export const useTurnInternal = (
 		// empire.cash += money
 
 		// handle loan separately
-		if (empire.cash < 0) {
+		if (empire.cash <= 0) {
 			trouble |= 1 // turns trouble cash
 			troubleCash = true
 		}
@@ -743,7 +741,7 @@ export const useTurnInternal = (
 		if (type === 'farm') {
 			turnResult += food
 		}
-		if (empire.food < 0) {
+		if (empire.food <= 0) {
 			empire.food = 0
 			trouble |= 4
 			troubleFood = true
@@ -828,13 +826,13 @@ export const useTurnInternal = (
 		let trpWiz = 0
 
 		if (empire.trpWiz < empire.bldWiz * 25) {
-			trpWiz = empire.bldWiz * 0.4
+			trpWiz = empire.bldWiz * 0.45
 		} else if (empire.trpWiz < empire.bldWiz * 50) {
-			trpWiz = empire.bldWiz * 0.25
+			trpWiz = empire.bldWiz * 0.3
 		} else if (empire.trpWiz < empire.bldWiz * 90) {
-			trpWiz = empire.bldWiz * 0.1
+			trpWiz = empire.bldWiz * 0.15
 		} else if (empire.trpWiz < empire.bldWiz * 100) {
-			trpWiz = empire.bldWiz * 0.05
+			trpWiz = empire.bldWiz * 0.1
 		} else if (empire.trpWiz > empire.bldWiz * 175) {
 			trpWiz = empire.trpWiz * -0.05
 		}
@@ -865,12 +863,8 @@ export const useTurnInternal = (
 
 		// console.log(current)
 		// console.log(overall)
-
-		if (!condensed || taken === turns || trouble === 6) {
-			if (condensed) {
-				statsArray.push(overall)
-			} else statsArray.push(current)
-		}
+		console.log(trouble, troubleCash, troubleLoan, troubleFood)
+		console.log(taken)
 
 		if (trouble && (troubleLoan || troubleFood)) {
 			empire.peasants -= Math.round(empire.peasants * 0.03)
@@ -881,23 +875,34 @@ export const useTurnInternal = (
 			empire.trpWiz -= Math.round(empire.trpWiz * 0.03)
 			deserted *= 1 - 0.3
 			if (!interruptable) {
-				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
-				let message = {
-					desertion: `${percent}% of your people, troops, and wizards have deserted due to lack of resources.`,
-				}
+				let percent = condensed ? taken * 3 : 3
+				message['desertion'] = `${percent}% of your ${
+					eraArray[empire.era].peasants
+				}, Troops, and ${
+					eraArray[empire.era].trpwiz
+				} have deserted due to lack of resources.`
 				current['messages'] = message
+				statsArray.push(current)
 			} else {
-				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
-				let message = {
-					desertion: `${percent}% of your people, troops, and wizards have deserted due to lack of resources. Turns have been stopped to prevent further losses.`,
-				}
+				let percent = condensed ? taken * 3 : 3
+				console.log(percent)
+				message['desertion'] = `${percent}% of your ${
+					eraArray[empire.era].peasants
+				}, Troops, and ${
+					eraArray[empire.era].trpwiz
+				} have deserted due to lack of resources. Turns have been stopped to prevent further losses.`
 				current['messages'] = message
+				statsArray.push(current)
 				break
 			}
+		} else {
+			current['messages'] = message
+			if (!condensed || taken === turns || trouble === 6) {
+				if (condensed) {
+					statsArray.push(overall)
+				} else statsArray.push(current)
+			}
 		}
-
-		// empire.networth = getNetworth(empire)
-		// await empire.save()
 	}
 
 	return statsArray

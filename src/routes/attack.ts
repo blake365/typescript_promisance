@@ -716,6 +716,7 @@ const attack = async (req: Request, res: Response) => {
 			}
 
 			attacker.health -= 6
+			console.log(typeof DR_RATE)
 			defender.diminishingReturns += DR_RATE
 
 			attackTurns['attack'] = attackDescription

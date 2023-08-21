@@ -12,7 +12,6 @@ import {
 	MAX_SPELLS,
 	DR_RATE,
 } from '../config/conifg'
-import { MAX } from 'class-validator'
 
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
