@@ -3,29 +3,11 @@ import { BUILD_COST } from '../config/conifg'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 
-import { useTurn, useTurnInternal } from './useturns'
+import { useTurnInternal } from './useturns'
+import user from '../middleware/user'
+import auth from '../middleware/auth'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
-
-interface oneTurn {
-	withdraw?: number
-	income?: number
-	expenses?: number
-	wartax?: number
-	loanpayed?: number
-	loanInterest?: number
-	money?: number
-	trpArm?: number
-	trpLnd?: number
-	trpFly?: number
-	trpSea?: number
-	foodpro?: number
-	foodcon?: number
-	food?: number
-	peasants?: number
-	runes?: number
-	trpWiz?: number
-}
 
 const getBuildAmounts = (empire: Empire) => {
 	let buildCost = Math.round(BUILD_COST + empire.land * 0.1)
@@ -183,6 +165,6 @@ const build = async (req: Request, res: Response) => {
 const router = Router()
 
 //TODO: needs user and auth middleware
-router.post('/', build)
+router.post('/', user, auth, build)
 
 export default router

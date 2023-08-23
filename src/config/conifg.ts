@@ -84,7 +84,7 @@ export const PVTM_TRPLND = 1000
 export const PVTM_TRPFLY = 2000
 export const PVTM_TRPSEA = 3000
 export const PVTM_FOOD = 30
-export const PVTM_RUNES = 1000
+export const PVTM_RUNES = 1400
 
 export const INDUSTRY_MULT = 2.5 // Industry output multiplier
 export const MAX_ATTACKS = 25 // Maximum number of attacks

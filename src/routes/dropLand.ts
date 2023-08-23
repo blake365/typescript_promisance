@@ -4,8 +4,9 @@ import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 
 import { useTurnInternal } from './useturns'
+import user from '../middleware/user'
+import auth from '../middleware/auth'
 
-// FIXME: result of turns is not being saved to empire
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
 interface oneTurn {
@@ -38,7 +39,10 @@ const getDropAmounts = (empire) => {
 		50
 	)
 
-	// TODO: empire effect to restrict land dropping
+	if (empire.attacks !== 0) {
+		dropRate = dropRate / empire.attacks
+	}
+
 	let canDrop = Math.min(
 		dropRate * empire.turns,
 		empire.freeLand,
@@ -85,28 +89,51 @@ const drop = async (req: Request, res: Response) => {
 			// use one turn
 			let oneTurn = useTurnInternal('drop', 1, empire, true)
 			// console.log(oneTurn)
-			let turnRes: oneTurn = oneTurn[0]
+			let turnRes = oneTurn[0]
 			// extract turn info from result and put individual object in result array
-			resultArray.push(turnRes)
-			// add value to empire.key
-			empire.cash =
-				empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
-			empire.loan -= turnRes.loanpayed + turnRes.loanInterest
-			empire.trpArm += turnRes.trpArm
-			empire.trpLnd += turnRes.trpLnd
-			empire.trpFly += turnRes.trpFly
-			empire.trpSea += turnRes.trpSea
-			empire.food += turnRes.food
-			empire.peasants += turnRes.peasants
-			empire.runes += turnRes.runes
-			empire.trpWiz += turnRes.trpWiz
+			if (!turnRes?.messages?.desertion) {
+				resultArray.push(turnRes)
+				// add value to empire.key
+				empire.cash =
+					empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
+				empire.loan -= turnRes.loanpayed + turnRes.loanInterest
+				empire.trpArm += turnRes.trpArm
+				empire.trpLnd += turnRes.trpLnd
+				empire.trpFly += turnRes.trpFly
+				empire.trpSea += turnRes.trpSea
+				empire.food += turnRes.food
+				empire.peasants += turnRes.peasants
+				empire.runes += turnRes.runes
+				empire.trpWiz += turnRes.trpWiz
 
-			empire.freeLand -= dropAmount
-			leftToDrop -= dropAmount
-			empire.turns--
-			empire.turnsUsed++
+				empire.freeLand -= dropAmount
+				leftToDrop -= dropAmount
+				empire.turns--
+				empire.turnsUsed++
+				empire.lastAction = new Date()
 
-			await empire.save()
+				await empire.save()
+			} else {
+				resultArray.push(turnRes)
+				empire.cash =
+					empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
+				empire.loan -= turnRes.loanpayed + turnRes.loanInterest
+				empire.trpArm += turnRes.trpArm
+				empire.trpLnd += turnRes.trpLnd
+				empire.trpFly += turnRes.trpFly
+				empire.trpSea += turnRes.trpSea
+				empire.food += turnRes.food
+				empire.peasants += turnRes.peasants
+				empire.runes += turnRes.runes
+				empire.trpWiz += turnRes.trpWiz
+
+				empire.turns--
+				empire.turnsUsed++
+
+				empire.lastAction = new Date()
+				await empire.save()
+				break
+			}
 		}
 		// console.log(resultArray)
 		return resultArray
@@ -119,7 +146,6 @@ const drop = async (req: Request, res: Response) => {
 
 const router = Router()
 
-//TODO: needs user and auth middleware
-router.post('/', drop)
+router.post('/', user, auth, drop)
 
 export default router

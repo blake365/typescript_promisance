@@ -269,6 +269,15 @@ export default class Empire extends Model {
 			to: (value) => value,
 			from: (value) => parseInt(value),
 		},
+		default: 100000,
+	})
+	mktRunes: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
 		default: 3000,
 	})
 	mktLnd: number

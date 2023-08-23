@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express'
 import {
 	PVTM_FOOD,
 	PVTM_MAXSELL,
+	PVTM_RUNES,
 	PVTM_SHOPBONUS,
 	PVTM_TRPARM,
 	PVTM_TRPFLY,
@@ -32,7 +33,8 @@ const getCost = (empire: Empire, base) => {
 // : subtract amount bought from mktArm etc. so you can't buy more than is available
 const buy = async (req: Request, res: Response) => {
 	// request will have object with number of each unit to purchase
-	const { type, empireId, buyArm, buyLnd, buyFly, buySea, buyFood } = req.body
+	const { type, empireId, buyArm, buyLnd, buyFly, buySea, buyFood, buyRunes } =
+		req.body
 
 	if (type !== 'buy') {
 		return res.json({ error: 'Something went wrong' })
@@ -46,11 +48,12 @@ const buy = async (req: Request, res: Response) => {
 		getCost(empire, PVTM_TRPFLY),
 		getCost(empire, PVTM_TRPSEA),
 		PVTM_FOOD,
+		PVTM_RUNES,
 	]
 
 	console.log(priceArray)
 
-	let buyArray = [buyArm, buyLnd, buyFly, buySea, buyFood]
+	let buyArray = [buyArm, buyLnd, buyFly, buySea, buyFood, buyRunes]
 
 	const spendArray = buyArray.map((value, index) => {
 		value = value * priceArray[index]
@@ -71,12 +74,14 @@ const buy = async (req: Request, res: Response) => {
 		empire.trpFly += buyFly
 		empire.trpSea += buySea
 		empire.food += buyFood
+		empire.runes += buyRunes
 		empire.cash -= totalPrice
 		empire.mktArm -= buyArm
 		empire.mktLnd -= buyLnd
 		empire.mktFly -= buyFly
 		empire.mktSea -= buySea
 		empire.mktFood -= buyFood
+		empire.mktRunes -= buyRunes
 	}
 
 	empire.networth = getNetworth(empire)
@@ -87,6 +92,7 @@ const buy = async (req: Request, res: Response) => {
 	let resultBuyFly = { amount: buyFly, price: spendArray[2] }
 	let resultBuySea = { amount: buySea, price: spendArray[3] }
 	let resultBuyFood = { amount: buyFood, price: spendArray[4] }
+	let resultBuyRunes = { amount: buyRunes, price: spendArray[5] }
 
 	let shoppingResult = {
 		resultBuyArm,
@@ -94,6 +100,7 @@ const buy = async (req: Request, res: Response) => {
 		resultBuyFly,
 		resultBuySea,
 		resultBuyFood,
+		resultBuyRunes,
 	}
 
 	console.log(shoppingResult)
@@ -120,8 +127,16 @@ const getValue = (emp, base, multiplier) => {
 
 const sell = async (req: Request, res: Response) => {
 	// request will have object with number of each unit to sell
-	const { type, empireId, sellArm, sellLnd, sellFly, sellSea, sellFood } =
-		req.body
+	const {
+		type,
+		empireId,
+		sellArm,
+		sellLnd,
+		sellFly,
+		sellSea,
+		sellFood,
+		sellRunes,
+	} = req.body
 
 	if (type !== 'sell') {
 		return res.json({ error: 'Something went wrong' })
@@ -135,9 +150,10 @@ const sell = async (req: Request, res: Response) => {
 		getValue(empire, PVTM_TRPFLY, 0.36),
 		getValue(empire, PVTM_TRPSEA, 0.38),
 		PVTM_FOOD * 0.4,
+		PVTM_RUNES * 0.2,
 	]
 
-	let sellArray = [sellArm, sellLnd, sellFly, sellSea, sellFood]
+	let sellArray = [sellArm, sellLnd, sellFly, sellSea, sellFood, sellRunes]
 
 	// console.log(sellArray)
 	// console.log(priceArray)
@@ -156,7 +172,8 @@ const sell = async (req: Request, res: Response) => {
 		sellLnd > (empire.trpLnd * PVTM_MAXSELL) / 10000 ||
 		sellFly > (empire.trpFly * PVTM_MAXSELL) / 10000 ||
 		sellSea > (empire.trpSea * PVTM_MAXSELL) / 10000 ||
-		sellFood > empire.food
+		sellFood > empire.food ||
+		sellRunes > empire.runes
 	) {
 		return res.status(500).json({ error: "Can't sell that many!" })
 	} else {
@@ -165,6 +182,7 @@ const sell = async (req: Request, res: Response) => {
 		empire.trpFly -= sellFly
 		empire.trpSea -= sellSea
 		empire.food -= sellFood
+		empire.runes -= sellRunes
 		empire.cash += totalPrice
 	}
 
@@ -176,6 +194,7 @@ const sell = async (req: Request, res: Response) => {
 	let resultSellFly = { amount: sellFly, price: spendArray[2] }
 	let resultSellSea = { amount: sellSea, price: spendArray[3] }
 	let resultSellFood = { amount: sellFood, price: spendArray[4] }
+	let resultSellRunes = { amount: sellRunes, price: spendArray[5] }
 
 	let shoppingResult = {
 		resultSellArm,
@@ -183,6 +202,7 @@ const sell = async (req: Request, res: Response) => {
 		resultSellFly,
 		resultSellSea,
 		resultSellFood,
+		resultSellRunes,
 	}
 
 	console.log(shoppingResult)

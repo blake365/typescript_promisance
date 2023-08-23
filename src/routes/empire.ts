@@ -112,6 +112,19 @@ const getOtherEmpires = async (req: Request, res: Response) => {
 	}
 
 	const otherEmpires = await Empire.find({
+		select: [
+			'empireId',
+			'id',
+			'name',
+			'networth',
+			'empireId',
+			'race',
+			'era',
+			'land',
+			'rank',
+			'mode',
+			'turnsUsed',
+		],
 		where: { empireId: Not(empire_id) },
 		order: {
 			empireId: 'ASC',

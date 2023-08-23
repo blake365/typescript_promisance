@@ -7,28 +7,7 @@ import { useTurnInternal } from './useturns'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 
-// FIXME: result of turns is not being saved to empire
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
-
-interface oneTurn {
-	withdraw?: number
-	income?: number
-	expenses?: number
-	wartax?: number
-	loanpayed?: number
-	loanInterest?: number
-	money?: number
-	trpArm?: number
-	trpLnd?: number
-	trpFly?: number
-	trpSea?: number
-	foodpro?: number
-	foodcon?: number
-	food?: number
-	peasants?: number
-	runes?: number
-	trpWiz?: number
-}
 
 const getDemolishAmounts = (empire) => {
 	let demolishCost = Math.round((BUILD_COST + empire.land * 0.1) / 5)
@@ -109,7 +88,7 @@ const demolish = async (req: Request, res: Response) => {
 			// console.log(turns)
 			let leftToDemo = value
 			for (let i = 0; i < turns; i++) {
-				console.log(`demo ${value} of ${key}s`)
+				// console.log(`demo ${value} of ${key}s`)
 				let demoAmount: number
 				if (leftToDemo < demolishRate) {
 					demoAmount = leftToDemo
@@ -118,34 +97,62 @@ const demolish = async (req: Request, res: Response) => {
 				}
 				// use one turn
 				let oneTurn = useTurnInternal('demolish', 1, empire, true)
-				console.log(oneTurn)
-				let turnRes: oneTurn = oneTurn[0]
+				// console.log(oneTurn)
+				let turnRes = oneTurn[0]
 				// extract turn info from result and put individual object in result array
-				resultArray.push(turnRes)
-				// add value to empire.key
-				empire.cash =
-					empire.cash +
-					turnRes.withdraw +
-					turnRes.money -
-					turnRes.loanpayed +
-					demoAmount * demolishCost
-				empire.loan -= turnRes.loanpayed + turnRes.loanInterest
-				empire.trpArm += turnRes.trpArm
-				empire.trpLnd += turnRes.trpLnd
-				empire.trpFly += turnRes.trpFly
-				empire.trpSea += turnRes.trpSea
-				empire.food += turnRes.food
-				empire.peasants += turnRes.peasants
-				empire.runes += turnRes.runes
-				empire.trpWiz += turnRes.trpWiz
-				empire[key] -= demoAmount
-				empire.freeLand += demoAmount
-				// empire.cash -= buildAmount * buildCost
-				leftToDemo -= demoAmount
-				empire.turns--
-				empire.turnsUsed++
+				if (!turnRes?.messages?.desertion) {
+					resultArray.push(turnRes)
+					// add value to empire.key
+					empire.cash =
+						empire.cash +
+						turnRes.withdraw +
+						turnRes.money -
+						turnRes.loanpayed +
+						demoAmount * demolishCost
+					empire.loan -= turnRes.loanpayed + turnRes.loanInterest
+					empire.trpArm += turnRes.trpArm
+					empire.trpLnd += turnRes.trpLnd
+					empire.trpFly += turnRes.trpFly
+					empire.trpSea += turnRes.trpSea
+					empire.food += turnRes.food
+					empire.peasants += turnRes.peasants
+					empire.runes += turnRes.runes
+					empire.trpWiz += turnRes.trpWiz
+					empire[key] -= demoAmount
+					empire.freeLand += demoAmount
+					// empire.cash -= buildAmount * buildCost
+					leftToDemo -= demoAmount
+					empire.turns--
+					empire.turnsUsed++
 
-				await empire.save()
+					empire.lastAction = new Date()
+					await empire.save()
+				} else {
+					resultArray.push(turnRes)
+					// add value to empire.key
+					empire.cash =
+						empire.cash +
+						turnRes.withdraw +
+						turnRes.money -
+						turnRes.loanpayed +
+						turnRes.loanInterest
+
+					empire.loan -= turnRes.loanpayed + turnRes.loanInterest
+					empire.trpArm += turnRes.trpArm
+					empire.trpLnd += turnRes.trpLnd
+					empire.trpFly += turnRes.trpFly
+					empire.trpSea += turnRes.trpSea
+					empire.food += turnRes.food
+					empire.peasants += turnRes.peasants
+					empire.runes += turnRes.runes
+					empire.trpWiz += turnRes.trpWiz
+
+					empire.turns--
+					empire.turnsUsed++
+					empire.lastAction = new Date()
+					await empire.save()
+					break
+				}
 			}
 		}
 		// console.log(resultArray)
@@ -159,7 +166,6 @@ const demolish = async (req: Request, res: Response) => {
 
 const router = Router()
 
-//TODO: needs user and auth middleware
 router.post('/', user, auth, demolish)
 
 export default router
