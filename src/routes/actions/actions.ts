@@ -20,7 +20,7 @@ export const calcSizeBonus = ({ networth }) => {
 	let net = Math.max(networth, 1)
 	let size = Math.atan(generalLog(net, 1000) - 1) * 2.1 - 0.65
 	size = Math.round(Math.min(Math.max(0.5, size), 1.7) * 1000) / 1000
-	console.log('size', size)
+	// console.log('size', size)
 	return size
 }
 

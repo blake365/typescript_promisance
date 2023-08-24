@@ -451,7 +451,7 @@ export const useTurn = async (
 				statsArray.push(current)
 			} else {
 				let percent = condensed ? taken * 3 : 3
-				console.log(percent)
+				// console.log(percent)
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
 				}, Troops, and ${
@@ -477,7 +477,7 @@ export const useTurn = async (
 	empire.lastAction = new Date()
 	empire.networth = getNetworth(empire)
 	await empire.save()
-	console.log(statsArray)
+	// console.log(statsArray)
 	return statsArray
 }
 
@@ -863,8 +863,8 @@ export const useTurnInternal = (
 
 		// console.log(current)
 		// console.log(overall)
-		console.log(trouble, troubleCash, troubleLoan, troubleFood)
-		console.log(taken)
+		// console.log(trouble, troubleCash, troubleLoan, troubleFood)
+		// console.log(taken)
 
 		if (trouble && (troubleLoan || troubleFood)) {
 			empire.peasants -= Math.round(empire.peasants * 0.03)
@@ -885,7 +885,7 @@ export const useTurnInternal = (
 				statsArray.push(current)
 			} else {
 				let percent = condensed ? taken * 3 : 3
-				console.log(percent)
+				// console.log(percent)
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
 				}, Troops, and ${

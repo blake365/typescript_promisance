@@ -29,6 +29,7 @@ const createEmpire = async (req: Request, res: Response) => {
 	const filer = new Filter()
 	let { name, race } = req.body
 
+	console.log(req.body)
 	const user: User = res.locals.user
 
 	let mode = 'normal'
