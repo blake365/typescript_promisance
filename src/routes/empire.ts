@@ -6,7 +6,13 @@ import user from '../middleware/user'
 import { getNetworth } from './actions/actions'
 import { Not } from 'typeorm'
 import EmpireEffect from '../entity/EmpireEffect'
-import { TURNS_DEMO, TURNS_MAXIMUM, TURNS_STORED } from '../config/conifg'
+import {
+	EMPIRES_PER_USER,
+	TURNS_DEMO,
+	TURNS_INITIAL,
+	TURNS_MAXIMUM,
+	TURNS_STORED,
+} from '../config/conifg'
 
 const Filter = require('bad-words')
 
@@ -26,7 +32,7 @@ const createEmpire = async (req: Request, res: Response) => {
 	const user: User = res.locals.user
 
 	let mode = 'normal'
-	let turns: number = 250
+	let turns: number = TURNS_INITIAL
 	let mktArm: number = 999999999999
 	let mktLnd: number = 999999999999
 	let mktFly: number = 999999999999
@@ -35,7 +41,11 @@ const createEmpire = async (req: Request, res: Response) => {
 
 	if (user.role === 'demo') {
 		mode = 'demo'
-		turns = 2000
+		turns = TURNS_DEMO
+	}
+
+	if (user.empires.length > EMPIRES_PER_USER) {
+		return res.status(400).json({ error: 'Max empires per user reached' })
 	}
 
 	if (name.trim() === '') {

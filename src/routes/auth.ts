@@ -20,36 +20,31 @@ const register = async (req: Request, res: Response) => {
 	const { email, username, password } = req.body
 
 	const empires = []
+	let errors: any = {}
 
-	try {
-		// Validate Data
-		let errors: any = {}
-		const emailUser = await User.findOne({ email })
-		const usernameUser = await User.findOne({ username })
+	const emailUser = await User.findOne({ email })
+	const usernameUser = await User.findOne({ username })
 
-		if (emailUser) errors.email = 'Email is already taken'
-		if (usernameUser) errors.username = 'Username is already taken'
+	if (emailUser) errors.email = 'Email is already in use'
+	if (usernameUser) errors.username = 'Username is already taken'
 
-		if (Object.keys(errors).length > 0) {
-			return res.status(400).json(errors)
-		}
-
-		// Create the user
-		const user = new User({ email, username, password, empires })
-
-		errors = await validate(user)
-
-		if (errors.length > 0) {
-			return res.status(400).json(mapErrors(errors))
-		}
-		await user.save()
-
-		// Return the user
-		return res.json(user)
-	} catch (err) {
-		console.log(err)
-		return res.status(500).json(err)
+	console.log(errors)
+	if (Object.keys(errors).length > 0) {
+		return res.status(500).json(errors)
 	}
+
+	// Create the user
+	const user = new User({ email, username, password, empires })
+
+	errors = await validate(user)
+
+	if (errors.length > 0) {
+		return res.status(400).json(mapErrors(errors))
+	}
+	await user.save()
+
+	// Return the user
+	return res.json(user)
 }
 
 const login = async (req: Request, res: Response) => {
@@ -138,19 +133,21 @@ const logout = async (_: Request, res: Response) => {
 const demoAccount = async (req: Request, res: Response) => {
 	const empires = []
 
-	let ip = (
-		<string>req.headers['x-forwarded-for'] ||
+	let ip =
 		<string>req.connection.remoteAddress ||
-		''
-	)
-		.split(',')[0]
-		.trim()
+		<string>req.headers['x-forwarded-for']
+	// .split(',')[0]
+	// .trim()
 
-	// console.log(ip)
-	let IPaddress: string
+	console.log(req.headers['x-forwarded-for'])
+
+	console.log(ip)
+	// let IPaddress: string
 
 	// process ip address or headers
-	if (ip.length > 15 && ip.split(':').length === 8) {
+	if (ip === '::1') {
+		ip = 'localhost'
+	} else if (ip.length > 15 && ip.split(':').length === 8) {
 		let ipArr = ip.split(':')
 		ipArr.splice(ipArr.length / 2, ipArr.length)
 		ip = ipArr.join('.')
@@ -165,22 +162,18 @@ const demoAccount = async (req: Request, res: Response) => {
 	}
 
 	// console.log(ip)
-	if (ip != '' || ip !== undefined) {
-		IPaddress = ip
-	} else {
+	if (ip === '' || ip === undefined) {
 		console.error('No IP address')
-		return res.json({
+		return res.status(400).json({
 			error:
 				'An error occurred, please try again. Make an account if this problem persists.',
 		})
 	}
 
-	// console.log(IPaddress)
+	const addOn = new Date().getDay()
 
-	const addOn = new Date().getTime()
-
-	const email = IPaddress + addOn + '@demo.com'
-	const username = IPaddress + addOn
+	const email = ip + addOn + '@demo.com'
+	const username = ip + addOn
 	const password = 'none'
 	const role = 'demo'
 
@@ -199,6 +192,7 @@ const demoAccount = async (req: Request, res: Response) => {
 
 		errors = await validate(user)
 
+		console.log(errors)
 		if (errors.length > 0) {
 			return res.status(400).json(mapErrors(errors))
 		}
@@ -225,15 +219,21 @@ const demoAccount = async (req: Request, res: Response) => {
 		session.data = data
 		session.time = time
 		session.user_id = user.id
-		session.empire_id = user.empires[0].id
+		if (user?.empires?.length > 0) {
+			session.empire_id = user.empires[0].id
+		}
 		session.role = role
 		await session.save()
 
 		// Return the user
 		return res.json(user)
 	} catch (err) {
-		console.log(err)
-		return res.status(500).json(err)
+		console.log(err.code)
+		if (err.code === '23505' || err.code === '23514' || err.code === '23502') {
+			return res.status(500).json({
+				error: 'Please wait a while before creating a new demo account',
+			})
+		}
 	}
 }
 
