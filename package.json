@@ -1,7 +1,7 @@
 {
-   "name": "new-typeorm-project",
+   "name": "NeoPromisance",
    "version": "0.0.1",
-   "description": "Awesome project developed with TypeORM.",
+   "description": "API for NeoPromisance",
    "main": "src/index.ts",
    "devDependencies": {
       "@types/bcrypt": "^5.0.0",
