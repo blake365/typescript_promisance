@@ -1,6 +1,6 @@
 {
    "name": "NeoPromisance",
-   "version": "0.1",
+   "version": "1",
    "description": "API for NeoPromisance",
    "main": "src/index.ts",
    "type": "module",
