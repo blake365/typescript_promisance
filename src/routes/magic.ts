@@ -389,7 +389,7 @@ const magic = async (req: Request, res: Response) => {
 		const cost = gate_cost(base)
 		const turns = 2
 		if (spellCheck(empire, cost, turns) === 'passed') {
-			for (let i = 0; i < 1; i++) {
+			for (let i = 0; i < number; i++) {
 				if (spellCheck(empire, cost, turns) === 'passed') {
 					empire.runes -= cost
 					// use two turns to cast spell
@@ -621,6 +621,11 @@ const magicAttack = async (req: Request, res: Response) => {
 			canAttack = false
 			returnText =
 				'You have cast the max number of offensive spells. Wait a while before casting another.'
+		}
+
+		if (attacker.turnsUsed <= TURNS_PROTECTION) {
+			canAttack = false
+			returnText = 'You cannot cast attack spells while in protection.'
 		}
 
 		if (defender.turnsUsed <= TURNS_PROTECTION) {

@@ -332,6 +332,11 @@ const attack = async (req: Request, res: Response) => {
 				'You have reached the max number of attacks. Wait a while before attacking.'
 		}
 
+		if (attacker.turnsUsed <= TURNS_PROTECTION) {
+			canAttack = false
+			returnText = 'You cannot attack while in protection.'
+		}
+
 		if (defender.turnsUsed <= TURNS_PROTECTION) {
 			canAttack = false
 			returnText = 'You cannot attack such a young empire.'

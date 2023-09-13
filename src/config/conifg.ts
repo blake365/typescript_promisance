@@ -19,6 +19,9 @@ export const TXT_EMAIL =
 export const DEFAULT_LANGUAGE = 'en-US' // Default language pack to use, also used when not logged in
 export const BASE_LANGUAGE = 'en-US' // Base language pack, used for anything not defined in current/default
 
+export const ROUND_START = new Date('2023-09-01T08:00:00') // Date and time of round start
+export const ROUND_END = new Date('2023-10-30T12:00:00.000') // Date and time of round end
+
 export const EMPIRES_PER_USER = 1 // How many empires can be owned at once by a particular user?
 export const TURNS_PROTECTION = 200 // Duration of protection
 export const TURNS_INITIAL = 250 // Turns given on signup
@@ -86,7 +89,7 @@ export const PVTM_TRPSEA = 3000
 export const PVTM_FOOD = 30
 export const PVTM_RUNES = 1400
 
-export const INDUSTRY_MULT = 2.5 // Industry output multiplier
+export const INDUSTRY_MULT = 2.8 // Industry output multiplier
 export const MAX_ATTACKS = 25 // Maximum number of attacks
 export const MAX_SPELLS = 20 // Maximum number of attack spells
 export const DR_RATE = 2 // diminishing returns rate

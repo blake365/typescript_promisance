@@ -30,10 +30,15 @@ import intel from './routes/intel'
 import mail from './routes/mail'
 import session from './routes/sessions'
 
-import { hourlyUpdate, promTurns, updateRanks } from './jobs/promTurns'
+import {
+	cleanDemoAccounts,
+	hourlyUpdate,
+	promTurns,
+	updateRanks,
+} from './jobs/promTurns'
 
 import trim from './middleware/trim'
-import { TURNS_FREQ } from './config/conifg'
+import { ROUND_START, TURNS_FREQ, ROUND_END } from './config/conifg'
 
 const app = express()
 const PORT = process.env.PORT
@@ -84,7 +89,35 @@ app.listen(PORT, async () => {
 	}
 })
 
+let gameOn = false
+
+function checkTime() {
+	let now = new Date()
+	if (now > ROUND_START && now < ROUND_END) {
+		gameOn = true
+	}
+}
+
+const checkTimeTask = new Task('check time', () => {
+	let now = new Date()
+	if (now > ROUND_START && now < ROUND_END) {
+		gameOn = true
+	}
+})
+
+checkTime()
+
+console.log(ROUND_START)
+console.log(gameOn)
+
 const scheduler = new ToadScheduler()
+
+const gameActive = new SimpleIntervalJob(
+	{ minutes: 1, runImmediately: true },
+	checkTimeTask,
+	'id_0'
+)
+scheduler.addSimpleIntervalJob(gameActive)
 
 const turns = new SimpleIntervalJob(
 	{ minutes: TURNS_FREQ, runImmediately: false },
@@ -104,8 +137,16 @@ const hourly = new SimpleIntervalJob(
 	'id_2'
 )
 
-scheduler.addSimpleIntervalJob(turns)
-scheduler.addSimpleIntervalJob(ranks)
-scheduler.addSimpleIntervalJob(hourly)
+const daily = new SimpleIntervalJob(
+	{ days: 1, runImmediately: false },
+	cleanDemoAccounts,
+	'id_4'
+)
 
+if (gameOn) {
+	scheduler.addSimpleIntervalJob(turns)
+	scheduler.addSimpleIntervalJob(ranks)
+	scheduler.addSimpleIntervalJob(hourly)
+	scheduler.addSimpleIntervalJob(daily)
+}
 // console.log(scheduler.getById('id_1').getStatus());

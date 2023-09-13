@@ -1,4 +1,4 @@
-import { AsyncTask } from 'toad-scheduler'
+import { AsyncTask, Task } from 'toad-scheduler'
 import { getConnection } from 'typeorm'
 import ClanInvite from '../entity/ClanInvite'
 import Empire from '../entity/Empire'
@@ -12,6 +12,8 @@ import {
 	MAX_SPELLS,
 	DR_RATE,
 } from '../config/conifg'
+import EmpireEffect from '../entity/EmpireEffect'
+import User from '../entity/User'
 
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
@@ -234,7 +236,6 @@ export const hourlyUpdate = new AsyncTask('hourly update', async () => {
 			.where('diminishing_returns < 0 AND id != 0')
 			.execute()
 	}
-	//TODO: clean up expired effects
 })
 
 export const cleanMarket = new AsyncTask('clean market', async () => {
@@ -277,3 +278,50 @@ export const updateRanks = new AsyncTask('update ranks', async () => {
 			.execute()
 	}
 })
+
+export const cleanDemoAccounts = new AsyncTask(
+	'clean demo accounts and effects',
+	async () => {
+		console.log('cleaning demo accounts and effects')
+
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(Empire)
+			.where('mode = :gamemode AND turnsUsed < 1', { gamemode: 'demo' })
+			.execute()
+
+		let emptyUsers = await User.find({
+			relations: ['empires'],
+			where: { empires: [] },
+		})
+
+		emptyUsers.forEach(async (user) => {
+			await user.remove()
+		})
+
+		let effects = await EmpireEffect.find()
+
+		function isOld(createdAt, effectValue) {
+			let effectAge =
+				(Date.now().valueOf() - new Date(createdAt).getTime()) / 60000
+			effectAge = Math.floor(effectAge)
+
+			// console.log(effectAge)
+			// console.log(effectValue)
+
+			if (effectAge > effectValue) {
+				return true
+			} else {
+				return false
+			}
+		}
+
+		effects.forEach(async (effect) => {
+			let old = isOld(effect.createdAt, effect.empireEffectValue)
+			if (old) {
+				effect.remove()
+			}
+		})
+	}
+)
