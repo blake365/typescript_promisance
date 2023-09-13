@@ -1,17 +1,14 @@
 {
-   "compilerOptions": {
-      "lib": [
-         "es5",
-         "es6",
-         "ES2018"
-      ],
-      "target": "ES6",
-      "module": "ES6",
-      "moduleResolution": "node",
-      "outDir": "./build",
-      "emitDecoratorMetadata": true,
-      "experimentalDecorators": true,
-      "sourceMap": true,
-      "esModuleInterop": true
-   }
+  "compilerOptions": {
+    "lib": ["es5", "es6", "ES2018"],
+    "target": "ES5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./build",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "types": ["node"]
+  }
 }

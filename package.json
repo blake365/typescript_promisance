@@ -3,6 +3,8 @@
    "version": "0.1.0",
    "description": "API for NeoPromisance",
    "main": "src/index.ts",
+   "author": "Blake Morgan",
+   "license": "MIT",
    "devDependencies": {
       "@types/bcrypt": "^5.0.0",
       "@types/cookie": "^0.4.1",
@@ -38,7 +40,7 @@
       "typeorm-naming-strategies": "^2.0.0"
    },
    "scripts": {
-      "start": "node ./build/index.js",
+      "start": "node build/index.js",
       "build": "tsc",
       "typeorm": "ts-node ./node_modules/typeorm/cli.js",
       "dev": "nodemon --exec ts-node src/index.ts"

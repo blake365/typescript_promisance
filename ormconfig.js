@@ -1,28 +1,25 @@
-const SnakeNamingStrategy = require('typeorm-naming-strategies')
-  .SnakeNamingStrategy;
+const SnakeNamingStrategy =
+	require('typeorm-naming-strategies').SnakeNamingStrategy
+
+const rootDir = process.env.NODE_ENV === 'development' ? 'src' : 'build'
 
 module.exports = {
-   "type": "postgres",
-   "host": "localhost",
-   "port": 5432,
-   "username": "postgres",
-   "password": "hokies",
-   "database": "promisance",
-   "synchronize": true,
-   "logging": false,
-   "namingStrategy": new SnakeNamingStrategy(),
-   "entities": [
-      "src/entity/**/*.ts"
-   ],
-   "migrations": [
-      "src/migration/**/*.ts"
-   ],
-   "subscribers": [
-      "src/subscriber/**/*.ts"
-   ],
-   "cli": {
-      "entitiesDir": "src/entity",
-      "migrationsDir": "src/migration",
-      "subscribersDir": "src/subscriber"
-   }
+	type: process.env.DB_DIALECT,
+	host: process.env.DB_HOST,
+	port: process.env.DB_PORT,
+	username: process.env.DB_USERNAME,
+	password: process.env.DB_PASSWORD,
+	database: process.env.DB_DATABASE,
+	synchronize: true,
+	logging: false,
+	namingStrategy: new SnakeNamingStrategy(),
+	entities: [rootDir + '/entities/**/*{.ts,.js}'],
+	migrations: [rootDir + '/migrations/**/*{.ts,.js}'],
+	subscribers: [rootDir + '/subscribers/**/*{.ts,.js}'],
+	seeds: [rootDir + '/seeds/**/*{.ts,.js}'],
+	cli: {
+		entitiesDir: rootDir + '/entities',
+		migrationsDir: rootDir + '/migrations',
+		subscribersDir: rootDir + '/subscribers',
+	},
 }
