@@ -3,7 +3,6 @@
    "version": "0.1.0",
    "description": "API for NeoPromisance",
    "main": "src/index.ts",
-   "type": "module",
    "devDependencies": {
       "@types/bcrypt": "^5.0.0",
       "@types/cookie": "^0.4.1",
