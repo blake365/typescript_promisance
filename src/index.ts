@@ -1,11 +1,11 @@
+import dotenv from 'dotenv'
+dotenv.config()
 import 'reflect-metadata'
 import { createConnection } from 'typeorm'
 import express from 'express'
 import morgan from 'morgan'
-import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-dotenv.config()
 import {
 	ToadScheduler,
 	SimpleIntervalJob,
@@ -65,7 +65,7 @@ app.use('/api/empire', empireRoutes)
 app.use('/api/useturns', useTurns)
 app.use('/api/build', build)
 app.use('/api/demolish', demolish)
-app.use('/api/demolish', demolish)
+// app.use('/api/demolish', demolish)
 app.use('/api/drop', drop)
 app.use('/api/magic', magic)
 app.use('/api/privatemarket', privateMarket)
@@ -82,7 +82,8 @@ app.listen(PORT, async () => {
 	console.log(`server running at http://localhost:${PORT}`)
 
 	try {
-		await createConnection()
+		let connection = await createConnection()
+		// console.log(connection)
 		console.log('database connected')
 	} catch (err) {
 		console.log(err)
@@ -107,8 +108,8 @@ const checkTimeTask = new Task('check time', () => {
 
 checkTime()
 
-console.log(ROUND_START)
-console.log(gameOn)
+// console.log(ROUND_START)
+// console.log(gameOn)
 
 const scheduler = new ToadScheduler()
 
