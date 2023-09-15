@@ -78,9 +78,9 @@ const login = async (req: Request, res: Response) => {
 			res.set(
 				'Set-Cookie',
 				cookie.serialize('token', token, {
-					httpOnly: true,
+					// httpOnly: true,
 					secure: process.env.NODE_ENV === 'production',
-					sameSite: 'strict',
+					sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
 					maxAge: time,
 					path: '/',
 				})
@@ -114,9 +114,9 @@ const logout = async (_: Request, res: Response) => {
 	res.set(
 		'Set-Cookie',
 		cookie.serialize('token', '', {
-			httpOnly: true,
+			// httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'strict',
+			sameSite: 'none',
 			expires: new Date(0),
 			path: '/',
 		})
@@ -207,9 +207,9 @@ const demoAccount = async (req: Request, res: Response) => {
 		res.set(
 			'Set-Cookie',
 			cookie.serialize('token', token, {
-				httpOnly: true,
+				// httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
-				sameSite: 'strict',
+				sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
 				maxAge: time,
 				path: '/',
 			})
