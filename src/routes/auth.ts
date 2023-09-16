@@ -99,6 +99,12 @@ const login = async (req: Request, res: Response) => {
 		session.role = 'user'
 		await session.save()
 
+		user.lastIp =
+			<string>req.connection.remoteAddress ||
+			<string>req.headers['x-forwarded-for']
+
+		await user.save()
+
 		return res.json(user)
 	} catch (err) {
 		console.log(err)
