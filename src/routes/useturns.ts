@@ -10,7 +10,12 @@ import {
 // import Empire from '../entity/Empire'
 import { raceArray } from '../config/races'
 import { eraArray } from '../config/eras'
-import { BANK_LOANRATE, BANK_SAVERATE, INDUSTRY_MULT } from '../config/conifg'
+import {
+	BANK_LOANRATE,
+	BANK_SAVERATE,
+	INDUSTRY_MULT,
+	TURNS_PROTECTION,
+} from '../config/conifg'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
 
@@ -59,18 +64,23 @@ export const useTurn = async (
 		let troubleCash = false
 		empire.networth = getNetworth(empire)
 
-		if (type === 'explore') {
-			turnResult += exploreAlt(empire)
-		}
-
 		// size bonus penalty
 		let size = calcSizeBonus(empire)
 
+		const baseLuck = 5
+		let luck = baseLuck * size * 2
+		let lucky = Math.random() * 100 <= luck
+
+		if (type === 'explore') {
+			turnResult += exploreAlt(empire, lucky)
+		}
+
+		// console.log(lucky)
 		// savings interest
 		let withdraw = 0
 
 		// savings interest
-		if (empire.turnsUsed > 200) {
+		if (empire.turnsUsed > TURNS_PROTECTION) {
 			let bankMax = empire.networth * 100
 			if (empire.bank > bankMax) {
 				withdraw = empire.bank - bankMax
@@ -106,6 +116,9 @@ export const useTurn = async (
 
 		if (type === 'cash') {
 			income = Math.round(income * 1.25)
+			if (lucky) {
+				income *= 1.5
+			}
 		}
 		if (type === 'heal') {
 			income = Math.round(income * 0.75)
@@ -183,6 +196,9 @@ export const useTurn = async (
 		let indMultiplier = 1
 		if (type === 'industry') {
 			indMultiplier = 1.25
+			if (lucky) {
+				indMultiplier *= 1.5
+			}
 		}
 		if (type === 'heal') {
 			indMultiplier = 0.75
@@ -273,6 +289,9 @@ export const useTurn = async (
 
 		if (type === 'farm') {
 			foodpro = Math.round(1.25 * foodpro)
+			if (lucky) {
+				foodpro *= 1.5
+			}
 		}
 		if (type === 'heal') {
 			foodpro = Math.round(0.75 * foodpro)
@@ -353,6 +372,9 @@ export const useTurn = async (
 		let runeMultiplier = 1
 		if (type === 'meditate') {
 			runeMultiplier = 1.25
+			if (lucky) {
+				runeMultiplier *= 1.5
+			}
 		}
 		if (type === 'heal') {
 			runeMultiplier = 0.75

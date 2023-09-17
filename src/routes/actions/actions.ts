@@ -9,8 +9,12 @@ import {
 	PVTM_TRPSEA,
 } from '../../config/conifg'
 
-export const exploreAlt = (empire: Empire) => {
-	const land = giveLand(empire)
+export const exploreAlt = (empire: Empire, lucky: boolean) => {
+	let land = giveLand(empire)
+	// console.log(lucky)
+	if (lucky) {
+		land *= 1.5
+	}
 	empire.land += land
 	empire.freeLand += land
 	return land
