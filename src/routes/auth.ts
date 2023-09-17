@@ -79,8 +79,9 @@ const login = async (req: Request, res: Response) => {
 				'Set-Cookie',
 				cookie.serialize('token', token, {
 					// httpOnly: true,
+					domain: '.neopromisance.com',
 					secure: process.env.NODE_ENV === 'production',
-					sameSite: 'strict',
+					sameSite: 'lax',
 					maxAge: time,
 					path: '/',
 				})
@@ -121,8 +122,9 @@ const logout = async (_: Request, res: Response) => {
 		'Set-Cookie',
 		cookie.serialize('token', '', {
 			// httpOnly: true,
+			domain: '.neopromisance.com',
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'strict',
+			sameSite: 'lax',
 			expires: new Date(0),
 			path: '/',
 		})
@@ -214,8 +216,9 @@ const demoAccount = async (req: Request, res: Response) => {
 			'Set-Cookie',
 			cookie.serialize('token', token, {
 				// httpOnly: true,
+				domain: '.neopromisance.com',
 				secure: process.env.NODE_ENV === 'production',
-				sameSite: 'strict',
+				sameSite: 'lax',
 				maxAge: time,
 				path: '/',
 			})
