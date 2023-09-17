@@ -13,6 +13,7 @@ import { eraArray } from '../config/eras'
 import {
 	BANK_LOANRATE,
 	BANK_SAVERATE,
+	BASE_LUCK,
 	INDUSTRY_MULT,
 	TURNS_PROTECTION,
 } from '../config/conifg'
@@ -67,8 +68,7 @@ export const useTurn = async (
 		// size bonus penalty
 		let size = calcSizeBonus(empire)
 
-		const baseLuck = 5
-		let luck = baseLuck * size * 2
+		let luck = BASE_LUCK / size
 		let lucky = Math.random() * 100 <= luck
 
 		if (type === 'explore') {
