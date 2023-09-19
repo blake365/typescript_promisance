@@ -95,7 +95,7 @@ export const storm_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 			let content = `${empire.name}(#${empire.id}) cast ${
 				eraArray[empire.era].spell_storm
-			} against you and destroyed $${cash} and ${food} ${
+			} against you and destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
 				eraArray[enemyEmpire.era].food
 			}.`
 

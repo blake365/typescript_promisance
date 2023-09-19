@@ -93,18 +93,18 @@ export const struct_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 				result = {
 					result: 'success',
-					message: `The spell was successful! /n You destroyed ${build} buildings.`,
+					message: `The spell was successful! /n You destroyed ${build.toLocaleString()} buildings.`,
 				}
 
 				let pubContent = `${empire.name}(#${empire.id}) cast ${
 					eraArray[empire.era].spell_struct
 				} on ${enemyEmpire.name}(#${
 					enemyEmpire.id
-				}) and destroyed ${build} buildings.`
+				}) and destroyed ${build.toLocaleString()} buildings.`
 
 				let content = `${empire.name}(#${empire.id}) cast ${
 					eraArray[empire.era].spell_struct
-				} against you and destroyed ${build} buildings.`
+				} against you and destroyed ${build.toLocaleString()} buildings.`
 
 				await createNewsEvent(
 					content,

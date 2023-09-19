@@ -320,7 +320,6 @@ const bank = async (req: Request, res: Response) => {
 				empire.cash += loanAmt
 				empire.loan += loanAmt
 				empire.networth = getNetworth(empire)
-
 				loanResult = { action: 'loan', amount: loanAmt }
 
 				await empire.save()
@@ -564,6 +563,6 @@ router.post('/:uuid/bonus', user, auth, bonusTurns)
 // router.put('/give/resources', giveResources)
 // router.put('/give/turns', giveTurns)
 
-router.delete('/:uuid', deleteEmpire)
+// router.delete('/:uuid', deleteEmpire)
 
 export default router

@@ -158,7 +158,10 @@ export const destroyBuildings = async (
 	let loss = Math.min(
 		getRandomInt(
 			1,
-			Math.ceil(((defender[type] * pcloss + 2) * (100 - DR_RATE)) / 100)
+			Math.ceil(
+				((defender[type] * pcloss + 2) * (100 - defender.diminishingReturns)) /
+					100
+			)
 		),
 		defender[type]
 	)
@@ -274,7 +277,27 @@ const attack = async (req: Request, res: Response) => {
 		defPower *= defender.health / 100
 
 		//TODO: war flag +20% when at war with other clan
+		if (attacker.attacks >= MAX_ATTACKS) {
+			canAttack = false
+			returnText =
+				'You have reached the max number of attacks. Wait a while before attacking.'
+		}
 
+		if (attacker.turnsUsed <= TURNS_PROTECTION) {
+			canAttack = false
+			returnText = 'You cannot attack while in protection.'
+		}
+
+		if (defender.turnsUsed <= TURNS_PROTECTION) {
+			canAttack = false
+			returnText = 'You cannot attack such a young empire.'
+		}
+
+		if (defender.land <= 1000) {
+			canAttack = false
+			returnText =
+				'You cannot attack an empire with such a small amount of land.'
+		}
 		// check eras and time gates
 		if (attacker.era === defender.era && attacker.turns > 2) {
 			canAttack = true
@@ -324,28 +347,6 @@ const attack = async (req: Request, res: Response) => {
 						'You must open a Time Gate to attack players in another Era'
 				}
 			}
-		}
-
-		if (attacker.attacks >= MAX_ATTACKS) {
-			canAttack = false
-			returnText =
-				'You have reached the max number of attacks. Wait a while before attacking.'
-		}
-
-		if (attacker.turnsUsed <= TURNS_PROTECTION) {
-			canAttack = false
-			returnText = 'You cannot attack while in protection.'
-		}
-
-		if (defender.turnsUsed <= TURNS_PROTECTION) {
-			canAttack = false
-			returnText = 'You cannot attack such a young empire.'
-		}
-
-		if (defender.land <= 1000) {
-			canAttack = false
-			returnText =
-				'You cannot attack an empire with such a small amount of land.'
 		}
 
 		console.log('can attack', canAttack)

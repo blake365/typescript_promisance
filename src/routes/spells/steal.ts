@@ -44,18 +44,18 @@ export const steal_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 			result = {
 				result: 'shielded',
-				message: `The spell was successful, but the enemy had a spell shield up. /n You stole $${cash} from the enemy. `,
+				message: `The spell was successful, but the enemy had a spell shield up. /n You stole $${cash.toLocaleString()} from the enemy. `,
 			}
 
 			let pubContent = `${empire.name}(#${empire.id}) cast ${
 				eraArray[empire.era].spell_steal
 			} on ${enemyEmpire.name}(#${
 				enemyEmpire.id
-			}). /n The spell was shielded and $${cash} was stolen.`
+			}). /n The spell was shielded and $${cash.toLocaleString()} was stolen.`
 
 			let content = `${empire.name}(#${empire.id}) cast ${
 				eraArray[empire.era].spell_steal
-			} against you. /n Your shield protected you but they stole $${cash} from you.`
+			} against you. /n Your shield protected you but they stole $${cash.toLocaleString()} from you.`
 
 			await createNewsEvent(
 				content,

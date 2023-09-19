@@ -35,6 +35,7 @@ import {
 	cleanDemoAccounts,
 	hourlyUpdate,
 	promTurns,
+	thirtyMinUpdate,
 	updateRanks,
 } from './jobs/promTurns'
 
@@ -128,6 +129,15 @@ const turns = new SimpleIntervalJob(
 	'id_1'
 )
 
+const thirtyMin = new SimpleIntervalJob(
+	{
+		minutes: 30,
+		runImmediately: false,
+	},
+	thirtyMinUpdate,
+	'id_5'
+)
+
 const ranks = new SimpleIntervalJob(
 	{ minutes: TURNS_FREQ, runImmediately: false },
 	updateRanks,
@@ -149,6 +159,7 @@ const daily = new SimpleIntervalJob(
 if (gameOn) {
 	scheduler.addSimpleIntervalJob(turns)
 	scheduler.addSimpleIntervalJob(ranks)
+	scheduler.addSimpleIntervalJob(thirtyMin)
 	scheduler.addSimpleIntervalJob(hourly)
 	scheduler.addSimpleIntervalJob(daily)
 }

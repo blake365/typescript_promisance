@@ -43,6 +43,23 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 		})
 		.execute()
 
+	// clan troop sharing
+	// await getConnection()
+	// 	.createQueryBuilder()
+	// 	.update(Empire)
+	// 	.set({
+	// 		// update available quantity on market
+	// 		sharing: () => 'sharing - 1',
+	// 	})
+	// 	.where('sharing > 0 AND id != 0')
+	// 	.execute()
+
+	//TODO: clean up expired clan invites
+
+	console.log('Turns update', new Date())
+})
+
+export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 	// Reduce maximum private market sell percentage (by 1% base, up to 2% if the player has nothing but bldcash)
 	// TODO: can't figure out what this is doing...
 	await getConnection()
@@ -183,20 +200,7 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 			.where('diminishing_returns > 0 AND id != 0')
 			.execute()
 	}
-	// clan troop sharing
-	// await getConnection()
-	// 	.createQueryBuilder()
-	// 	.update(Empire)
-	// 	.set({
-	// 		// update available quantity on market
-	// 		sharing: () => 'sharing - 1',
-	// 	})
-	// 	.where('sharing > 0 AND id != 0')
-	// 	.execute()
-
-	//TODO: clean up expired clan invites
-
-	console.log('Task triggered', new Date())
+	console.log('30 minute update')
 })
 
 export const hourlyUpdate = new AsyncTask('hourly update', async () => {
