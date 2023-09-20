@@ -149,7 +149,8 @@ export const useTurn = async (
 		let wartax = 0
 
 		// net income
-		let money = income - (expenses + wartax)
+		let money = income - expenses
+		// console.log(money)
 
 		empire.cash += money
 
@@ -161,6 +162,7 @@ export const useTurn = async (
 
 		//more loan stuff
 		let loanpayed
+		let loanincrease
 		let loanEmergencyLimit = loanMax * 2
 
 		if (trouble && troubleCash && empire.loan > loanEmergencyLimit) {
@@ -176,20 +178,33 @@ export const useTurn = async (
 			loanpayed = Math.min(Math.round(empire.loan / 200), empire.cash)
 		}
 
-		empire.cash -= loanpayed
-		empire.loan -= loanpayed
+		// console.log(loanpayed)
+		if (loanpayed > 0) {
+			empire.loan -= loanpayed
+			empire.cash -= loanpayed
+			money -= loanpayed
+		} else {
+			loanincrease = loanpayed
+			empire.loan -= loanincrease
+			empire.cash = 0
+			money += loanincrease
+		}
 
 		//adjust net income
-		money -= loanpayed
+		// money = money - loanpayed
 		if (type === 'cash') {
 			turnResult += money
 			message['production'] = `You produced $${money} while cashing.`
 		}
 
+		// console.log(money)
 		current['income'] = income
 		current['expenses'] = expenses
 		current['wartax'] = wartax
-		current['loanpayed'] = loanpayed
+		if (loanpayed < 0) {
+			current['loanpayed'] = loanincrease
+		} else current['loanpayed'] = loanpayed
+
 		current['money'] = money
 
 		// industry
@@ -439,6 +454,7 @@ export const useTurn = async (
 		empire.turnsUsed++
 		empire.turns--
 		// console.log(current)
+		// current['messages'] = message
 		Object.entries(current).forEach((entry) => {
 			if (overall[entry[0]]) {
 				overall[entry[0]] += entry[1]
@@ -490,6 +506,7 @@ export const useTurn = async (
 			current['messages'] = message
 			if (!condensed || taken === turns || trouble === 6) {
 				if (condensed) {
+					overall['messages'] = message
 					statsArray.push(overall)
 				} else statsArray.push(current)
 			}
@@ -644,8 +661,11 @@ export const useTurnInternal = (
 
 		//more loan stuff
 		let loanpayed
+		let loanincrease
 		let loanEmergencyLimit = loanMax * 2
 		if (trouble && troubleCash && empire.loan > loanEmergencyLimit) {
+			message['desertion'] =
+				'You have run out of money and your loan is maxed out!'
 			trouble |= 2
 			troubleLoan = true
 			empire.cash = 0
@@ -662,7 +682,17 @@ export const useTurnInternal = (
 		// empire.loan -= loanpayed
 
 		//adjust net income
-		money -= loanpayed
+		// console.log(loanpayed)
+		if (loanpayed > 0) {
+			empire.loan -= loanpayed
+			empire.cash -= loanpayed
+			money -= loanpayed
+		} else {
+			loanincrease = loanpayed
+			empire.loan -= loanincrease
+			empire.cash = 0
+			money += loanincrease
+		}
 		// if (type === 'cash') {
 		// 	turnResult += money
 		// }
@@ -670,7 +700,9 @@ export const useTurnInternal = (
 		current['income'] = income
 		current['expenses'] = expenses
 		current['wartax'] = wartax
-		current['loanpayed'] = loanpayed
+		if (loanpayed < 0) {
+			current['loanpayed'] = loanincrease
+		} else current['loanpayed'] = loanpayed
 		current['money'] = money
 
 		// industry
@@ -875,6 +907,7 @@ export const useTurnInternal = (
 		// current['result'] = turnResult
 
 		// console.log(current)
+		// current['messages'] = message
 		Object.entries(current).forEach((entry) => {
 			if (overall[entry[0]]) {
 				overall[entry[0]] += entry[1]
@@ -921,12 +954,15 @@ export const useTurnInternal = (
 			current['messages'] = message
 			if (!condensed || taken === turns || trouble === 6) {
 				if (condensed) {
+					// console.log(overall)
+					overall['messages'] = message
 					statsArray.push(overall)
 				} else statsArray.push(current)
 			}
 		}
 	}
 
+	console.log(statsArray)
 	return statsArray
 }
 

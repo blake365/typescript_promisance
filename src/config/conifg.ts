@@ -93,7 +93,7 @@ export const INDUSTRY_MULT = 2.8 // Industry output multiplier
 export const MAX_ATTACKS = 25 // Maximum number of attacks
 export const MAX_SPELLS = 20 // Maximum number of attack spells
 export const DR_RATE = 2 // diminishing returns rate
-export const BASE_LUCK = 4 // Base luck
+export const BASE_LUCK = 5 // Base luck
 
 export const AID_ENABLE = true // Enable sending foreign aid
 export const AID_MAXCREDITS = 5 // Maximum number of aid credits that can be accumulated at once

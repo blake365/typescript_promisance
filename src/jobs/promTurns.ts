@@ -165,6 +165,16 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 		.where('mkt_food / 2000 < land + 2 * bld_food AND id != 0')
 		.execute()
 
+	await getConnection()
+		.createQueryBuilder()
+		.update(Empire)
+		.set({
+			// update available quantity on market
+			mktRunes: () => 'mkt_runes + 2 * (land + bld_cost)',
+		})
+		.where('mkt_food / 250 < land + 2 * bld_cost AND id != 0')
+		.execute()
+
 	// max attack counter
 	if (MAX_ATTACKS > 0) {
 		await getConnection()
