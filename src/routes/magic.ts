@@ -567,6 +567,40 @@ const magicAttack = async (req: Request, res: Response) => {
 
 		const base = baseCost(attacker)
 
+		if (attacker.spells >= MAX_SPELLS) {
+			canAttack = false
+			returnText =
+				'You have cast the max number of offensive spells. Wait a while before casting another.'
+			return res.json({
+				error: returnText,
+			})
+		}
+
+		if (attacker.turnsUsed <= TURNS_PROTECTION) {
+			canAttack = false
+			returnText = 'You cannot cast attack spells while in protection.'
+			return res.json({
+				error: returnText,
+			})
+		}
+
+		if (defender.turnsUsed <= TURNS_PROTECTION) {
+			canAttack = false
+			returnText = 'You cannot cast spells against such a young empire.'
+			return res.json({
+				error: returnText,
+			})
+		}
+
+		if (defender.land <= 1000) {
+			canAttack = false
+			returnText =
+				'You cannot cast spells on an empire with such a small amount of land.'
+			return res.json({
+				error: returnText,
+			})
+		}
+
 		if (attacker.era === defender.era && attacker.turns > 2) {
 			canAttack = true
 		} else if (attacker.era !== defender.era) {
@@ -585,7 +619,7 @@ const magicAttack = async (req: Request, res: Response) => {
 
 				if (timeLeft > 0) {
 					canAttack = true
-					returnText = 'Your army travels through your Time Gate...'
+					returnText = 'Your spell travels through your Time Gate...'
 				}
 			} else {
 				// try defender time gate
@@ -604,39 +638,24 @@ const magicAttack = async (req: Request, res: Response) => {
 					let timeLeft = defEffect.empireEffectValue - effectAge
 					if (timeLeft > 0) {
 						canAttack = true
-						returnText = 'Your army travels through your opponents Time Gate...'
+						returnText =
+							'Your spell travels through your opponents Time Gate...'
 					} else {
 						returnText =
-							'You must open a Time Gate to attack players in another Era'
+							'You must open a Time Gate to cast spells on players in another Era'
+						return res.json({
+							error: returnText,
+						})
 					}
 				} else {
 					canAttack = false
 					returnText =
-						'You must open a Time Gate to attack players in another Era'
+						'You must open a Time Gate to cast spells on players in another Era'
+					return res.json({
+						error: returnText,
+					})
 				}
 			}
-		}
-
-		if (attacker.spells >= MAX_SPELLS) {
-			canAttack = false
-			returnText =
-				'You have cast the max number of offensive spells. Wait a while before casting another.'
-		}
-
-		if (attacker.turnsUsed <= TURNS_PROTECTION) {
-			canAttack = false
-			returnText = 'You cannot cast attack spells while in protection.'
-		}
-
-		if (defender.turnsUsed <= TURNS_PROTECTION) {
-			canAttack = false
-			returnText = 'You cannot cast spells against such a young empire.'
-		}
-
-		if (defender.land <= 1000) {
-			canAttack = false
-			returnText =
-				'You cannot cast spells on an empire with such a small amount of land.'
 		}
 
 		console.log('can attack', canAttack)
