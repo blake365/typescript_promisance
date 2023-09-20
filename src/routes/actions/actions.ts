@@ -15,7 +15,7 @@ export const exploreAlt = (empire: Empire, lucky: boolean) => {
 	if (lucky) {
 		land *= 1.5
 	}
-	empire.land += land
+	empire.land += Math.ceil(land)
 	empire.freeLand += land
 	return land
 }
