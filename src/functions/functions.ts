@@ -10,7 +10,7 @@ export function randomIntFromInterval(min, max) {
 }
 
 export function generalLog(number, base) {
-	return Math.log(base) / Math.log(number)
+	return Math.log(number) / Math.log(base)
 }
 
 // general
