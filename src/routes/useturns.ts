@@ -127,12 +127,12 @@ export const useTurn = async (
 		let loan = Math.round(empire.loan / 200)
 
 		let expenses = Math.round(
-			empire.trpArm * 1 +
-				empire.trpLnd * 2.5 +
-				empire.trpFly * 4 +
-				empire.trpSea * 7 +
-				empire.land * 8 +
-				empire.trpWiz * 0.5
+			empire.trpArm * 0.5 +
+				empire.trpLnd * 1.25 +
+				empire.trpFly * 2 +
+				empire.trpSea * 3.5 +
+				empire.land * 4 +
+				empire.trpWiz * 0.25
 		)
 
 		//set up race/era modifier
@@ -179,7 +179,7 @@ export const useTurn = async (
 		}
 
 		// console.log(loanpayed)
-		if (loanpayed > 0) {
+		if (loanpayed >= 0) {
 			empire.loan -= loanpayed
 			empire.cash -= loanpayed
 			money -= loanpayed
@@ -623,12 +623,12 @@ export const useTurnInternal = (
 		let loan = Math.round(empire.loan / 200)
 
 		let expenses = Math.round(
-			empire.trpArm * 1 +
-				empire.trpLnd * 2.5 +
-				empire.trpFly * 4 +
-				empire.trpSea * 7 +
-				empire.land * 8 +
-				empire.trpWiz * 0.5
+			empire.trpArm * 0.5 +
+				empire.trpLnd * 1.25 +
+				empire.trpFly * 2 +
+				empire.trpSea * 3.5 +
+				empire.land * 4 +
+				empire.trpWiz * 0.25
 		)
 
 		// set up race/era modifier
@@ -683,7 +683,7 @@ export const useTurnInternal = (
 
 		//adjust net income
 		// console.log(loanpayed)
-		if (loanpayed > 0) {
+		if (loanpayed >= 0) {
 			empire.loan -= loanpayed
 			empire.cash -= loanpayed
 			money -= loanpayed

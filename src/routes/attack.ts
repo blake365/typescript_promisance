@@ -281,22 +281,34 @@ const attack = async (req: Request, res: Response) => {
 			canAttack = false
 			returnText =
 				'You have reached the max number of attacks. Wait a while before attacking.'
+			return res.json({
+				error: returnText,
+			})
 		}
 
 		if (attacker.turnsUsed <= TURNS_PROTECTION) {
 			canAttack = false
 			returnText = 'You cannot attack while in protection.'
+			return res.json({
+				error: returnText,
+			})
 		}
 
 		if (defender.turnsUsed <= TURNS_PROTECTION) {
 			canAttack = false
 			returnText = 'You cannot attack such a young empire.'
+			return res.json({
+				error: returnText,
+			})
 		}
 
 		if (defender.land <= 1000) {
 			canAttack = false
 			returnText =
 				'You cannot attack an empire with such a small amount of land.'
+			return res.json({
+				error: returnText,
+			})
 		}
 		// check eras and time gates
 		if (attacker.era === defender.era && attacker.turns > 2) {
@@ -340,11 +352,17 @@ const attack = async (req: Request, res: Response) => {
 					} else {
 						returnText =
 							'You must open a Time Gate to attack players in another Era'
+						return res.json({
+							error: returnText,
+						})
 					}
 				} else {
 					canAttack = false
 					returnText =
 						'You must open a Time Gate to attack players in another Era'
+					return res.json({
+						error: returnText,
+					})
 				}
 			}
 		}
@@ -733,17 +751,10 @@ const attack = async (req: Request, res: Response) => {
 			// save updated attacker and defender
 			await attacker.save()
 			await defender.save()
-
-			//TODO: still need news system
-			// figure out return object
-			// console.log(attackTurns)
-			// console.log(returnText)
 		} else {
 			// console.log('not allowed')
 			return res.json({
-				error: `${
-					eraArray[attacker.era].effectname_gate
-				} is required to attack this empire.`,
+				error: `Something went wrong. Attack could not be completed.`,
 			})
 		}
 
