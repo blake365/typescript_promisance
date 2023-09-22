@@ -16,7 +16,7 @@ export const exploreAlt = (empire: Empire, lucky: boolean) => {
 		land *= 1.5
 	}
 	empire.land += Math.ceil(land)
-	empire.freeLand += land
+	empire.freeLand += Math.ceil(land)
 	return land
 }
 
@@ -54,7 +54,7 @@ export const calcPCI = (empire: Empire) => {
 
 export const giveLand = (empire: Empire) => {
 	return Math.ceil(
-		(2 / (empire.land * 0.00019 + 0.25)) *
+		(1.5 / (empire.land * 0.00019 + 0.25)) *
 			100 *
 			((100 +
 				eraArray[empire.era].mod_explore +

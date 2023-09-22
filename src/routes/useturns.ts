@@ -72,7 +72,8 @@ export const useTurn = async (
 		let lucky = Math.random() * 100 <= luck
 
 		if (type === 'explore') {
-			turnResult += exploreAlt(empire, lucky)
+			turnResult = exploreAlt(empire, lucky)
+			console.log(turnResult)
 		}
 
 		// console.log(lucky)
@@ -193,7 +194,7 @@ export const useTurn = async (
 		//adjust net income
 		// money = money - loanpayed
 		if (type === 'cash') {
-			turnResult += money
+			turnResult = money
 			message['production'] = `You produced $${money} while cashing.`
 		}
 
@@ -315,7 +316,7 @@ export const useTurn = async (
 		let food = foodpro - foodcon
 		empire.food += food
 		if (type === 'farm') {
-			turnResult += food
+			turnResult = food
 		}
 		if (empire.food <= 0) {
 			empire.food = 0
@@ -417,6 +418,7 @@ export const useTurn = async (
 		current['runes'] = runes
 
 		if (type === 'meditate') {
+			turnResult = runes
 			message['production'] = `You produced ${runes} ${
 				eraArray[empire.era].runes
 			}.`
@@ -426,15 +428,15 @@ export const useTurn = async (
 		let trpWiz = 0
 
 		if (empire.trpWiz < empire.bldWiz * 25) {
-			trpWiz = empire.bldWiz * 0.45
+			trpWiz = empire.bldWiz * 0.45 * 1.25
 		} else if (empire.trpWiz < empire.bldWiz * 50) {
-			trpWiz = empire.bldWiz * 0.3
+			trpWiz = empire.bldWiz * 0.3 * 1.25
 		} else if (empire.trpWiz < empire.bldWiz * 90) {
-			trpWiz = empire.bldWiz * 0.15
+			trpWiz = empire.bldWiz * 0.15 * 1.25
 		} else if (empire.trpWiz < empire.bldWiz * 100) {
-			trpWiz = empire.bldWiz * 0.1
+			trpWiz = empire.bldWiz * 0.1 * 1.25
 		} else if (empire.trpWiz > empire.bldWiz * 175) {
-			trpWiz = empire.trpWiz * -0.05
+			trpWiz = empire.trpWiz * -0.05 * 1.25
 		}
 		// console.log(trpWiz)
 		trpWiz = Math.round(
@@ -450,7 +452,7 @@ export const useTurn = async (
 		empire.trpWiz += trpWiz
 		current['trpWiz'] = trpWiz
 
-		// current['result'] = turnResult
+		current['result'] = turnResult
 		empire.turnsUsed++
 		empire.turns--
 		// console.log(current)
@@ -479,7 +481,7 @@ export const useTurn = async (
 			deserted *= 1 - 0.3
 			// console.log(deserted)
 			if (!interruptable) {
-				let percent = condensed ? taken * 3 : 3
+				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
 				}, Troops, and ${
@@ -488,7 +490,7 @@ export const useTurn = async (
 				current['messages'] = message
 				statsArray.push(current)
 			} else {
-				let percent = condensed ? taken * 3 : 3
+				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
 				// console.log(percent)
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
@@ -504,9 +506,13 @@ export const useTurn = async (
 			}
 		} else {
 			current['messages'] = message
+			current['result'] = turnResult
+			current['type'] = type
 			if (!condensed || taken === turns || trouble === 6) {
 				if (condensed) {
 					overall['messages'] = message
+					// overall['result'] = turnResult
+					overall['type'] = type
 					statsArray.push(overall)
 				} else statsArray.push(current)
 			}
@@ -516,7 +522,7 @@ export const useTurn = async (
 	empire.lastAction = new Date()
 	empire.networth = getNetworth(empire)
 	await empire.save()
-	// console.log(statsArray)
+	console.log(statsArray)
 	return statsArray
 }
 
@@ -792,9 +798,9 @@ export const useTurnInternal = (
 		}
 		let food = foodpro - foodcon
 		// empire.food += food
-		if (type === 'farm') {
-			turnResult += food
-		}
+		// if (type === 'farm') {
+		// 	turnResult += food
+		// }
 		if (empire.food <= 0) {
 			empire.food = 0
 			trouble |= 4
@@ -880,15 +886,15 @@ export const useTurnInternal = (
 		let trpWiz = 0
 
 		if (empire.trpWiz < empire.bldWiz * 25) {
-			trpWiz = empire.bldWiz * 0.45
+			trpWiz = empire.bldWiz * 0.45 * 1.25
 		} else if (empire.trpWiz < empire.bldWiz * 50) {
-			trpWiz = empire.bldWiz * 0.3
+			trpWiz = empire.bldWiz * 0.3 * 1.25
 		} else if (empire.trpWiz < empire.bldWiz * 90) {
-			trpWiz = empire.bldWiz * 0.15
+			trpWiz = empire.bldWiz * 0.15 * 1.25
 		} else if (empire.trpWiz < empire.bldWiz * 100) {
-			trpWiz = empire.bldWiz * 0.1
+			trpWiz = empire.bldWiz * 0.1 * 1.25
 		} else if (empire.trpWiz > empire.bldWiz * 175) {
-			trpWiz = empire.trpWiz * -0.05
+			trpWiz = empire.trpWiz * -0.05 * 1.25
 		}
 		// console.log(trpWiz)
 		trpWiz = Math.round(
@@ -930,7 +936,7 @@ export const useTurnInternal = (
 			empire.trpWiz -= Math.round(empire.trpWiz * 0.03)
 			deserted *= 1 - 0.3
 			if (!interruptable) {
-				let percent = condensed ? taken * 3 : 3
+				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
 				}, Troops, and ${
@@ -939,7 +945,7 @@ export const useTurnInternal = (
 				current['messages'] = message
 				statsArray.push(current)
 			} else {
-				let percent = condensed ? taken * 3 : 3
+				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
 				// console.log(percent)
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
@@ -962,7 +968,7 @@ export const useTurnInternal = (
 		}
 	}
 
-	console.log(statsArray)
+	// console.log(statsArray)
 	return statsArray
 }
 

@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express'
+import e, { Request, Response, Router } from 'express'
 import Empire from '../entity/Empire'
 import User from '../entity/User'
 import auth from '../middleware/auth'
@@ -13,6 +13,7 @@ import {
 	TURNS_MAXIMUM,
 	TURNS_STORED,
 } from '../config/conifg'
+import { max } from 'class-validator'
 
 const Filter = require('bad-words')
 
@@ -274,16 +275,21 @@ const bank = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	let { depositAmt, withdrawAmt, type, loanAmt, repayAmt } = req.body
 
-	console.log(req.body)
+	// console.log(req.body)
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
 
 		// const size = calcSizeBonus(empire)
-
+		// console.log(empire.id)
 		const maxLoan = empire.networth * 50
-		let maxSavings = empire.networth * 100
-		if (empire.cash < maxSavings) maxSavings = empire.cash
+		let bankCapacity = empire.networth * 100
+		let remainingBankCapacity = bankCapacity - empire.bank
+
+		let canSave = remainingBankCapacity
+		if (remainingBankCapacity > empire.cash) {
+			canSave = empire.cash
+		}
 
 		if (repayAmt > empire.loan) {
 			repayAmt = empire.loan
@@ -295,7 +301,7 @@ const bank = async (req: Request, res: Response) => {
 		let repayResult = null
 
 		if (type === 'savings') {
-			if (depositAmt !== 0 && depositAmt <= maxSavings - empire.bank) {
+			if (depositAmt !== 0 && depositAmt <= canSave) {
 				empire.cash -= depositAmt
 				empire.bank += depositAmt
 				empire.networth = getNetworth(empire)
@@ -545,7 +551,7 @@ const router = Router()
 
 router.post('/', user, auth, createEmpire)
 
-router.get('/', getEmpires)
+// router.get('/', getEmpires)
 router.get('/scores', getScores)
 router.get('/:uuid', user, auth, findOneEmpire)
 router.post('/effects', user, auth, getEmpireEffects)

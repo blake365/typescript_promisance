@@ -58,7 +58,6 @@ const magic = async (req: Request, res: Response) => {
 
 	const empire = await Empire.findOne({ id: empireId })
 
-	const effects = await EmpireEffect.find({ effectOwnerId: empireId })
 	// console.log('food:', empire.food, 'cash:', empire.cash, empire.turns, empire.runes)
 	if (empire.trpWiz === 0) {
 		return res.json({
@@ -254,55 +253,56 @@ const magic = async (req: Request, res: Response) => {
 		if (spellCheck(empire, cost, turns) === 'passed') {
 			for (let i = 0; i < 1; i++) {
 				if (spellCheck(empire, cost, turns) === 'passed') {
-					console.log('advance allow', advance_allow(empire, effects))
-					if (!advance_allow(empire, effects)) {
+					let allowed = await advance_allow(empire)
+					console.log('advance allow', allowed)
+					if (!allowed) {
 						let spellTurns = { error: 'There is no era to advance to' }
 						resultArray.push(spellTurns)
 						break
-					} else if (typeof advance_allow(empire, effects) === 'string') {
-						let spellTurns = { error: advance_allow(empire, effects) }
+					} else if (typeof allowed === 'string') {
+						let spellTurns = { error: allowed }
 						resultArray.push(spellTurns)
 						break
-					}
-
-					empire.runes -= cost
-					// use two turns to cast spell
-					let spellTurns = useTurnInternal('magic', turns, empire, true)
-					let spellRes = spellTurns[0]
-					spellTurns = spellTurns[0]
-					if (!spellRes?.messages?.desertion) {
-						let cast: Cast = advance_cast(empire)
-						// console.log(cast)
-						if (cast.result === 'success') {
-							empire.era += 1
+					} else {
+						empire.runes -= cost
+						// use two turns to cast spell
+						let spellTurns = useTurnInternal('magic', turns, empire, true)
+						let spellRes = spellTurns[0]
+						spellTurns = spellTurns[0]
+						if (!spellRes?.messages?.desertion) {
+							let cast: Cast = advance_cast(empire)
+							// console.log(cast)
+							if (cast.result === 'success') {
+								empire.era += 1
+							}
+							if (cast.result === 'fail') {
+								empire.trpWiz -= cast.wizloss
+							}
+							spellTurns['cast'] = cast
 						}
-						if (cast.result === 'fail') {
-							empire.trpWiz -= cast.wizloss
-						}
-						spellTurns['cast'] = cast
+
+						resultArray.push(spellTurns)
+						empire.cash =
+							empire.cash +
+							spellRes.withdraw +
+							spellRes.money -
+							spellRes.loanpayed
+
+						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
+						empire.trpArm += spellRes.trpArm
+						empire.trpLnd += spellRes.trpLnd
+						empire.trpFly += spellRes.trpFly
+						empire.trpSea += spellRes.trpSea
+						empire.food += spellRes.food
+						empire.peasants += spellRes.peasants
+						empire.runes += spellRes.runes
+						empire.trpWiz += spellRes.trpWiz
+						empire.turns -= turns
+						empire.turnsUsed += turns
+						empire.lastAction = new Date()
+						await empire.save()
+						// console.log(empire.era, empire.turns, empire.runes)
 					}
-
-					resultArray.push(spellTurns)
-					empire.cash =
-						empire.cash +
-						spellRes.withdraw +
-						spellRes.money -
-						spellRes.loanpayed
-
-					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
-					empire.trpArm += spellRes.trpArm
-					empire.trpLnd += spellRes.trpLnd
-					empire.trpFly += spellRes.trpFly
-					empire.trpSea += spellRes.trpSea
-					empire.food += spellRes.food
-					empire.peasants += spellRes.peasants
-					empire.runes += spellRes.runes
-					empire.trpWiz += spellRes.trpWiz
-					empire.turns -= turns
-					empire.turnsUsed += turns
-					empire.lastAction = new Date()
-					await empire.save()
-					// console.log(empire.era, empire.turns, empire.runes)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
 					resultArray.push(spellTurns)
@@ -323,55 +323,56 @@ const magic = async (req: Request, res: Response) => {
 		if (spellCheck(empire, cost, turns) === 'passed') {
 			for (let i = 0; i < 1; i++) {
 				if (spellCheck(empire, cost, turns) === 'passed') {
-					if (!regress_allow(empire, effects)) {
+					let allowed = await regress_allow(empire)
+					console.log('regress allow', allowed)
+					if (!allowed) {
 						let spellTurns = { error: 'There is no era to regress to' }
 						resultArray.push(spellTurns)
 						break
-					} else if (typeof regress_allow(empire, effects) === 'string') {
-						let spellTurns = { error: advance_allow(empire, effects) }
+					} else if (typeof allowed === 'string') {
+						let spellTurns = { error: allowed }
 						resultArray.push(spellTurns)
 						break
-					}
-
-					spellCheck(empire, cost, turns)
-					empire.runes -= cost
-					// use two turns to cast spell
-					let spellTurns = useTurnInternal('magic', turns, empire, true)
-					let spellRes = spellTurns[0]
-					spellTurns = spellTurns[0]
-					if (!spellRes?.messages?.desertion) {
-						let cast: Cast = regress_cast(empire)
-						// console.log(cast)
-						if (cast.result === 'success') {
-							empire.era -= 1
+					} else {
+						empire.runes -= cost
+						// use two turns to cast spell
+						let spellTurns = useTurnInternal('magic', turns, empire, true)
+						let spellRes = spellTurns[0]
+						spellTurns = spellTurns[0]
+						if (!spellRes?.messages?.desertion) {
+							let cast: Cast = regress_cast(empire)
+							// console.log(cast)
+							if (cast.result === 'success') {
+								empire.era -= 1
+							}
+							if (cast.result === 'fail') {
+								empire.trpWiz -= cast.wizloss
+							}
+							spellTurns['cast'] = cast
 						}
-						if (cast.result === 'fail') {
-							empire.trpWiz -= cast.wizloss
-						}
-						spellTurns['cast'] = cast
+
+						resultArray.push(spellTurns)
+						empire.cash =
+							empire.cash +
+							spellRes.withdraw +
+							spellRes.money -
+							spellRes.loanpayed
+
+						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
+						empire.trpArm += spellRes.trpArm
+						empire.trpLnd += spellRes.trpLnd
+						empire.trpFly += spellRes.trpFly
+						empire.trpSea += spellRes.trpSea
+						empire.food += spellRes.food
+						empire.peasants += spellRes.peasants
+						empire.runes += spellRes.runes
+						empire.trpWiz += spellRes.trpWiz
+						empire.turns -= turns
+						empire.turnsUsed += turns
+						empire.lastAction = new Date()
+						await empire.save()
+						// console.log(empire.era, empire.turns, empire.runes)
 					}
-
-					resultArray.push(spellTurns)
-					empire.cash =
-						empire.cash +
-						spellRes.withdraw +
-						spellRes.money -
-						spellRes.loanpayed
-
-					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
-					empire.trpArm += spellRes.trpArm
-					empire.trpLnd += spellRes.trpLnd
-					empire.trpFly += spellRes.trpFly
-					empire.trpSea += spellRes.trpSea
-					empire.food += spellRes.food
-					empire.peasants += spellRes.peasants
-					empire.runes += spellRes.runes
-					empire.trpWiz += spellRes.trpWiz
-					empire.turns -= turns
-					empire.turnsUsed += turns
-					empire.lastAction = new Date()
-					await empire.save()
-					// console.log(empire.era, empire.turns, empire.runes)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
 					resultArray.push(spellTurns)

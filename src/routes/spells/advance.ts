@@ -7,26 +7,49 @@ export const advance_cost = (baseCost: number) => {
 	return Math.ceil(47.5 * baseCost)
 }
 
-export const advance_allow = ({ era }, effects) => {
-	// TODO: implement empire effects
-	// can't advance until acclimated to current era
-	// console.log(effects)
+export const advance_allow = async ({ era, id }) => {
+	console.log('casting advance')
+
+	let now = new Date()
+	const effect = await EmpireEffect.findOne({
+		where: { effectOwnerId: id, empireEffectName: 'era delay' },
+		order: { updatedAt: 'DESC' },
+	})
+
+	// figure out age of effect and see if it is expired
+	// if expired, create new effect
+	// if not expired, renew or extend effect
+	let timeLeft = 0
+
+	if (effect) {
+		let effectAge =
+			(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+		timeLeft = effect.empireEffectValue - effectAge
+		// age in minutes
+		console.log(effectAge)
+		effectAge = Math.floor(effectAge)
+
+		console.log(effect)
+	}
 
 	let errorMessage = null // Initialize the error message to null
 
-	effects.forEach((effect) => {
-		// console.log(effect)
-		if (effect.empireEffectName === 'era delay') {
-			errorMessage = 'You must wait a while before changing eras again.'
-		}
-	})
+	if (timeLeft <= 0 && effect) {
+		effect.remove()
+		console.log('expired')
+	} else {
+		errorMessage = `You must wait ${Math.round(
+			timeLeft
+		)} minutes before changing eras again.`
+	}
 
 	// console.log(errorMessage)
 
 	if (eraArray[era].era_next < 0) {
 		return false
-	} else if (errorMessage !== null) return errorMessage
-	else {
+	} else if (errorMessage !== null) {
+		return errorMessage
+	} else {
 		return true
 	}
 }
