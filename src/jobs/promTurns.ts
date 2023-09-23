@@ -305,14 +305,14 @@ export const cleanDemoAccounts = new AsyncTask(
 			.where('mode = :gamemode AND turnsUsed < 1', { gamemode: 'demo' })
 			.execute()
 
-		let emptyUsers = await User.find({
-			relations: ['empires'],
-			where: { empires: [] },
-		})
+		// let emptyUsers = await User.find({
+		// 	relations: ['empires'],
+		// 	where: { empires: [] },
+		// })
 
-		emptyUsers.forEach(async (user) => {
-			await user.remove()
-		})
+		// emptyUsers.forEach(async (user) => {
+		// 	await user.remove()
+		// })
 
 		let effects = await EmpireEffect.find()
 
