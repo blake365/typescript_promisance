@@ -147,7 +147,6 @@ const demoAccount = async (req: Request, res: Response) => {
 		: req.headers['x-forwarded-for'] || req.connection.remoteAddress || ''
 
 	console.log(req.headers['x-forwarded-for'])
-
 	console.log(ip)
 
 	// process ip address or headers
