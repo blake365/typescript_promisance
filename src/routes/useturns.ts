@@ -150,7 +150,7 @@ export const useTurn = async (
 		let wartax = 0
 
 		// net income
-		let money = income - expenses
+		let money = Math.round(income - expenses)
 		// console.log(money)
 
 		empire.cash += money
@@ -313,7 +313,7 @@ export const useTurn = async (
 			foodpro = Math.round(0.75 * foodpro)
 		}
 
-		let food = foodpro - foodcon
+		let food = Math.round(foodpro - foodcon)
 		empire.food += food
 		if (type === 'farm') {
 			turnResult = food

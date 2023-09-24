@@ -142,16 +142,13 @@ const logout = async (_: Request, res: Response) => {
 const demoAccount = async (req: Request, res: Response) => {
 	const empires = []
 
-	let ip =
-		<string>req.connection.remoteAddress ||
-		<string>req.headers['x-forwarded-for']
-	// .split(',')[0]
-	// .trim()
+	let ip = Array.isArray(req.headers['x-forwarded-for'])
+		? req.headers['x-forwarded-for'][0]
+		: req.headers['x-forwarded-for'] || req.connection.remoteAddress || ''
 
 	console.log(req.headers['x-forwarded-for'])
 
 	console.log(ip)
-	// let IPaddress: string
 
 	// process ip address or headers
 	if (ip === '::1') {
@@ -164,13 +161,16 @@ const demoAccount = async (req: Request, res: Response) => {
 		ip = ip.split('::')[0]
 	} else if (ip.length <= 15 && ip.includes('.')) {
 		let ipArr = ip.split('.')
-		ipArr.splice(ipArr.length - 1)
-		ip = ipArr.join('.')
+		if (ipArr.length === 4) {
+			ip = ipArr.join('.')
+		} else {
+			ip = ''
+		}
 	} else {
-		ip = ip
+		ip = ''
 	}
 
-	// console.log(ip)
+	console.log(ip)
 	if (ip === '' || ip === undefined) {
 		console.error('No IP address')
 		return res.status(400).json({
