@@ -153,12 +153,14 @@ const demoAccount = async (req: Request, res: Response) => {
 	// process ip address or headers
 	if (ip === '::1') {
 		ip = 'localhost'
+	} else if (ip.includes(',')) {
+		ip = ip.split(',')[0]
 	} else if (ip.length > 15 && ip.split(':').length === 8) {
 		let ipArr = ip.split(':')
 		ipArr.splice(ipArr.length / 2, ipArr.length)
 		ip = ipArr.join('.')
 	} else if (ip.includes('::')) {
-		ip = ip.split('::')[0]
+		ip = ip.split('::')[1]
 	} else if (ip.length <= 15 && ip.includes('.')) {
 		let ipArr = ip.split('.')
 		if (ipArr.length === 4) {
