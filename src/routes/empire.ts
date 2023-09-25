@@ -236,6 +236,7 @@ const updateIndustry = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { indArmy, indFly, indLnd, indSea } = req.body
 
+	console.log(req.body)
 	if (indArmy + indFly + indLnd + indSea !== 100) {
 		return res.status(500).json({ error: 'Must add up to 100' })
 	}
@@ -263,6 +264,37 @@ const updateIndustry = async (req: Request, res: Response) => {
 			empire.indSea = indSea || empire.indSea
 		}
 		await empire.save()
+		return res.json(empire)
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({ error: 'something went wrong' })
+	}
+}
+
+// Change Race
+const changeRace = async (req: Request, res: Response) => {
+	const { uuid } = req.params
+	const { race } = req.body
+
+	console.log(race)
+	try {
+		const empire = await Empire.findOneOrFail({ uuid })
+
+		if (race !== empire.race && empire.turns >= TURNS_MAXIMUM / 2) {
+			empire.race = race
+			empire.turns -= Math.floor(TURNS_MAXIMUM / 2)
+			empire.cash -= Math.floor(empire.cash * 0.25)
+			empire.food -= Math.floor(empire.food * 0.25)
+			empire.runes -= Math.floor(empire.runes * 0.25)
+			empire.peasants -= Math.floor(empire.peasants * 0.1)
+			empire.trpArm -= Math.floor(empire.trpArm * 0.1)
+			empire.trpLnd -= Math.floor(empire.trpLnd * 0.1)
+			empire.trpFly -= Math.floor(empire.trpFly * 0.1)
+			empire.trpSea -= Math.floor(empire.trpSea * 0.1)
+			empire.networth = getNetworth(empire)
+			await empire.save()
+		}
+
 		return res.json(empire)
 	} catch (error) {
 		console.log(error)
@@ -565,6 +597,7 @@ router.post('/:uuid/favorite', user, auth, updateEmpireFavorite)
 router.post('/:uuid/profile', user, auth, updateProfile)
 router.post('/:uuid/icon', user, auth, updateIcon)
 router.post('/:uuid/bonus', user, auth, bonusTurns)
+router.post('/:uuid/changeRace', user, auth, changeRace)
 
 // router.put('/give/resources', giveResources)
 // router.put('/give/turns', giveTurns)
