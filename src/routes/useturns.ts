@@ -290,7 +290,11 @@ export const useTurn = async (
 			empire.bldFood *
 				85 *
 				Math.sqrt(1 - (0.75 * empire.bldFood) / Math.max(empire.land, 1))
-		production *= (100 + raceArray[empire.race].mod_foodpro) / 100
+		production *=
+			(100 +
+				raceArray[empire.race].mod_foodpro +
+				eraArray[empire.era].mod_foodpro) /
+			100
 		let foodpro = Math.round(production)
 
 		let consumption =

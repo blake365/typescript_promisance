@@ -45,11 +45,11 @@ export const calcSizeBonus = ({ networth }) => {
 }
 
 export const calcPCI = (empire: Empire) => {
-	const { bldCash, land, race } = empire
+	const { bldCash, land, race, era } = empire
 	return Math.round(
 		30 *
 			(1 + bldCash / Math.max(land, 1)) *
-			((100 + raceArray[race].mod_income) / 100)
+			((100 + raceArray[race].mod_income + eraArray[era].mod_cashpro) / 100)
 	)
 }
 

@@ -40,11 +40,7 @@ const createEmpire = async (req: Request, res: Response) => {
 	let mktFly: number = 999999999999
 	let mktSea: number = 999999999999
 	let mktFood: number = 999999999999
-
-	if (user.role === 'demo') {
-		mode = 'demo'
-		turns = TURNS_DEMO
-	}
+	let attacks: number = 0
 
 	if (user.empires.length > EMPIRES_PER_USER) {
 		return res.status(400).json({ error: 'Max empires per user reached' })
@@ -62,6 +58,7 @@ const createEmpire = async (req: Request, res: Response) => {
 		if (user.role === 'demo') {
 			mode = 'demo'
 			turns = TURNS_DEMO
+			attacks = 15
 			empire = new Empire({
 				name,
 				race,
@@ -73,6 +70,7 @@ const createEmpire = async (req: Request, res: Response) => {
 				mktFood,
 				mktLnd,
 				mktSea,
+				attacks,
 			})
 		} else {
 			empire = new Empire({ name, race, user, mode, turns })

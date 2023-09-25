@@ -60,7 +60,7 @@ export const advance_cast = (empire: Empire) => {
 		effect = new EmpireEffect({
 			effectOwnerId: empire.id,
 			empireEffectName: 'era delay',
-			empireEffectValue: 5760,
+			empireEffectValue: 4320,
 		})
 		effect.save()
 
