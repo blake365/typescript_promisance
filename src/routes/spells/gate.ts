@@ -29,7 +29,7 @@ export const gate_cast = async (empire: Empire) => {
 
 	console.log(effect)
 
-	if (getPower_self(empire) >= 75) {
+	if (getPower_self(empire) >= 65) {
 		if (effect) {
 			if (timeLeft <= 0) {
 				effect.remove()

@@ -30,6 +30,7 @@ import intel from './routes/intel'
 import mail from './routes/mail'
 import session from './routes/sessions'
 import admin from './routes/admin'
+import aid from './routes/aid'
 
 import {
 	cleanDemoAccounts,
@@ -79,6 +80,7 @@ app.use('/api/intel', intel)
 app.use('/api/messages', mail)
 app.use('/api/session', session)
 app.use('/api/admin', admin)
+app.use('/api/aid', aid)
 // app.use('/api/empire', otherEmpires)
 
 app.listen(PORT, async () => {

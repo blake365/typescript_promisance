@@ -250,6 +250,17 @@ export const hourlyUpdate = new AsyncTask('hourly update', async () => {
 			.where('diminishing_returns < 0 AND id != 0')
 			.execute()
 	}
+
+	// add aid credits
+	await getConnection()
+		.createQueryBuilder()
+		.update(Empire)
+		.set({
+			// update number of credits
+			aidCredits: () => 'aid_credits + 1',
+		})
+		.where('id != 0 AND aid_credits < 4 AND mode != :mode', { mode: 'demo' })
+		.execute()
 })
 
 export const cleanMarket = new AsyncTask('clean market', async () => {

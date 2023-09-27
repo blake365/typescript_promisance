@@ -483,6 +483,9 @@ export default class Empire extends Model {
 	@Column({ type: 'int', default: 0 })
 	spells: number
 
+	@Column({ type: 'int', default: 4 })
+	aidCredits: number
+
 	// after load, set updatedAt to now
 	// @AfterLoad()
 	// updateDate() {

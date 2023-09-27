@@ -27,7 +27,7 @@ export const ungate_cast = async (empire: Empire) => {
 		effectAge = Math.floor(effectAge)
 	}
 
-	if (getPower_self(empire) >= 80) {
+	if (getPower_self(empire) >= 75) {
 		if (effect) {
 			if (timeLeft < effect.empireEffectValue) {
 				effect.remove()

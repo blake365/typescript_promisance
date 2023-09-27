@@ -48,6 +48,7 @@ const ERA_PAST = {
 	d_trpsea: 6,
 	era_prev: -1,
 	era_next: 1,
+	color: 'royalblue',
 }
 
 const ERA_PRESENT = {
@@ -100,6 +101,7 @@ const ERA_PRESENT = {
 	d_trpsea: 8,
 	era_prev: 0,
 	era_next: 2,
+	color: 'green',
 }
 
 const ERA_FUTURE = {
@@ -152,6 +154,7 @@ const ERA_FUTURE = {
 	d_trpsea: 7,
 	era_prev: 1,
 	era_next: -1,
+	color: 'orange',
 }
 
 export const eraArray = [ERA_PAST, ERA_PRESENT, ERA_FUTURE]

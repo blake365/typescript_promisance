@@ -76,16 +76,18 @@ export const steal_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 			result = {
 				result: 'success',
-				message: `The spell was successful! /n You stole $${cash} from the enemy.`,
+				message: `The spell was successful! /n You stole $${cash.toLocaleString()} from the enemy.`,
 			}
 
 			let pubContent = `${empire.name}(#${empire.id}) cast ${
 				eraArray[empire.era].spell_steal
-			} on ${enemyEmpire.name}(#${enemyEmpire.id}) and stole $${cash}.`
+			} on ${enemyEmpire.name}(#${
+				enemyEmpire.id
+			}) and stole $${cash.toLocaleString()}.`
 
 			let content = `${empire.name}(#${empire.id}) cast ${
 				eraArray[empire.era].spell_steal
-			} against you and stole $${cash} from you.`
+			} against you and stole $${cash.toLocaleString()} from you.`
 
 			await createNewsEvent(
 				content,

@@ -56,7 +56,7 @@ export const regress_allow = async ({ era, id }) => {
 }
 
 export const regress_cast = (empire: Empire) => {
-	if (getPower_self(empire) >= 90) {
+	if (getPower_self(empire) >= 80) {
 		let effect: EmpireEffect = null
 		effect = new EmpireEffect({
 			effectOwnerId: empire.id,
