@@ -197,6 +197,23 @@ const checkForNew = async (req: Request, res: Response) => {
 	}
 }
 
+const countNew = async (req: Request, res: Response) => {
+	console.log('checking for new mail')
+	const { id } = req.params
+
+	try {
+		const news = await EmpireMessage.findAndCount({
+			where: { empireIdDestination: id, seen: false },
+		})
+
+		// console.log(news[news.length - 1])
+		return res.json({ count: news[news.length - 1] })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
 const markRead = async (req: Request, res: Response) => {
 	console.log('marking mail as read')
 	const { id } = req.params
@@ -218,6 +235,7 @@ const router = Router()
 router.post('/conversations', user, auth, getConversations)
 router.post('/messages', user, auth, getMessages)
 router.post('/message/new', user, auth, postMessage)
+router.get('/:id/count', countNew)
 router.get('/:id/check', user, auth, checkForNew)
 router.get('/:id/read', user, auth, markRead)
 // router.delete('/message', deleteMessage)

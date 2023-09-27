@@ -80,6 +80,22 @@ const checkForNew = async (req: Request, res: Response) => {
 	}
 }
 
+const countNew = async (req: Request, res: Response) => {
+	const { id } = req.params
+
+	try {
+		const news = await EmpireNews.findAndCount({
+			where: { empireIdDestination: id, seen: false },
+		})
+
+		// console.log(news[news.length - 1])
+		return res.json({ count: news[news.length - 1] })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
 const searchNews = async (req: Request, res: Response) => {
 	console.log(req.body)
 	const { skip, take, view, empire, type } = req.body
@@ -164,5 +180,6 @@ router.post('/search', searchNews)
 router.get('/:id', user, auth, getEmpireNews)
 router.get('/:id/read', user, auth, markRead)
 router.get('/:id/check', user, auth, checkForNew)
+router.get('/:id/count', user, auth, countNew)
 
 export default router

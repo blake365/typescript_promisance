@@ -54,6 +54,10 @@ const sendAid = async (req: Request, res: Response) => {
 			shipsNeeded = 10000
 		}
 
+		if (sender.trpSea < shipsNeeded) {
+			return res.status(400).json({ error: 'Not enough ships' })
+		}
+
 		if (sender.id === receiver.id) {
 			return res.status(400).json({ error: 'cannot send aid to yourself' })
 		}
