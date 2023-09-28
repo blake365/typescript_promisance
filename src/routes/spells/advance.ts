@@ -37,7 +37,7 @@ export const advance_allow = async ({ era, id }) => {
 	if (timeLeft <= 0 && effect) {
 		effect.remove()
 		console.log('expired')
-	} else {
+	} else if (timeLeft > 0) {
 		errorMessage = `You must wait ${Math.round(
 			timeLeft
 		)} minutes before changing eras again.`

@@ -606,7 +606,7 @@ const magicAttack = async (req: Request, res: Response) => {
 			canAttack = true
 		} else if (attacker.era !== defender.era) {
 			// use attacker time gate first then try defender
-			const effect = await EmpireEffect.findOneOrFail({
+			const effect = await EmpireEffect.findOne({
 				where: { effectOwnerId: attacker.id, empireEffectName: 'time gate' },
 				order: { createdAt: 'DESC' },
 			})
@@ -624,7 +624,7 @@ const magicAttack = async (req: Request, res: Response) => {
 				}
 			} else {
 				// try defender time gate
-				const defEffect = await EmpireEffect.findOneOrFail({
+				const defEffect = await EmpireEffect.findOne({
 					where: {
 						effectOwnerId: defender.empireId,
 						empireEffectName: 'time gate',
