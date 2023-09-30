@@ -10,7 +10,7 @@ import auth from '../middleware/auth'
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
 const getBuildAmounts = (empire: Empire) => {
-	let buildCost = Math.round(BUILD_COST + empire.land * 0.1)
+	let buildCost = Math.round(BUILD_COST + empire.land)
 
 	let buildRate = Math.round(empire.land * 0.015 + 4)
 

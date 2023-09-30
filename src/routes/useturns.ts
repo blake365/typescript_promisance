@@ -184,6 +184,9 @@ export const useTurn = async (
 			empire.loan -= loanpayed
 			empire.cash -= loanpayed
 			money -= loanpayed
+			if (empire.cash < 0) {
+				empire.cash = 0
+			}
 		} else {
 			loanincrease = loanpayed
 			empire.loan -= loanincrease
@@ -697,6 +700,9 @@ export const useTurnInternal = (
 			empire.loan -= loanpayed
 			empire.cash -= loanpayed
 			money -= loanpayed
+			if (empire.cash < 0) {
+				empire.cash = 0
+			}
 		} else {
 			loanincrease = loanpayed
 			empire.loan -= loanincrease
@@ -978,7 +984,6 @@ export const useTurnInternal = (
 
 const router = Router()
 
-//TODO: move to empire route and require auth and user
 router.post('/', user, auth, useTurns)
 
 export default router

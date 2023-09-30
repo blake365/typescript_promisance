@@ -1,4 +1,4 @@
-import e, { Request, Response, Router } from 'express'
+import { Request, Response, Router } from 'express'
 import Empire from '../entity/Empire'
 import User from '../entity/User'
 import auth from '../middleware/auth'
@@ -13,7 +13,6 @@ import {
 	TURNS_MAXIMUM,
 	TURNS_STORED,
 } from '../config/conifg'
-import { max } from 'class-validator'
 
 const Filter = require('bad-words')
 

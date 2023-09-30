@@ -157,7 +157,7 @@ export const destroyBuildings = async (
 
 	let loss = Math.min(
 		getRandomInt(
-			1,
+			defender[type] * 0.05,
 			Math.ceil(
 				((defender[type] * pcloss + 2) * (100 - defender.diminishingReturns)) /
 					100

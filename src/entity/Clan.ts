@@ -13,6 +13,11 @@ import { Exclude } from 'class-transformer'
 
 @Entity('clans')
 export default class Clan extends Model {
+	constructor(clan: Partial<Clan>) {
+		super()
+		Object.assign(this, clan)
+	}
+
 	@Index()
 	@PrimaryGeneratedColumn()
 	c_id: number
@@ -23,7 +28,7 @@ export default class Clan extends Model {
 	clanName: string
 
 	@Exclude()
-	@Length(6, 255, { message: 'Must be at least 3 characters long' })
+	@Length(3, 255, { message: 'Must be at least 3 characters long' })
 	@Column()
 	clanPassword: string
 
@@ -59,13 +64,13 @@ export default class Clan extends Model {
 	})
 	empireIdAgent2: number
 
-	@Column()
+	@Column({ type: 'varchar', nullable: true })
 	clanTitle: string
 
-	@Column()
+	@Column({ type: 'varchar', nullable: true })
 	clanURL: string
 
-	@Column()
+	@Column({ type: 'varchar', nullable: true })
 	clanPic: string
 
 	@BeforeInsert()

@@ -40,7 +40,7 @@ const getDropAmounts = (empire) => {
 	)
 
 	if (empire.attacks !== 0) {
-		dropRate = dropRate / empire.attacks
+		dropRate = Math.round(dropRate / empire.attacks)
 	}
 
 	let canDrop = Math.min(

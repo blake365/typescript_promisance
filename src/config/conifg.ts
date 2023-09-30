@@ -52,7 +52,7 @@ export const IDLE_TIMEOUT_DELETE = 3 // Remove deleted empire after this many da
 export const LOTTERY_MAXTICKETS = 3 // Maximum number of lottery tickets per empire
 export const LOTTERY_JACKPOT = 1000000000 // Base jackpot
 
-export const BUILD_COST = 3500 // Base building cost
+export const BUILD_COST = 250000 // Base building cost
 export const DROP_DELAY = 60 * 60 * 12 // Minimum delay (in seconds) between gaining land and dropping it
 
 export const BANK_SAVERATE = 4.0 // Base savings interest rate

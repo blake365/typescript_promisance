@@ -12,10 +12,12 @@ import user from '../middleware/user'
 const getDemolishAmounts = (empire) => {
 	let demolishCost = Math.round((BUILD_COST + empire.land * 0.1) / 5)
 
-	let demolishRate = Math.min(
-		Math.floor(empire.land * 0.02 + 2) *
-			((100 + raceArray[empire.race].mod_buildrate) / 100),
-		200
+	let demolishRate = Math.round(
+		Math.min(
+			Math.floor(empire.land * 0.02 + 2) *
+				((100 + raceArray[empire.race].mod_buildrate) / 100),
+			200
+		)
 	)
 
 	let canDemolish = Math.min(
