@@ -258,6 +258,23 @@ const getClanMembers = async (req: Request, res: Response) => {
 
 	try {
 		const empires = await Empire.find({
+			select: [
+				'id',
+				'name',
+				'networth',
+				'empireId',
+				'race',
+				'era',
+				'land',
+				'rank',
+				'mode',
+				'turnsUsed',
+				'profile',
+				'profileIcon',
+				'updatedAt',
+				'lastAction',
+				'clanId',
+			],
 			where: { clanId },
 		})
 
@@ -314,17 +331,19 @@ const getClansData = async (req: Request, res: Response) => {
 				clans.map(async (clan) => {
 					let avgNetworth = 0
 					let totalNetworth = 0
+					let leader = { name: '', id: 0 }
 					const empires = await Empire.find({
 						where: { clanId: clan.id },
 					})
 
 					empires.forEach((empire) => {
 						totalNetworth += empire.networth
+						leader = { name: empire.name, id: empire.id }
 					})
 
 					avgNetworth = totalNetworth / clan.clanMembers
 
-					return { clan, avgNetworth, totalNetworth }
+					return { clan, avgNetworth, totalNetworth, leader }
 				})
 			)
 

@@ -163,6 +163,7 @@ const getScores = async (_: Request, res: Response) => {
 				'profileIcon',
 				'updatedAt',
 				'lastAction',
+				'clanId',
 			],
 			order: {
 				rank: 'ASC',

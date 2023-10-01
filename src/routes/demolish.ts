@@ -6,11 +6,15 @@ import Empire from '../entity/Empire'
 import { useTurnInternal } from './useturns'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
+import { calcSizeBonus } from './actions/actions'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
 const getDemolishAmounts = (empire) => {
-	let demolishCost = Math.round((BUILD_COST + empire.land * 0.1) / 5)
+	let size = calcSizeBonus(empire)
+	let demolishCost = Math.round(
+		((BUILD_COST + empire.land * 0.2) * (size / 3)) / 5
+	)
 
 	let demolishRate = Math.round(
 		Math.min(

@@ -6,11 +6,13 @@ import Empire from '../entity/Empire'
 import { useTurnInternal } from './useturns'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
+import { calcSizeBonus } from './actions/actions'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
 const getBuildAmounts = (empire: Empire) => {
-	let buildCost = Math.round(BUILD_COST + empire.land)
+	let size = calcSizeBonus(empire)
+	let buildCost = Math.round((BUILD_COST + empire.land * 0.2) * (size / 3))
 
 	let buildRate = Math.round(empire.land * 0.015 + 4)
 
