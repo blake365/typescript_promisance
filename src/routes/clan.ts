@@ -241,6 +241,17 @@ const getClan = async (req: Request, res: Response) => {
 
 	try {
 		const clan = await Clan.findOneOrFail({
+			select: [
+				'id',
+				'clanName',
+				'clanTitle',
+				'clanMembers',
+				'clanPic',
+				'empireIdLeader',
+				'empireIdAssistant',
+				'empireIdAgent1',
+				'empireIdAgent2',
+			],
 			where: { id: clanId },
 		})
 

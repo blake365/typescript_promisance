@@ -13,6 +13,7 @@ import {
 	TURNS_MAXIMUM,
 	TURNS_STORED,
 } from '../config/conifg'
+import Clan from '../entity/Clan'
 
 const Filter = require('bad-words')
 
@@ -169,7 +170,37 @@ const getScores = async (_: Request, res: Response) => {
 				rank: 'ASC',
 			},
 		})
-		return res.json(empires)
+
+		if (empires.length === 0) {
+			return res.status(400).json({ error: 'No empires found' })
+		} else {
+			const newEmpires = await Promise.all(
+				empires.map(async (empire) => {
+					if (empire.clanId !== 0 && empire.clanId !== null) {
+						const clan = await Clan.findOne({
+							select: [
+								'id',
+								'clanName',
+								'clanPic',
+								'empireIdLeader',
+								'empireIdAssistant',
+								'empireIdAgent1',
+								'empireIdAgent2',
+							],
+							where: { id: empire.clanId },
+						})
+
+						return { clan, ...empire }
+					} else {
+						return empire
+					}
+				})
+			)
+
+			return res.json(newEmpires)
+		}
+
+		// return res.json(empires)
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json(error)
