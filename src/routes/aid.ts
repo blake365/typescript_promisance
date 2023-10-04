@@ -150,6 +150,10 @@ const sendAid = async (req: Request, res: Response) => {
 		sender.cash =
 			sender.cash + spellRes.withdraw + spellRes.money - spellRes.loanpayed
 
+		if (sender.cash < 0) {
+			sender.cash = 0
+		}
+
 		sender.loan -= spellRes.loanpayed + spellRes.loanInterest
 		sender.trpArm += spellRes.trpArm
 		sender.trpLnd += spellRes.trpLnd

@@ -109,6 +109,11 @@ const build = async (req: Request, res: Response) => {
 						turnRes.money -
 						turnRes.loanpayed -
 						buildAmount * buildCost
+
+					if (empire.cash < 0) {
+						empire.cash = 0
+					}
+
 					empire[key] += buildAmount
 					empire.freeLand -= buildAmount
 					// empire.cash -= buildAmount * buildCost
@@ -136,6 +141,11 @@ const build = async (req: Request, res: Response) => {
 					// add value to empire.key
 					empire.cash =
 						empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
+
+					if (empire.cash < 0) {
+						empire.cash = 0
+					}
+
 					empire.loan -= turnRes.loanpayed + turnRes.loanInterest
 					empire.trpArm += turnRes.trpArm
 					empire.trpLnd += turnRes.trpLnd

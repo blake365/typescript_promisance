@@ -115,6 +115,10 @@ const demolish = async (req: Request, res: Response) => {
 						turnRes.money -
 						turnRes.loanpayed +
 						demoAmount * demolishCost
+
+					if (empire.cash < 0) {
+						empire.cash = 0
+					}
 					empire.loan -= turnRes.loanpayed + turnRes.loanInterest
 					empire.trpArm += turnRes.trpArm
 					empire.trpLnd += turnRes.trpLnd
@@ -142,6 +146,10 @@ const demolish = async (req: Request, res: Response) => {
 						turnRes.money -
 						turnRes.loanpayed +
 						turnRes.loanInterest
+
+					if (empire.cash < 0) {
+						empire.cash = 0
+					}
 
 					empire.loan -= turnRes.loanpayed + turnRes.loanInterest
 					empire.trpArm += turnRes.trpArm

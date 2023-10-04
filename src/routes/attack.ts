@@ -157,7 +157,7 @@ export const destroyBuildings = async (
 
 	let loss = Math.min(
 		getRandomInt(
-			defender[type] * 0.05,
+			defender[type] * 0.01,
 			Math.ceil(
 				((defender[type] * pcloss + 2) * (100 - defender.diminishingReturns)) /
 					100
@@ -166,10 +166,18 @@ export const destroyBuildings = async (
 		defender[type]
 	)
 
+	console.log('diminishing returns', defender.diminishingReturns)
+	console.log(
+		defender[type] * 0.05,
+		Math.ceil(
+			((defender[type] * pcloss + 2) * (100 - defender.diminishingReturns)) /
+				100
+		)
+	)
 	// console.log(attacker.freeLand)
 	// console.log(defender.freeLand)
-	// console.log(type)
-	// console.log('loss: ', loss)
+	console.log(type)
+	console.log('loss: ', loss)
 
 	let gain = Math.ceil(loss * pcgain)
 	// console.log('gain: ', gain)
@@ -380,6 +388,10 @@ const attack = async (req: Request, res: Response) => {
 				attackRes.withdraw +
 				attackRes.money -
 				attackRes.loanpayed
+
+			if (attacker.cash < 0) {
+				attacker.cash = 0
+			}
 
 			attacker.loan -= attackRes.loanpayed + attackRes?.loanInterest
 			attacker.trpArm += attackRes.trpArm

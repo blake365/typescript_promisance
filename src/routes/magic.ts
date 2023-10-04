@@ -101,7 +101,9 @@ const magic = async (req: Request, res: Response) => {
 						spellRes.withdraw +
 						spellRes.money -
 						spellRes.loanpayed
-
+					if (empire.cash < 0) {
+						empire.cash = 0
+					}
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
@@ -161,6 +163,10 @@ const magic = async (req: Request, res: Response) => {
 						spellRes.money -
 						spellRes.loanpayed
 
+					if (empire.cash < 0) {
+						empire.cash = 0
+					}
+
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
@@ -217,6 +223,10 @@ const magic = async (req: Request, res: Response) => {
 						spellRes.withdraw +
 						spellRes.money -
 						spellRes.loanpayed
+
+					if (empire.cash < 0) {
+						empire.cash = 0
+					}
 
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
@@ -287,7 +297,9 @@ const magic = async (req: Request, res: Response) => {
 							spellRes.withdraw +
 							spellRes.money -
 							spellRes.loanpayed
-
+						if (empire.cash < 0) {
+							empire.cash = 0
+						}
 						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 						empire.trpArm += spellRes.trpArm
 						empire.trpLnd += spellRes.trpLnd
@@ -357,7 +369,9 @@ const magic = async (req: Request, res: Response) => {
 							spellRes.withdraw +
 							spellRes.money -
 							spellRes.loanpayed
-
+						if (empire.cash < 0) {
+							empire.cash = 0
+						}
 						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 						empire.trpArm += spellRes.trpArm
 						empire.trpLnd += spellRes.trpLnd
@@ -413,7 +427,9 @@ const magic = async (req: Request, res: Response) => {
 						spellRes.withdraw +
 						spellRes.money -
 						spellRes.loanpayed
-
+					if (empire.cash < 0) {
+						empire.cash = 0
+					}
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
@@ -465,7 +481,9 @@ const magic = async (req: Request, res: Response) => {
 						spellRes.withdraw +
 						spellRes.money -
 						spellRes.loanpayed
-
+					if (empire.cash < 0) {
+						empire.cash = 0
+					}
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
@@ -516,7 +534,9 @@ const attackSpell = async (attacker: Empire, spellCost: number, spell) => {
 
 		attacker.cash =
 			attacker.cash + spellRes.withdraw + spellRes.money - spellRes.loanpayed
-
+		if (attacker.cash < 0) {
+			attacker.cash = 0
+		}
 		attacker.loan -= spellRes.loanpayed + spellRes.loanInterest
 		attacker.trpArm += spellRes.trpArm
 		attacker.trpLnd += spellRes.trpLnd
