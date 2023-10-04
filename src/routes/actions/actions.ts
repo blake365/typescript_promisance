@@ -39,7 +39,7 @@ export const calcPCI = (empire: Empire) => {
 
 export const giveLand = (empire: Empire) => {
 	return Math.ceil(
-		(1.5 / (empire.land * 0.00019 + 0.25)) *
+		(1 / (empire.land * 0.000035 + 1)) *
 			100 *
 			((100 +
 				eraArray[empire.era].mod_explore +
@@ -61,7 +61,7 @@ export const getNetworth = (empire: Empire) => {
 	// Cash
 	networth +=
 		(empire.cash + empire.bank / 2 - empire.loan * 2) / (5 * PVTM_TRPARM)
-	networth += empire.land * 500
+	networth += empire.land * 250
 	networth += empire.freeLand * 100
 
 	// Food, reduced using logarithm to prevent it from boosting networth to ludicrous levels

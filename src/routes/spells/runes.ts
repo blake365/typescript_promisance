@@ -3,6 +3,7 @@ import Empire from '../../entity/Empire'
 import { getPower_enemy, getWizLoss_enemy } from './general'
 import EmpireEffect from '../../entity/EmpireEffect'
 import { createNewsEvent } from '../../util/helpers'
+import { getNetworth } from '../actions/actions'
 
 export const runes_cost = (baseCost: number) => {
 	return Math.ceil(9.5 * baseCost)
@@ -104,6 +105,7 @@ export const runes_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		empire.offSucc++
 		empire.offTotal++
 		enemyEmpire.defTotal++
+		enemyEmpire.networth = getNetworth(enemyEmpire)
 
 		await empire.save()
 		await enemyEmpire.save()

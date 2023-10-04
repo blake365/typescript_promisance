@@ -7,6 +7,7 @@ import {
 } from './general'
 import EmpireEffect from '../../entity/EmpireEffect'
 import { createNewsEvent } from '../../util/helpers'
+import { getNetworth } from '../actions/actions'
 
 export const steal_cost = (baseCost: number) => {
 	return Math.ceil(25.75 * baseCost)
@@ -104,6 +105,7 @@ export const steal_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		empire.offSucc++
 		empire.offTotal++
 		enemyEmpire.defTotal++
+		enemyEmpire.networth = getNetworth(enemyEmpire)
 
 		await empire.save()
 		await enemyEmpire.save()

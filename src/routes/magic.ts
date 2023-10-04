@@ -23,6 +23,7 @@ import { runes_cast, runes_cost } from './spells/runes'
 import { fight_cast, fight_cost } from './spells/fight'
 import { spy_cast, spy_cost } from './spells/spy'
 import { MAX_SPELLS, TURNS_PROTECTION } from '../config/conifg'
+import { getNetworth } from './actions/actions'
 // FIXED: internal turns not working
 
 const spellCheck = (empire: Empire, cost: number, turns: number) => {
@@ -552,6 +553,7 @@ const attackSpell = async (attacker: Empire, spellCost: number, spell) => {
 		attacker.spells += 1
 		attacker.lastAction = new Date()
 
+		attacker.networth = getNetworth(attacker)
 		await attacker.save()
 
 		console.log('returning with spellTurns')

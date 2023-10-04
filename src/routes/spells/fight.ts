@@ -7,6 +7,7 @@ import {
 	randomIntFromInterval,
 } from './general'
 import { createNewsEvent } from '../../util/helpers'
+import { getNetworth } from '../actions/actions'
 
 export const fight_cost = (baseCost: number) => {
 	return Math.ceil(22.5 * baseCost)
@@ -92,10 +93,7 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		empire.offSucc++
 		empire.offTotal++
 		enemyEmpire.defTotal++
-
-		//TODO: drop land delay empire effect
-
-		//TODO: handle kills
+		enemyEmpire.networth = getNetworth(enemyEmpire)
 
 		let returnText = `${bldLoss.toLocaleString()} acres of land were captured from ${
 			enemyEmpire.name
@@ -207,6 +205,8 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			'spell',
 			'success' // defense succeeds
 		)
+
+		enemyEmpire.networth = getNetworth(enemyEmpire)
 
 		await empire.save()
 		await enemyEmpire.save()

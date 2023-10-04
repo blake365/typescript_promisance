@@ -9,6 +9,7 @@ import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
 import { createNewsEvent } from '../util/helpers'
 import { DR_RATE, MAX_ATTACKS, TURNS_PROTECTION } from '../config/conifg'
+import { getNetworth } from './actions/actions'
 
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
@@ -756,8 +757,8 @@ const attack = async (req: Request, res: Response) => {
 
 			attackTurns['attack'] = attackDescription
 			resultArray.push(attackTurns)
-			// attacker.networth = getNetworth(attacker)
-			// defender.networth = getNetworth(defender)
+			attacker.networth = getNetworth(attacker)
+			defender.networth = getNetworth(defender)
 
 			attacker.lastAction = new Date()
 			// save updated attacker and defender
