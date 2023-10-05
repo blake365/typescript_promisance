@@ -74,7 +74,7 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 	buyer.cash -= cost
 
 	// add cost to seller cash
-	seller.cash += cost
+	seller.bank += cost
 
 	buyer.networth = getNetworth(buyer)
 	// seller.networth = getNetworth(seller)
@@ -155,7 +155,7 @@ const pubBuy = async (req: Request, res: Response) => {
 	buyer.cash -= cost
 
 	// add cost to seller cash
-	seller.cash += cost
+	seller.bank += cost
 
 	buyer.networth = getNetworth(buyer)
 	seller.networth = getNetworth(seller)

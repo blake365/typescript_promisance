@@ -165,6 +165,7 @@ const getScores = async (_: Request, res: Response) => {
 				'updatedAt',
 				'lastAction',
 				'clanId',
+				'diminishingReturns',
 			],
 			order: {
 				rank: 'ASC',

@@ -74,8 +74,8 @@ const calcUnitLosses = (
 		maxKill
 	)
 
-	console.log('attackLosses: ', attackLosses)
-	console.log('defendLosses: ', defendLosses)
+	// console.log('attackLosses: ', attackLosses)
+	// console.log('defendLosses: ', defendLosses)
 
 	return { attackLosses: attackLosses, defendLosses: defendLosses }
 }
@@ -242,8 +242,8 @@ export const destroyBuildings = async (
 const attack = async (req: Request, res: Response) => {
 	// use two turns for attacks
 	// only send troops relevant to the attack type
-	console.log(req.body)
-	console.log(req.params)
+	// console.log(req.body)
+	// console.log(req.params)
 	const { attackType, defenderId, type, number, empireId } = req.body
 
 	if (type !== 'attack') {
@@ -330,6 +330,7 @@ const attack = async (req: Request, res: Response) => {
 			})
 
 			if (effect) {
+				console.log('found effect on your empire')
 				let now = new Date()
 
 				let effectAge =
@@ -339,16 +340,54 @@ const attack = async (req: Request, res: Response) => {
 				if (timeLeft > 0) {
 					canAttack = true
 					returnText = 'Your army travels through your Time Gate...'
+				} else {
+					// try defender time gate
+					const defEffect = await EmpireEffect.findOne({
+						where: {
+							effectOwnerId: defender.id,
+							empireEffectName: 'time gate',
+						},
+						order: { createdAt: 'DESC' },
+					})
+
+					console.log(defEffect)
+
+					if (defEffect) {
+						let now = new Date()
+						let effectAge =
+							(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
+						let timeLeft = defEffect.empireEffectValue - effectAge
+						if (timeLeft > 0) {
+							canAttack = true
+							returnText =
+								'Your army travels through your opponents Time Gate...'
+						} else {
+							returnText =
+								'You must open a Time Gate to attack players in another Era'
+							return res.json({
+								error: returnText,
+							})
+						}
+					} else {
+						canAttack = false
+						returnText =
+							'You must open a Time Gate to attack players in another Era'
+						return res.json({
+							error: returnText,
+						})
+					}
 				}
 			} else {
 				// try defender time gate
 				const defEffect = await EmpireEffect.findOne({
 					where: {
-						effectOwnerId: defender.empireId,
+						effectOwnerId: defender.id,
 						empireEffectName: 'time gate',
 					},
 					order: { createdAt: 'DESC' },
 				})
+
+				console.log(defEffect)
 
 				if (defEffect) {
 					let now = new Date()
@@ -376,7 +415,7 @@ const attack = async (req: Request, res: Response) => {
 			}
 		}
 
-		console.log('can attack', canAttack)
+		// console.log('can attack', canAttack)
 		if (canAttack) {
 			let attackTurns = useTurnInternal('attack', 2, attacker, true)
 
@@ -412,20 +451,31 @@ const attack = async (req: Request, res: Response) => {
 			// TODO: clan stuff with shared def
 
 			// add defense for guard towers
-			let towerDef =
-				defender.bldDef *
-				450 *
-				Math.min(1, defender.trpArm / (150 * defender.bldDef + 1))
+			// let towerDef =
+			// 	defender.bldDef *
+			// 	450 *
+			// 	Math.min(1, defender.trpArm / (150 * defender.bldDef + 1))
 
+			let newTowerDef =
+				// percent land as GTs
+				1 + defender.bldDef / defender.land
+
+			if (newTowerDef > 1.5) {
+				newTowerDef = 1.5
+			}
+
+			console.log(newTowerDef)
 			// console.log('tower def', towerDef)
-			defPower += towerDef
+			defPower *= newTowerDef
+			defPower = Math.round(defPower)
 
-			console.log('off power', offPower)
-			console.log('def power', defPower)
+			// console.log('off power', offPower)
+			// console.log('def power', defPower)
 			// determine how many units each empire is about to lose in battle
 
 			// modification to attacker losses (towers excluded)
-			let omod = Math.sqrt((defPower - towerDef) / (offPower + 1))
+			// let omod = Math.sqrt((defPower - towerDef) / (offPower + 1))
+			let omod = Math.sqrt(defPower / (offPower + 1))
 			// modification to enemy losses
 			let dmod = Math.sqrt(offPower / (defPower + 1))
 
@@ -753,7 +803,12 @@ const attack = async (req: Request, res: Response) => {
 			}
 
 			attacker.health -= 6
-			defender.diminishingReturns += DR_RATE
+
+			let adjustedDR =
+				DR_RATE + Math.round((defender.bldDef / defender.land) * 100) / 100
+
+			console.log('adjusted DR', adjustedDR)
+			defender.diminishingReturns = defender.diminishingReturns + adjustedDR
 
 			attackTurns['attack'] = attackDescription
 			resultArray.push(attackTurns)
@@ -771,7 +826,7 @@ const attack = async (req: Request, res: Response) => {
 			})
 		}
 
-		console.log('resultArray', resultArray)
+		// console.log('resultArray', resultArray)
 		return res.json(resultArray)
 	} catch (err) {
 		console.log(err)

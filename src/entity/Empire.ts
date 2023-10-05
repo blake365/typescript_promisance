@@ -477,7 +477,7 @@ export default class Empire extends Model {
 	@Column({ type: 'varchar', nullable: true })
 	profileIcon: string
 
-	@Column({ type: 'int', default: 0 })
+	@Column({ type: 'float', default: 0 })
 	diminishingReturns: number
 
 	@Column({ type: 'int', default: 0 })

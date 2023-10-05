@@ -643,6 +643,40 @@ const magicAttack = async (req: Request, res: Response) => {
 				if (timeLeft > 0) {
 					canAttack = true
 					returnText = 'Your spell travels through your Time Gate...'
+				} else {
+					// try defender time gate
+					const defEffect = await EmpireEffect.findOne({
+						where: {
+							effectOwnerId: defender.empireId,
+							empireEffectName: 'time gate',
+						},
+						order: { createdAt: 'DESC' },
+					})
+
+					if (defEffect) {
+						let now = new Date()
+						let effectAge =
+							(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
+						let timeLeft = defEffect.empireEffectValue - effectAge
+						if (timeLeft > 0) {
+							canAttack = true
+							returnText =
+								'Your spell travels through your opponents Time Gate...'
+						} else {
+							returnText =
+								'You must open a Time Gate to cast spells on players in another Era'
+							return res.json({
+								error: returnText,
+							})
+						}
+					} else {
+						canAttack = false
+						returnText =
+							'You must open a Time Gate to cast spells on players in another Era'
+						return res.json({
+							error: returnText,
+						})
+					}
 				}
 			} else {
 				// try defender time gate
