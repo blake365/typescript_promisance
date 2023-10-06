@@ -5,10 +5,12 @@ import {
 	Index,
 	BeforeInsert,
 	PrimaryGeneratedColumn,
+	OneToMany,
 } from 'typeorm'
 import Model from './Model'
 import bcrypt from 'bcrypt'
 import { Exclude } from 'class-transformer'
+import Empire from './Empire'
 // import Empire from './Empire'
 
 @Entity('clans')
@@ -18,7 +20,7 @@ export default class Clan extends Model {
 		Object.assign(this, clan)
 	}
 
-	@Index()
+	@Column({ name: 'c_id', unique: true })
 	@PrimaryGeneratedColumn()
 	c_id: number
 

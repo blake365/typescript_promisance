@@ -599,6 +599,14 @@ const magicAttack = async (req: Request, res: Response) => {
 			})
 		}
 
+		if (attacker.clanId === defender.clanId) {
+			canAttack = false
+			returnText = 'You cannot cast spells on your own clan.'
+			return res.json({
+				error: returnText,
+			})
+		}
+
 		if (attacker.turnsUsed <= TURNS_PROTECTION) {
 			canAttack = false
 			returnText = 'You cannot cast attack spells while in protection.'

@@ -295,6 +295,14 @@ const attack = async (req: Request, res: Response) => {
 			})
 		}
 
+		if (attacker.clanId === defender.clanId) {
+			canAttack = false
+			returnText = 'You cannot attack a member of your clan.'
+			return res.json({
+				error: returnText,
+			})
+		}
+
 		if (attacker.turnsUsed <= TURNS_PROTECTION) {
 			canAttack = false
 			returnText = 'You cannot attack while in protection.'
@@ -809,6 +817,14 @@ const attack = async (req: Request, res: Response) => {
 
 			console.log('adjusted DR', adjustedDR)
 			defender.diminishingReturns = defender.diminishingReturns + adjustedDR
+
+			if (attacker.diminishingReturns > 0) {
+				attacker.diminishingReturns -= DR_RATE
+			}
+
+			if (attacker.diminishingReturns < 0) {
+				attacker.diminishingReturns = 0
+			}
 
 			attackTurns['attack'] = attackDescription
 			resultArray.push(attackTurns)

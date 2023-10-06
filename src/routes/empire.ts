@@ -97,8 +97,9 @@ const getEmpires = async (_: Request, res: Response) => {
 	try {
 		const empires = await Empire.find({
 			order: {
-				id: 'ASC',
+				id: 'DESC',
 			},
+			relations: ['clan'],
 		})
 		return res.json(empires)
 	} catch (error) {
@@ -438,14 +439,27 @@ const findOneEmpire = async (req: Request, res: Response) => {
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid }, { relations: ['user'] })
-		// // console.log('empire', empire)
-		// const effects = await EmpireEffect.find({
-		// 	where: { effectOwnerId: empire.empireId },
-		// })
-		// console.log('user', user)
-		// console.log(effects)
 		if (user.username !== empire.user.username) {
 			return res.status(403).json({ error: 'unauthorized' })
+		}
+		if (empire.clanId !== 0 && empire.clanId !== null) {
+			const clan = await Clan.findOne({
+				select: [
+					'id',
+					'clanName',
+					'empireIdLeader',
+					'empireIdAssistant',
+					'empireIdAgent1',
+					'empireIdAgent2',
+				],
+				where: { id: empire.clanId },
+			})
+
+			if (clan) {
+				empire['clan'] = clan
+			}
+
+			return res.json(empire)
 		}
 
 		return res.json(empire)
@@ -613,7 +627,7 @@ const router = Router()
 
 router.post('/', user, auth, createEmpire)
 
-// router.get('/', getEmpires)
+router.get('/', getEmpires)
 router.get('/scores', getScores)
 router.get('/:uuid', user, auth, findOneEmpire)
 router.post('/effects', user, auth, getEmpireEffects)

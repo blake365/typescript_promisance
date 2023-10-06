@@ -6,11 +6,13 @@ import {
 	ManyToOne,
 	JoinColumn,
 	OneToMany,
+	OneToOne,
 } from 'typeorm'
 
 import Model from './Model'
 import User from './User'
 import EmpireEffect from './EmpireEffect'
+import Clan from './Clan'
 
 @Entity('empires')
 export default class Empire extends Model {

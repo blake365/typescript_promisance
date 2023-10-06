@@ -206,6 +206,14 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 			})
 			.where('diminishing_returns > 0 AND id != 0')
 			.execute()
+		await getConnection()
+			.createQueryBuilder()
+			.update(Empire)
+			.set({
+				diminishingReturns: () => '0',
+			})
+			.where('diminishing_returns < 0 AND id != 0')
+			.execute()
 	}
 	console.log('30 minute update')
 })
@@ -234,17 +242,6 @@ export const hourlyUpdate = new AsyncTask('hourly update', async () => {
 				spells: () => 'spells + 1',
 			})
 			.where('spells < 0 AND id != 0')
-			.execute()
-	}
-
-	if (DR_RATE > 0) {
-		await getConnection()
-			.createQueryBuilder()
-			.update(Empire)
-			.set({
-				diminishingReturns: () => `diminishing_returns + ${DR_RATE}`,
-			})
-			.where('diminishing_returns < 0 AND id != 0')
 			.execute()
 	}
 

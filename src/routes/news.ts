@@ -173,6 +173,32 @@ const searchNews = async (req: Request, res: Response) => {
 	}
 }
 
+const clanNews = async (req: Request, res: Response) => {
+	let { empireIdDestination } = req.body
+	let searchArray = []
+	if (empireIdDestination) {
+		empireIdDestination = empireIdDestination.map((id) => {
+			searchArray.push({ empireIdDestination: id })
+			searchArray.push({ empireIdSource: id })
+		})
+	}
+
+	// console.log(searchArray)
+
+	try {
+		const news = await EmpireNews.find({
+			where: searchArray,
+			order: { createdAt: 'DESC' },
+		})
+
+		// console.log(news)
+		return res.json(news)
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
 const router = Router()
 
 router.post('/', getPageNews)
@@ -181,5 +207,6 @@ router.get('/:id', user, auth, getEmpireNews)
 router.get('/:id/read', user, auth, markRead)
 router.get('/:id/check', user, auth, checkForNew)
 router.get('/:id/count', user, auth, countNew)
+router.post('/clan', user, auth, clanNews)
 
 export default router
