@@ -462,6 +462,54 @@ const getOtherItems = async (req: Request, res: Response) => {
 	return res.json(returnObject)
 }
 
+const recallItem = async (req: Request, res: Response) => {
+	// return 75% of the items to the empire
+	const { itemId, empireId } = req.body
+
+	const itemArray = ['trpArm', 'trpLnd', 'trpFly', 'trpSea', 'food', 'runes']
+
+	try {
+		const item = await Market.findOne({ id: itemId })
+		const empire = await Empire.findOne({ id: empireId })
+
+		if (item.empire_id !== empire.id) {
+			return res.status(500).json({ error: 'Empire ID mismatch' })
+		}
+
+		empire[itemArray[item.type]] += Math.round(item.amount * 0.75)
+
+		await item.remove()
+		await empire.save()
+		return res.json({ success: 'Item recalled' })
+	} catch (e) {
+		console.log(e)
+		return res.status(500).json({ error: 'Something went wrong' })
+	}
+}
+
+const editPrice = async (req: Request, res: Response) => {
+	// change the price of an item but decrease the amount by 10%
+	const { itemId, empireId, price } = req.body
+
+	try {
+		const item = await Market.findOne({ id: itemId })
+		const empire = await Empire.findOne({ id: empireId })
+
+		if (item.empire_id !== empire.id) {
+			return res.status(500).json({ error: 'Empire ID mismatch' })
+		}
+
+		item.amount = Math.round(item.amount * 0.9)
+		item.price = price
+		await item.save()
+
+		return res.json({ success: 'Price changed' })
+	} catch (e) {
+		console.log(e)
+		return res.status(500).json({ error: 'Something went wrong' })
+	}
+}
+
 const router = Router()
 
 // needs user and auth middleware
@@ -470,5 +518,7 @@ router.post('/pubBuy2', user, auth, pubBuyTwo)
 router.post('/pubSell', user, auth, pubSell)
 router.post('/pubSellMine', user, auth, getMyItems)
 router.post('/pubSellOthers', user, auth, getOtherItems)
+router.post('/pubRecall', user, auth, recallItem)
+router.post('/pubEditPrice', user, auth, editPrice)
 
 export default router
