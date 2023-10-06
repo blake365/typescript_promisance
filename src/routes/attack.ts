@@ -295,7 +295,7 @@ const attack = async (req: Request, res: Response) => {
 			})
 		}
 
-		if (attacker.clanId === defender.clanId) {
+		if (attacker.clanId !== 0 && attacker.clanId === defender.clanId) {
 			canAttack = false
 			returnText = 'You cannot attack a member of your clan.'
 			return res.json({

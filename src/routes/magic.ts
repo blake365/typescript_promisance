@@ -599,7 +599,7 @@ const magicAttack = async (req: Request, res: Response) => {
 			})
 		}
 
-		if (attacker.clanId === defender.clanId) {
+		if (attacker.clanId !== 0 && attacker.clanId === defender.clanId) {
 			canAttack = false
 			returnText = 'You cannot cast spells on your own clan.'
 			return res.json({
