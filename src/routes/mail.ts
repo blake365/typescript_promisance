@@ -198,7 +198,7 @@ const checkForNew = async (req: Request, res: Response) => {
 }
 
 const countNew = async (req: Request, res: Response) => {
-	console.log('checking for new mail')
+	// console.log('checking for new mail')
 	const { id } = req.params
 
 	try {

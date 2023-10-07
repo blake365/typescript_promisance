@@ -5,7 +5,6 @@ import user from '../middleware/user'
 import { Not } from 'typeorm'
 import EmpireEffect from '../entity/EmpireEffect'
 import Clan from '../entity/Clan'
-import ClanInvite from '../entity/ClanInvite'
 import { TURNS_PROTECTION } from '../config/conifg'
 import bcrypt from 'bcrypt'
 
@@ -251,10 +250,12 @@ const getClan = async (req: Request, res: Response) => {
 				'empireIdAssistant',
 				'empireIdAgent1',
 				'empireIdAgent2',
+				'enemies',
 			],
 			where: { id: clanId },
 		})
 
+		console.log(clan)
 		return res.json(clan)
 	} catch (err) {
 		console.log(err)
@@ -344,6 +345,7 @@ const getClansData = async (req: Request, res: Response) => {
 				'empireIdAssistant',
 				'empireIdAgent1',
 				'empireIdAgent2',
+				'enemies',
 			],
 			where: { clanMembers: Not(0) },
 		})

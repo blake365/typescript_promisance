@@ -202,7 +202,7 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 			.createQueryBuilder()
 			.update(Empire)
 			.set({
-				diminishingReturns: () => `diminishing_returns - ${DR_RATE}`,
+				diminishingReturns: () => `diminishing_returns - ${DR_RATE / 2}`,
 			})
 			.where('diminishing_returns > 0 AND id != 0')
 			.execute()

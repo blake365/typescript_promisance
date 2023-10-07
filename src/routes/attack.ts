@@ -10,6 +10,7 @@ import { raceArray } from '../config/races'
 import { createNewsEvent } from '../util/helpers'
 import { DR_RATE, MAX_ATTACKS, TURNS_PROTECTION } from '../config/conifg'
 import { getNetworth } from './actions/actions'
+import Clan from '../entity/Clan'
 
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
@@ -263,29 +264,6 @@ const attack = async (req: Request, res: Response) => {
 
 		const defender = await Empire.findOneOrFail({ id: defenderId })
 
-		// calculate power levels
-		if (attackType === 'standard') {
-			troopTypes.forEach((type) => {
-				offPower += calcUnitPower(attacker, type, 'o')
-			})
-
-			troopTypes.forEach((type) => {
-				defPower += calcUnitPower(defender, type, 'd')
-			})
-		} else {
-			offPower = calcUnitPower(attacker, attackType, 'o')
-			defPower = calcUnitPower(defender, attackType, 'd')
-		}
-
-		// apply race bonus
-		offPower *= (100 + raceArray[attacker.race].mod_offense) / 100
-		defPower *= (100 + raceArray[defender.race].mod_defense) / 100
-
-		// reduce power level based on health
-		offPower *= attacker.health / 100
-		defPower *= defender.health / 100
-
-		//TODO: war flag +20% when at war with other clan
 		if (attacker.attacks >= MAX_ATTACKS) {
 			canAttack = false
 			returnText =
@@ -338,7 +316,7 @@ const attack = async (req: Request, res: Response) => {
 			})
 
 			if (effect) {
-				console.log('found effect on your empire')
+				// console.log('found effect on your empire')
 				let now = new Date()
 
 				let effectAge =
@@ -423,6 +401,109 @@ const attack = async (req: Request, res: Response) => {
 			}
 		}
 
+		// calculate power levels
+		if (attackType === 'standard') {
+			troopTypes.forEach((type) => {
+				offPower += calcUnitPower(attacker, type, 'o')
+			})
+
+			troopTypes.forEach((type) => {
+				defPower += calcUnitPower(defender, type, 'd')
+			})
+		} else {
+			offPower = calcUnitPower(attacker, attackType, 'o')
+			defPower = calcUnitPower(defender, attackType, 'd')
+		}
+
+		// apply race bonus
+		offPower *= (100 + raceArray[attacker.race].mod_offense) / 100
+		defPower *= (100 + raceArray[defender.race].mod_defense) / 100
+
+		// reduce power level based on health
+		offPower *= attacker.health / 100
+		defPower *= defender.health / 100
+
+		//TODO: war flag +20% when at war with other clan
+		if (attacker.clanId !== 0) {
+			// attacker is in a clan
+
+			// get attacker clan
+			let clan = await Clan.findOne({ id: attacker.clanId })
+
+			// check if clan is at war
+			if (clan.enemies.includes(defender.clanId)) {
+				// clan is at war with defender
+				offPower *= 1.2
+			}
+		}
+
+		// clan shared defense
+		if (defender.clanId !== 0) {
+			// defender is in a clan
+
+			// get defender clan
+			// let clan = await Clan.findOne({ id: defender.clanId })
+
+			// get clan members
+			let clanMembers = await Empire.find({ clanId: defender.clanId })
+			console.log(clanMembers)
+
+			let defBonus = 0
+			clanMembers.forEach((member) => {
+				if (member.id !== defender.id) {
+					defBonus += calcUnitPower(member, attackType, 'd')
+				}
+			})
+			// calculate clan defense
+			clanMembers.forEach(async (member) => {
+				if (member.id === defender.id) {
+					return
+				}
+				if (member.era !== defender.era) {
+					// check for time gate
+					const effect = await EmpireEffect.findOne({
+						where: { effectOwnerId: member.id, empireEffectName: 'time gate' },
+						order: { createdAt: 'DESC' },
+					})
+
+					if (effect) {
+						// console.log('found effect on your empire')
+						let now = new Date()
+
+						let effectAge =
+							(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+						let timeLeft = effect.empireEffectValue - effectAge
+
+						if (timeLeft > 0) {
+							// time gate is active
+							let allyDef = calcUnitPower(member, attackType, 'd') * 0.1
+							allyDef *= member.health / 100
+							allyDef *= (100 + raceArray[member.race].mod_defense) / 100
+							defBonus += allyDef
+						}
+					}
+				} else {
+					let allyDef = calcUnitPower(member, attackType, 'd') * 0.1
+					allyDef *= member.health / 100
+					allyDef *= (100 + raceArray[member.race].mod_defense) / 100
+					defBonus += allyDef
+				}
+			})
+
+			console.log('defBonus', defBonus)
+			console.log('defPower', defPower)
+			if (defBonus > defPower) {
+				defBonus = defPower
+			}
+
+			defPower += defBonus
+
+			console.log('defPower', defPower)
+			if (defBonus > 0) {
+				returnText += "The defender's clan comes to their aid..."
+			}
+		}
+
 		// console.log('can attack', canAttack)
 		if (canAttack) {
 			let attackTurns = useTurnInternal('attack', 2, attacker, true)
@@ -456,13 +537,6 @@ const attack = async (req: Request, res: Response) => {
 
 			attacker.offTotal++
 			defender.defTotal++
-			// TODO: clan stuff with shared def
-
-			// add defense for guard towers
-			// let towerDef =
-			// 	defender.bldDef *
-			// 	450 *
-			// 	Math.min(1, defender.trpArm / (150 * defender.bldDef + 1))
 
 			let newTowerDef =
 				// percent land as GTs

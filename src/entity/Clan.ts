@@ -75,6 +75,9 @@ export default class Clan extends Model {
 	@Column({ type: 'varchar', nullable: true })
 	clanPic: string
 
+	@Column({ type: 'simple-array', default: '', nullable: true })
+	enemies: number[]
+
 	@BeforeInsert()
 	async hashPassword() {
 		this.clanPassword = await bcrypt.hash(this.clanPassword, 6)
