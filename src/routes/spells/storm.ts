@@ -44,20 +44,16 @@ export const storm_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 			result = {
 				result: 'shielded',
-				message: `The spell was successful, but the enemy had a spell shield up. /n You destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
+				message: `The spell was successful, but the enemy has a spell shield. /n You destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
 					eraArray[enemyEmpire.era].food
 				}. `,
 			}
 
-			let pubContent = `${empire.name}(#${empire.id}) cast ${
+			let pubContent = `${empire.name} cast ${
 				eraArray[empire.era].spell_storm
-			} on ${enemyEmpire.name}(#${
-				enemyEmpire.id
-			}). /n The spell was shielded but $${cash.toLocaleString()} and ${food.toLocaleString()} ${
-				eraArray[enemyEmpire.era].food
-			} were destroyed.`
+			} on ${enemyEmpire.name}.`
 
-			let content = `${empire.name}(#${empire.id}) cast ${
+			let content = `${empire.name} cast ${
 				eraArray[empire.era].spell_storm
 			} against you. /n Your shield protected you but they destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
 				eraArray[enemyEmpire.era].food
@@ -86,15 +82,11 @@ export const storm_cast = async (empire: Empire, enemyEmpire: Empire) => {
 				}.`,
 			}
 
-			let pubContent = `${empire.name}(#${empire.id}) cast ${
+			let pubContent = `${empire.name} cast ${
 				eraArray[empire.era].spell_storm
-			} on ${enemyEmpire.name}(#${
-				enemyEmpire.id
-			}) and destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
-				eraArray[enemyEmpire.era].food
-			}.`
+			} on ${enemyEmpire.name}.`
 
-			let content = `${empire.name}(#${empire.id}) cast ${
+			let content = `${empire.name} cast ${
 				eraArray[empire.era].spell_storm
 			} against you and destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
 				eraArray[enemyEmpire.era].food
@@ -138,13 +130,13 @@ export const storm_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		await empire.save()
 		await enemyEmpire.save()
 
-		let content = `${empire.name}(#${empire.id}) attempted to cast ${
+		let content = `${empire.name} attempted to cast ${
 			eraArray[empire.era].spell_storm
 		} against you and failed. `
 
-		let pubContent = `${empire.name}(#${empire.id}) attempted to cast ${
+		let pubContent = `${empire.name} attempted to cast ${
 			eraArray[empire.era].spell_storm
-		} on ${enemyEmpire.name}(#${enemyEmpire.id}) and failed.`
+		} on ${enemyEmpire.name} and failed.`
 
 		await createNewsEvent(
 			content,

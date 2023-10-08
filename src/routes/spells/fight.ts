@@ -97,7 +97,7 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 		let returnText = `${bldLoss.toLocaleString()} acres of land were captured from ${
 			enemyEmpire.name
-		}(#${enemyEmpire.id}). /n 
+		}. /n 
 			You killed ${eloss.toLocaleString()} ${eraArray[enemyEmpire.era].trpwiz}. /n
 			You lost ${uloss.toLocaleString()} ${eraArray[empire.era].trpwiz}.`
 
@@ -107,15 +107,13 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			wizloss: uloss,
 		}
 
-		let content = `${empire.name}(#${empire.id}) attacked you with ${
+		let content = `${empire.name} attacked you with ${
 			eraArray[empire.era].trpwiz
 		} and captured ${bldLoss.toLocaleString()} acres of land. /n In the battle you lost: ${eloss.toLocaleString()} ${
 			eraArray[enemyEmpire.era].trpwiz
 		} /n You killed: ${uloss.toLocaleString()} ${eraArray[empire.era].trpwiz}.`
 
-		let pubContent = `${empire.name}(#${empire.id}) attacked ${
-			enemyEmpire.name
-		}(#${enemyEmpire.id}) with ${
+		let pubContent = `${empire.name} attacked ${enemyEmpire.name} with ${
 			eraArray[empire.era].trpwiz
 		} and captured ${bldLoss.toLocaleString()} acres of land. /n In the battle ${
 			enemyEmpire.name
@@ -163,9 +161,7 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		enemyEmpire.defTotal++
 		enemyEmpire.defSucc++
 
-		let returnText = `Your attack was repelled by ${enemyEmpire.name}(#${
-			enemyEmpire.id
-		}). /n 
+		let returnText = `Your attack was repelled by ${enemyEmpire.name}. /n 
 			You killed ${eloss.toLocaleString()} ${eraArray[enemyEmpire.era].trpwiz}. /n
 			You lost ${uloss.toLocaleString()} ${eraArray[empire.era].trpwiz}.`
 
@@ -177,18 +173,14 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 		let content = `
 		You successfully defended your empire. /n
-		${empire.name}(#${empire.id}) attacked you with ${
+		${empire.name} attacked you with ${
 			eraArray[empire.era].trpwiz
 		}. /n In the battle you lost: ${eloss.toLocaleString()} ${
 			eraArray[enemyEmpire.era].trpwiz
 		} /n You killed: ${uloss.toLocaleString()} ${eraArray[empire.era].trpwiz}.`
 
 		let pubContent = `
-		${enemyEmpire.name}(#${
-			enemyEmpire.id
-		}) successfully defended their empire against ${empire.name} (#${
-			empire.id
-		}).
+		${enemyEmpire.name} successfully defended their empire against ${empire.name}.
 			 /n In the battle ${enemyEmpire.name} lost: ${eloss.toLocaleString()} ${
 			eraArray[enemyEmpire.era].trpwiz
 		} /n ${empire.name} lost: ${uloss.toLocaleString()} ${

@@ -74,11 +74,11 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			intel: intel,
 		}
 
-		let content = `${empire.name}(#${empire.id}) cast ${
+		let content = `${empire.name} cast ${
 			eraArray[empire.era].spell_spy
 		} against you and viewed your empire information. `
 
-		let pubContent = `${empire.name}(#${empire.id}) cast ${
+		let pubContent = `${empire.name} cast ${
 			eraArray[empire.era].spell_spy
 		} on ${enemyEmpire.name}(#${
 			enemyEmpire.id
@@ -107,13 +107,13 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			descriptor: eraArray[empire.era].trpwiz,
 		}
 
-		let content = `${empire.name}(#${empire.id}) attempted to cast ${
+		let content = `${empire.name} attempted to cast ${
 			eraArray[empire.era].spell_spy
 		} against you and failed. `
 
-		let pubContent = `${empire.name}(#${empire.id}) attempted to cast ${
+		let pubContent = `${empire.name} attempted to cast ${
 			eraArray[empire.era].spell_spy
-		} on ${enemyEmpire.name}(#${enemyEmpire.id}) and failed.`
+		} on ${enemyEmpire.name} and failed.`
 
 		await createNewsEvent(
 			content,

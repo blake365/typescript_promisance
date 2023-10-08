@@ -42,16 +42,14 @@ export const blast_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			result = {
 				result: 'shielded',
 				message:
-					'The spell was successful, but the enemy had a spell shield up. /n You eliminated 1% of the enemy forces. ',
+					'The spell was successful, but the enemy has a spell shield. /n You eliminated 1% of the enemy forces. ',
 			}
 
-			let pubContent = `${empire.name}(#${empire.id}) cast ${
+			let pubContent = `${empire.name} cast ${
 				eraArray[empire.era].spell_blast
-			} on ${enemyEmpire.name}(#${
-				enemyEmpire.id
-			}). /n The spell was shielded and eliminated 1% of their forces.`
+			} on ${enemyEmpire.name}.`
 
-			let content = `${empire.name}(#${empire.id}) cast ${
+			let content = `${empire.name} cast ${
 				eraArray[empire.era].spell_blast
 			} against you. /n Your shield protected you. They eliminated 1% of your forces.`
 
@@ -80,13 +78,11 @@ export const blast_cast = async (empire: Empire, enemyEmpire: Empire) => {
 					'The spell was successful! /n You eliminated 3% of the enemy forces. ',
 			}
 
-			let pubContent = `${empire.name}(#${empire.id}) cast ${
+			let pubContent = `${empire.name} cast ${
 				eraArray[empire.era].spell_blast
-			} on ${enemyEmpire.name}(#${
-				enemyEmpire.id
-			}) and eliminated 3% of their forces.`
+			} on ${enemyEmpire.name}.`
 
-			let content = `${empire.name}(#${empire.id}) cast ${
+			let content = `${empire.name} cast ${
 				eraArray[empire.era].spell_blast
 			} against you and eliminated 3% of your forces.`
 
@@ -129,13 +125,13 @@ export const blast_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		await empire.save()
 		await enemyEmpire.save()
 
-		let content = `${empire.name}(#${empire.id}) attempted to cast ${
+		let content = `${empire.name} attempted to cast ${
 			eraArray[empire.era].spell_blast
 		} against you and failed. `
 
-		let pubContent = `${empire.name}(#${empire.id}) attempted to cast ${
+		let pubContent = `${empire.name} attempted to cast ${
 			eraArray[empire.era].spell_blast
-		} on ${enemyEmpire.name}(#${enemyEmpire.id}) and failed.`
+		} on ${enemyEmpire.name} and failed.`
 
 		await createNewsEvent(
 			content,

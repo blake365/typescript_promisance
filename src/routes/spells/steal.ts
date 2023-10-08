@@ -45,16 +45,14 @@ export const steal_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 			result = {
 				result: 'shielded',
-				message: `The spell was successful, but the enemy had a spell shield up. /n You stole $${cash.toLocaleString()} from the enemy. `,
+				message: `The spell was successful, but the enemy has a spell shield. /n You stole $${cash.toLocaleString()} from the enemy. `,
 			}
 
-			let pubContent = `${empire.name}(#${empire.id}) cast ${
+			let pubContent = `${empire.name} cast ${
 				eraArray[empire.era].spell_steal
-			} on ${enemyEmpire.name}(#${
-				enemyEmpire.id
-			}). /n The spell was shielded and $${cash.toLocaleString()} was stolen.`
+			} on ${enemyEmpire.name}.`
 
-			let content = `${empire.name}(#${empire.id}) cast ${
+			let content = `${empire.name} cast ${
 				eraArray[empire.era].spell_steal
 			} against you. /n Your shield protected you but they stole $${cash.toLocaleString()} from you.`
 
@@ -80,13 +78,11 @@ export const steal_cast = async (empire: Empire, enemyEmpire: Empire) => {
 				message: `The spell was successful! /n You stole $${cash.toLocaleString()} from the enemy.`,
 			}
 
-			let pubContent = `${empire.name}(#${empire.id}) cast ${
+			let pubContent = `${empire.name} cast ${
 				eraArray[empire.era].spell_steal
-			} on ${enemyEmpire.name}(#${
-				enemyEmpire.id
-			}) and stole $${cash.toLocaleString()}.`
+			} on ${enemyEmpire.name}.`
 
-			let content = `${empire.name}(#${empire.id}) cast ${
+			let content = `${empire.name} cast ${
 				eraArray[empire.era].spell_steal
 			} against you and stole $${cash.toLocaleString()} from you.`
 
@@ -128,13 +124,13 @@ export const steal_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		await empire.save()
 		await enemyEmpire.save()
 
-		let content = `${empire.name}(#${empire.id}) attempted to cast ${
+		let content = `${empire.name} attempted to cast ${
 			eraArray[empire.era].spell_steal
 		} against you and failed. `
 
-		let pubContent = `${empire.name}(#${empire.id}) attempted to cast ${
+		let pubContent = `${empire.name} attempted to cast ${
 			eraArray[empire.era].spell_steal
-		} on ${enemyEmpire.name}(#${enemyEmpire.id}) and failed.`
+		} on ${enemyEmpire.name} and failed.`
 
 		await createNewsEvent(
 			content,

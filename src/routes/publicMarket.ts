@@ -86,12 +86,8 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 	await itemBought.save()
 
 	// create news entry
-	let content: string = `You sold ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}`
-	let pubContent: string = `${buyer.name} (#${
-		buyer.id
-	}) purchased ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()} from ${
-		seller.name
-	} (#${seller.id}) `
+	let content: string = `You sold ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}. The money was deposited into the bank.`
+	let pubContent: string = `${buyer.name} purchased ${itemName} from the public market.`
 
 	// create news event for seller that goods have been purchased
 	await createNewsEvent(
@@ -513,7 +509,7 @@ const editPrice = async (req: Request, res: Response) => {
 const router = Router()
 
 // needs user and auth middleware
-router.post('/pubBuy', user, auth, pubBuy)
+// router.post('/pubBuy', user, auth, pubBuy)
 router.post('/pubBuy2', user, auth, pubBuyTwo)
 router.post('/pubSell', user, auth, pubSell)
 router.post('/pubSellMine', user, auth, getMyItems)

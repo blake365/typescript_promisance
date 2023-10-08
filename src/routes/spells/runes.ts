@@ -38,20 +38,16 @@ export const runes_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 			result = {
 				result: 'shielded',
-				message: `The spell was successful, but the enemy had a spell shield up. /n You eliminated 1% of the enemy ${
+				message: `The spell was successful, but the enemy has a spell shield. /n You eliminated 1% of the enemy ${
 					eraArray[enemyEmpire.era].runes
 				}. `,
 			}
 
-			let pubContent = `${empire.name}(#${empire.id}) cast ${
+			let pubContent = `${empire.name} cast ${
 				eraArray[empire.era].spell_runes
-			} on ${enemyEmpire.name}(#${
-				enemyEmpire.id
-			}). /n The spell was shielded and eliminated 1% of their ${
-				eraArray[enemyEmpire.era].runes
-			}.`
+			} on ${enemyEmpire.name}.`
 
-			let content = `${empire.name}(#${empire.id}) cast ${
+			let content = `${empire.name} cast ${
 				eraArray[empire.era].spell_runes
 			} against you. /n Your shield protected you. They eliminated 1% of your ${
 				eraArray[enemyEmpire.era].runes
@@ -78,13 +74,11 @@ export const runes_cast = async (empire: Empire, enemyEmpire: Empire) => {
 				}.`,
 			}
 
-			let pubContent = `${empire.name}(#${empire.id}) cast ${
+			let pubContent = `${empire.name} cast ${
 				eraArray[empire.era].spell_runes
-			} on ${enemyEmpire.name}(#${enemyEmpire.id}) and eliminated 3% of their ${
-				eraArray[enemyEmpire.era].runes
-			}.`
+			} on ${enemyEmpire.name}.`
 
-			let content = `${empire.name}(#${empire.id}) cast ${
+			let content = `${empire.name} cast ${
 				eraArray[empire.era].spell_runes
 			} against you and eliminated 3% of your ${
 				eraArray[enemyEmpire.era].runes
@@ -128,13 +122,13 @@ export const runes_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		await empire.save()
 		await enemyEmpire.save()
 
-		let content = `${empire.name}(#${empire.id}) attempted to cast ${
+		let content = `${empire.name} attempted to cast ${
 			eraArray[empire.era].spell_runes
 		} against you and failed. `
 
-		let pubContent = `${empire.name}(#${empire.id}) attempted to cast ${
+		let pubContent = `${empire.name} attempted to cast ${
 			eraArray[empire.era].spell_runes
-		} on ${enemyEmpire.name}(#${enemyEmpire.id}) and failed.`
+		} on ${enemyEmpire.name} and failed.`
 
 		await createNewsEvent(
 			content,

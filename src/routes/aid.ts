@@ -115,7 +115,7 @@ const sendAid = async (req: Request, res: Response) => {
 
 			aidTurns['aid'] = 'Shipment sent successfully'
 
-			let pubContent = `${sender.name}(#${sender.id}) sent aid to ${receiver.name}(#${receiver.id})`
+			let pubContent = `${sender.name} sent aid to ${receiver.name}`
 
 			let sentString = sentItems.map((item) => {
 				if (item.name === 'cash') {
@@ -126,9 +126,7 @@ const sendAid = async (req: Request, res: Response) => {
 				}`
 			})
 
-			let content = `${sender.name}(#${sender.id}) sent you ${sentString.join(
-				', '
-			)}.`
+			let content = `${sender.name} sent you ${sentString.join(', ')}.`
 
 			console.log('content', content)
 			await createNewsEvent(

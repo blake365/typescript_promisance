@@ -60,17 +60,16 @@ export const struct_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 				result = {
 					result: 'shielded',
-					message: `The spell was successful, but the enemy had a spell shield up. /n You destroyed ${build} buildings. `,
+					message: `The spell was successful, but the enemy has a spell shield. /n You destroyed ${build.toLocaleString()} buildings. `,
 				}
 
-				let pubContent = `${empire.name}(#${empire.id}) cast ${
+				let pubContent = `${empire.name} cast ${
 					eraArray[empire.era].spell_struct
-				} on ${enemyEmpire.name}(#${
-					enemyEmpire.id
-				}). /n The spell was shielded but ${build} buildings were destroyed.`
-				let content = `${empire.name}(#${empire.id}) cast ${
+				} on ${enemyEmpire.name}.`
+
+				let content = `${empire.name} cast ${
 					eraArray[empire.era].spell_struct
-				} against you. /n Your shield protected you but ${build} buildings were destroyed.`
+				} against you. /n Your shield protected you but ${build.toLocaleString()} buildings were destroyed.`
 
 				await createNewsEvent(
 					content,
@@ -97,13 +96,11 @@ export const struct_cast = async (empire: Empire, enemyEmpire: Empire) => {
 					message: `The spell was successful! /n You destroyed ${build.toLocaleString()} buildings.`,
 				}
 
-				let pubContent = `${empire.name}(#${empire.id}) cast ${
+				let pubContent = `${empire.name} cast ${
 					eraArray[empire.era].spell_struct
-				} on ${enemyEmpire.name}(#${
-					enemyEmpire.id
-				}) and destroyed ${build.toLocaleString()} buildings.`
+				} on ${enemyEmpire.name}.`
 
-				let content = `${empire.name}(#${empire.id}) cast ${
+				let content = `${empire.name} cast ${
 					eraArray[empire.era].spell_struct
 				} against you and destroyed ${build.toLocaleString()} buildings.`
 
@@ -145,13 +142,13 @@ export const struct_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			await empire.save()
 			await enemyEmpire.save()
 
-			let content = `${empire.name}(#${empire.id}) attempted to cast ${
+			let content = `${empire.name} attempted to cast ${
 				eraArray[empire.era].spell_struct
 			} against you and failed. `
 
-			let pubContent = `${empire.name}(#${empire.id}) attempted to cast ${
+			let pubContent = `${empire.name} attempted to cast ${
 				eraArray[empire.era].spell_struct
-			} on ${enemyEmpire.name}(#${enemyEmpire.id}) and failed.`
+			} on ${enemyEmpire.name} and failed.`
 
 			await createNewsEvent(
 				content,

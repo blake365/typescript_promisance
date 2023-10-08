@@ -781,10 +781,7 @@ const attack = async (req: Request, res: Response) => {
 					'' +
 					buildGain.freeLand.toLocaleString() +
 					' acres of land were captured from ' +
-					defender.name +
-					'(#' +
-					defender.id +
-					')'
+					defender.name
 
 				attackDescription = {
 					result: 'success',
@@ -798,7 +795,7 @@ const attack = async (req: Request, res: Response) => {
 				// attacker off success
 				attacker.offSucc++
 
-				let content = `${attacker.name} (#${attacker.id}) attacked you with ${
+				let content = `${attacker.name} attacked you with ${
 					eraArray[attacker.era][attackType]
 				} and captured ${buildGain.freeLand.toLocaleString()} acres of land. /n In the battle you lost: ${defenseLosses[
 					attackType
@@ -808,9 +805,7 @@ const attack = async (req: Request, res: Response) => {
 					eraArray[attacker.era][attackType]
 				}.`
 
-				let pubContent = `${attacker.name} (#${attacker.id}) attacked ${
-					defender.name
-				} (#${defender.id}) with ${
+				let pubContent = `${attacker.name} attacked ${defender.name} with ${
 					eraArray[attacker.era][attackType]
 				} and captured ${buildGain.freeLand.toLocaleString()} acres of land. /n In the battle ${
 					defender.name
@@ -849,7 +844,7 @@ const attack = async (req: Request, res: Response) => {
 
 				let content = `You successfully defended your empire. /n ${
 					attacker.name
-				} (#${attacker.id}) attacked you with ${
+				} attacked you with ${
 					eraArray[attacker.era][attackType]
 				}. /n In the battle you lost: ${defenseLosses[
 					attackType
@@ -859,11 +854,11 @@ const attack = async (req: Request, res: Response) => {
 					eraArray[attacker.era][attackType]
 				}. `
 
-				let pubContent = `${defender.name} (#${
-					defender.id
-				}) successfully defended their empire against ${attacker.name} (#${
-					attacker.id
-				}). /n In the battle ${defender.name} lost: ${defenseLosses[
+				let pubContent = `${
+					defender.name
+				} successfully defended their empire against ${
+					attacker.name
+				}. /n In the battle ${defender.name} lost: ${defenseLosses[
 					attackType
 				].toLocaleString()} ${eraArray[defender.era][attackType]} /n ${
 					attacker.name

@@ -138,7 +138,7 @@ const getOtherEmpires = async (req: Request, res: Response) => {
 		],
 		where: { empireId: Not(empire_id) },
 		order: {
-			empireId: 'ASC',
+			networth: 'DESC',
 		},
 	})
 	// console.log(otherEmpires)
