@@ -168,18 +168,18 @@ export const destroyBuildings = async (
 		defender[type]
 	)
 
-	console.log('diminishing returns', defender.diminishingReturns)
-	console.log(
-		defender[type] * 0.05,
-		Math.ceil(
-			((defender[type] * pcloss + 2) * (100 - defender.diminishingReturns)) /
-				100
-		)
-	)
+	// console.log('diminishing returns', defender.diminishingReturns)
+	// console.log(
+	// 	defender[type] * 0.05,
+	// 	Math.ceil(
+	// 		((defender[type] * pcloss + 2) * (100 - defender.diminishingReturns)) /
+	// 			100
+	// 	)
+	// )
 	// console.log(attacker.freeLand)
 	// console.log(defender.freeLand)
-	console.log(type)
-	console.log('loss: ', loss)
+	// console.log(type)
+	// console.log('loss: ', loss)
 
 	let gain = Math.ceil(loss * pcgain)
 	// console.log('gain: ', gain)
@@ -306,6 +306,7 @@ const attack = async (req: Request, res: Response) => {
 			})
 		}
 		// check eras and time gates
+		let defenderTimegate = false
 		if (attacker.era === defender.era && attacker.turns > 2) {
 			canAttack = true
 		} else if (attacker.era !== defender.era) {
@@ -336,7 +337,7 @@ const attack = async (req: Request, res: Response) => {
 						order: { createdAt: 'DESC' },
 					})
 
-					console.log(defEffect)
+					// console.log(defEffect)
 
 					if (defEffect) {
 						let now = new Date()
@@ -345,6 +346,7 @@ const attack = async (req: Request, res: Response) => {
 						let timeLeft = defEffect.empireEffectValue - effectAge
 						if (timeLeft > 0) {
 							canAttack = true
+							defenderTimegate = true
 							returnText =
 								'Your army travels through your opponents Time Gate...'
 						} else {
@@ -373,7 +375,7 @@ const attack = async (req: Request, res: Response) => {
 					order: { createdAt: 'DESC' },
 				})
 
-				console.log(defEffect)
+				// console.log(defEffect)
 
 				if (defEffect) {
 					let now = new Date()
@@ -382,6 +384,7 @@ const attack = async (req: Request, res: Response) => {
 					let timeLeft = defEffect.empireEffectValue - effectAge
 					if (timeLeft > 0) {
 						canAttack = true
+						defenderTimegate = true
 						returnText = 'Your army travels through your opponents Time Gate...'
 					} else {
 						returnText =
@@ -446,21 +449,17 @@ const attack = async (req: Request, res: Response) => {
 
 			// get clan members
 			let clanMembers = await Empire.find({ clanId: defender.clanId })
-			console.log(clanMembers)
+			// console.log(clanMembers)
 
 			let defBonus = 0
-			clanMembers.forEach((member) => {
-				if (member.id !== defender.id) {
-					defBonus += calcUnitPower(member, attackType, 'd')
-				}
-			})
+
 			// calculate clan defense
 			clanMembers.forEach(async (member) => {
 				if (member.id === defender.id) {
 					return
 				}
-				if (member.era !== defender.era) {
-					// check for time gate
+				if (member.era !== defender.era && !defenderTimegate) {
+					// check for member time gate
 					const effect = await EmpireEffect.findOne({
 						where: { effectOwnerId: member.id, empireEffectName: 'time gate' },
 						order: { createdAt: 'DESC' },
@@ -490,15 +489,15 @@ const attack = async (req: Request, res: Response) => {
 				}
 			})
 
-			console.log('defBonus', defBonus)
-			console.log('defPower', defPower)
+			// console.log('defBonus', defBonus)
+			// console.log('defPower', defPower)
 			if (defBonus > defPower) {
 				defBonus = defPower
 			}
 
 			defPower += defBonus
 
-			console.log('defPower', defPower)
+			// console.log('defPower', defPower)/
 			if (defBonus > 0) {
 				returnText += "The defender's clan comes to their aid..."
 			}
@@ -546,7 +545,7 @@ const attack = async (req: Request, res: Response) => {
 				newTowerDef = 1.5
 			}
 
-			console.log(newTowerDef)
+			// console.log(newTowerDef)
 			// console.log('tower def', towerDef)
 			defPower *= newTowerDef
 			defPower = Math.round(defPower)
@@ -889,7 +888,7 @@ const attack = async (req: Request, res: Response) => {
 			let adjustedDR =
 				DR_RATE + Math.round((defender.bldDef / defender.land) * 100) / 100
 
-			console.log('adjusted DR', adjustedDR)
+			// console.log('adjusted DR', adjustedDR)
 			defender.diminishingReturns = defender.diminishingReturns + adjustedDR
 
 			if (attacker.diminishingReturns > 0) {
