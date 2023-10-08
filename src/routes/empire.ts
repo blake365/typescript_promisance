@@ -140,6 +140,7 @@ const getOtherEmpires = async (req: Request, res: Response) => {
 		order: {
 			networth: 'DESC',
 		},
+		cache: 1000,
 	})
 	// console.log(otherEmpires)
 
@@ -171,6 +172,7 @@ const getScores = async (_: Request, res: Response) => {
 			order: {
 				rank: 'ASC',
 			},
+			cache: 1000,
 		})
 
 		if (empires.length === 0) {
@@ -490,6 +492,7 @@ const getEmpireEffects = async (req: Request, res: Response) => {
 	try {
 		let effects = await EmpireEffect.find({
 			where: { effectOwnerId: empireId },
+			cache: 3000,
 		})
 		// console.log('user', user)
 		// console.log(effects)

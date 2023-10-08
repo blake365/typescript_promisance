@@ -14,7 +14,7 @@ const createClan = async (req: Request, res: Response) => {
 	let { clanName, clanPassword, empireId } = req.body
 	const filter = new Filter()
 
-	console.log(clanName, clanPassword, empireId)
+	// console.log(clanName, clanPassword, empireId)
 	clanName = filter.clean(clanName)
 
 	try {
@@ -184,7 +184,7 @@ const leaveClan = async (req: Request, res: Response) => {
 				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
 			timeLeft = effect.empireEffectValue - effectAge
 			// age in minutes
-			console.log(effectAge)
+			// console.log(effectAge)
 			effectAge = Math.floor(effectAge)
 		}
 
@@ -255,7 +255,7 @@ const getClan = async (req: Request, res: Response) => {
 			where: { id: clanId },
 		})
 
-		console.log(clan)
+		// console.log(clan)
 		return res.json(clan)
 	} catch (err) {
 		console.log(err)
