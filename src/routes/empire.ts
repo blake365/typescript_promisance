@@ -99,7 +99,6 @@ const getEmpires = async (_: Request, res: Response) => {
 			order: {
 				id: 'DESC',
 			},
-			relations: ['clan'],
 		})
 		return res.json(empires)
 	} catch (error) {
