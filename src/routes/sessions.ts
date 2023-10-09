@@ -19,7 +19,7 @@ const getSession = async (req: Request, res: Response) => {
 				createdAt: 'DESC',
 			},
 			take: 1,
-			cache: 30000,
+			// cache: 30000,
 		})
 
 		return res.json(session)

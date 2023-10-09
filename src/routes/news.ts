@@ -86,7 +86,7 @@ const countNew = async (req: Request, res: Response) => {
 	try {
 		const news = await EmpireNews.findAndCount({
 			where: { empireIdDestination: id, seen: false },
-			cache: 30000,
+			// cache: 30000,
 		})
 
 		// console.log(news[news.length - 1])
