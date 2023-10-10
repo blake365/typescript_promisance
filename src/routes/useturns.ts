@@ -39,6 +39,7 @@ export const useTurn = async (
 	let interruptable = true
 
 	let deserted = 1
+	let desertionTurns = 0
 
 	const empire = await Empire.findOneOrFail({ id: empireId })
 
@@ -325,15 +326,17 @@ export const useTurn = async (
 		if (type === 'farm') {
 			turnResult = food
 		}
-		if (empire.food <= 0) {
-			empire.food = 0
-			trouble |= 4
-			troubleFood = true
-		}
 
 		current['foodpro'] = foodpro
 		current['foodcon'] = foodcon
 		current['food'] = food
+
+		if (empire.food <= 0) {
+			empire.food = 0
+			trouble |= 4
+			troubleFood = true
+			current['food'] = 0
+		}
 
 		if (type === 'farm') {
 			message['production'] = `You produced ${food} ${
@@ -485,10 +488,12 @@ export const useTurn = async (
 			empire.trpSea -= Math.round(empire.trpSea * 0.03)
 			empire.trpWiz -= Math.round(empire.trpWiz * 0.03)
 			// console.log(deserted)
+			desertionTurns++
 			deserted *= 1 - 0.3
 			// console.log(deserted)
 			if (!interruptable) {
-				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
+				// let percent = condensed ? Math.round((1 - deserted) * 100) : 3
+				let percent = 3 * desertionTurns
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
 				}, Troops, and ${
@@ -497,7 +502,8 @@ export const useTurn = async (
 				current['messages'] = message
 				statsArray.push(current)
 			} else {
-				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
+				// let percent = condensed ? Math.round((1 - deserted) * 100) : 3
+				let percent = 3 * desertionTurns
 				// console.log(percent)
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
@@ -529,7 +535,7 @@ export const useTurn = async (
 	empire.lastAction = new Date()
 	empire.networth = getNetworth(empire)
 	await empire.save()
-	console.log(statsArray)
+	// console.log(statsArray)
 	return statsArray
 }
 
@@ -561,11 +567,12 @@ export const useTurnInternal = (
 	let turnResult = 0
 
 	let interruptable = false
-	if (type === 'build') {
+	if (type === 'build' || type === 'demolish') {
 		interruptable = true
 	}
 
 	let deserted = 1
+	let desertionTurns = 0
 
 	// const empire = await Empire.findOneOrFail({ id: empireId })
 
@@ -811,15 +818,17 @@ export const useTurnInternal = (
 		// if (type === 'farm') {
 		// 	turnResult += food
 		// }
-		if (empire.food <= 0) {
-			empire.food = 0
-			trouble |= 4
-			troubleFood = true
-		}
 
 		current['foodpro'] = foodpro
 		current['foodcon'] = foodcon
 		current['food'] = food
+
+		if (empire.food <= 0) {
+			empire.food = 0
+			trouble |= 4
+			troubleFood = true
+			current['food'] = 0
+		}
 
 		// health
 		if (empire.health < 100 - Math.max((empire.tax - 25) / 2, 0)) {
@@ -932,6 +941,13 @@ export const useTurnInternal = (
 			}
 		})
 
+		// console.log(overall['food'])
+
+		if (empire.food + overall['food'] < 0) {
+			trouble |= 4
+			troubleFood = true
+		}
+
 		// console.log(current)
 		// console.log(overall)
 		// console.log(trouble, troubleCash, troubleLoan, troubleFood)
@@ -945,8 +961,10 @@ export const useTurnInternal = (
 			empire.trpSea -= Math.round(empire.trpSea * 0.03)
 			empire.trpWiz -= Math.round(empire.trpWiz * 0.03)
 			deserted *= 1 - 0.3
+			desertionTurns++
 			if (!interruptable) {
-				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
+				// let percent = condensed ? Math.round((1 - deserted) * 100) : 3
+				let percent = 3 * desertionTurns
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
 				}, Troops, and ${
@@ -955,7 +973,8 @@ export const useTurnInternal = (
 				current['messages'] = message
 				statsArray.push(current)
 			} else {
-				let percent = condensed ? Math.round((1 - deserted) * 100) : 3
+				// let percent = condensed ? Math.round((1 - deserted) * 100) : 3
+				let percent = 3 * desertionTurns
 				// console.log(percent)
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants

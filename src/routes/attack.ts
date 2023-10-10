@@ -505,6 +505,28 @@ const attack = async (req: Request, res: Response) => {
 
 		// console.log('can attack', canAttack)
 		if (canAttack) {
+			if (attacker.networth > defender.networth * 2.33) {
+				// the attacker is ashamed, troops desert
+				returnText +=
+					'Your troops are ashamed to fight such a weak opponent, many desert...'
+				attacker.trpArm *= 0.98
+				attacker.trpLnd *= 0.98
+				attacker.trpFly *= 0.98
+				attacker.trpSea *= 0.98
+				attacker.trpWiz *= 0.98
+			}
+
+			if (attacker.networth < defender.networth * 0.33) {
+				// the attacker is fearful, troops desert
+				returnText +=
+					'Your troops are fearful of fighting such a strong opponent, many desert...'
+				attacker.trpArm *= 0.98
+				attacker.trpLnd *= 0.98
+				attacker.trpFly *= 0.98
+				attacker.trpSea *= 0.98
+				attacker.trpWiz *= 0.98
+			}
+
 			let attackTurns = useTurnInternal('attack', 2, attacker, true)
 
 			let attackRes = attackTurns[0]
@@ -527,6 +549,9 @@ const attack = async (req: Request, res: Response) => {
 			attacker.trpFly += attackRes.trpFly
 			attacker.trpSea += attackRes.trpSea
 			attacker.food += attackRes.food
+			if (attacker.food < 0) {
+				attacker.food = 0
+			}
 			attacker.peasants += attackRes.peasants
 			attacker.runes += attackRes.runes
 			attacker.trpWiz += attackRes.trpWiz

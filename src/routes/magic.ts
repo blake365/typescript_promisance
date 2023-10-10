@@ -27,6 +27,13 @@ import { getNetworth } from './actions/actions'
 // FIXED: internal turns not working
 
 const spellCheck = (empire: Empire, cost: number, turns: number) => {
+	if (empire.food <= 0) {
+		return {
+			error:
+				'You have run out of food! Spells cannot be cast during this crisis!',
+		}
+	}
+
 	if (empire.runes < cost) {
 		return {
 			error: `You do not have enough ${
@@ -83,7 +90,7 @@ const magic = async (req: Request, res: Response) => {
 					// use two turns to cast spell
 					let spellTurns = useTurnInternal('magic', turns, empire, true)
 					let spellRes = spellTurns[0]
-					console.log('spell res', spellRes)
+					// console.log('spell res', spellRes)
 					spellTurns = spellTurns[0]
 					if (!spellRes?.messages?.desertion) {
 						let cast: Cast = await shield_cast(empire)
@@ -111,6 +118,9 @@ const magic = async (req: Request, res: Response) => {
 					empire.trpFly += spellRes.trpFly
 					empire.trpSea += spellRes.trpSea
 					empire.food += spellRes.food
+					if (empire.food < 0) {
+						empire.food = 0
+					}
 					empire.peasants += spellRes.peasants
 					empire.runes += spellRes.runes
 					empire.trpWiz += spellRes.trpWiz
@@ -174,6 +184,9 @@ const magic = async (req: Request, res: Response) => {
 					empire.trpFly += spellRes.trpFly
 					empire.trpSea += spellRes.trpSea
 					empire.food += spellRes.food
+					if (empire.food < 0) {
+						empire.food = 0
+					}
 					empire.peasants += spellRes.peasants
 					empire.runes += spellRes.runes
 					empire.trpWiz += spellRes.trpWiz
@@ -199,6 +212,7 @@ const magic = async (req: Request, res: Response) => {
 		const turns = 2
 		if (spellCheck(empire, cost, turns) === 'passed') {
 			for (let i = 0; i < number; i++) {
+				// console.log(i, spellCheck(empire, cost, turns))
 				if (spellCheck(empire, cost, turns) === 'passed') {
 					empire.runes -= cost
 					// use two turns to cast spell
@@ -235,6 +249,9 @@ const magic = async (req: Request, res: Response) => {
 					empire.trpFly += spellRes.trpFly
 					empire.trpSea += spellRes.trpSea
 					empire.food += spellRes.food
+					if (empire.food < 0) {
+						empire.food = 0
+					}
 					empire.peasants += spellRes.peasants
 					empire.runes += spellRes.runes
 					empire.trpWiz += spellRes.trpWiz
@@ -249,7 +266,6 @@ const magic = async (req: Request, res: Response) => {
 					resultArray.push(spellTurns)
 					break
 				}
-
 				// console.log('food:', empire.food, empire.turns, empire.runes)
 			}
 		} else {
@@ -265,7 +281,7 @@ const magic = async (req: Request, res: Response) => {
 			for (let i = 0; i < 1; i++) {
 				if (spellCheck(empire, cost, turns) === 'passed') {
 					let allowed = await advance_allow(empire)
-					console.log('advance allow', allowed)
+					// console.log('advance allow', allowed)
 					if (!allowed) {
 						let spellTurns = { error: 'There is no era to advance to' }
 						resultArray.push(spellTurns)
@@ -307,6 +323,9 @@ const magic = async (req: Request, res: Response) => {
 						empire.trpFly += spellRes.trpFly
 						empire.trpSea += spellRes.trpSea
 						empire.food += spellRes.food
+						if (empire.food < 0) {
+							empire.food = 0
+						}
 						empire.peasants += spellRes.peasants
 						empire.runes += spellRes.runes
 						empire.trpWiz += spellRes.trpWiz
@@ -337,7 +356,7 @@ const magic = async (req: Request, res: Response) => {
 			for (let i = 0; i < 1; i++) {
 				if (spellCheck(empire, cost, turns) === 'passed') {
 					let allowed = await regress_allow(empire)
-					console.log('regress allow', allowed)
+					// console.log('regress allow', allowed)
 					if (!allowed) {
 						let spellTurns = { error: 'There is no era to regress to' }
 						resultArray.push(spellTurns)
@@ -379,6 +398,9 @@ const magic = async (req: Request, res: Response) => {
 						empire.trpFly += spellRes.trpFly
 						empire.trpSea += spellRes.trpSea
 						empire.food += spellRes.food
+						if (empire.food < 0) {
+							empire.food = 0
+						}
 						empire.peasants += spellRes.peasants
 						empire.runes += spellRes.runes
 						empire.trpWiz += spellRes.trpWiz
@@ -437,6 +459,9 @@ const magic = async (req: Request, res: Response) => {
 					empire.trpFly += spellRes.trpFly
 					empire.trpSea += spellRes.trpSea
 					empire.food += spellRes.food
+					if (empire.food < 0) {
+						empire.food = 0
+					}
 					empire.peasants += spellRes.peasants
 					empire.runes += spellRes.runes
 					empire.trpWiz += spellRes.trpWiz
@@ -491,6 +516,9 @@ const magic = async (req: Request, res: Response) => {
 					empire.trpFly += spellRes.trpFly
 					empire.trpSea += spellRes.trpSea
 					empire.food += spellRes.food
+					if (empire.food < 0) {
+						empire.food = 0
+					}
 					empire.peasants += spellRes.peasants
 					empire.runes += spellRes.runes
 					empire.trpWiz += spellRes.trpWiz
@@ -544,6 +572,9 @@ const attackSpell = async (attacker: Empire, spellCost: number, spell) => {
 		attacker.trpFly += spellRes.trpFly
 		attacker.trpSea += spellRes.trpSea
 		attacker.food += spellRes.food
+		if (attacker.food < 0) {
+			attacker.food = 0
+		}
 		attacker.peasants += spellRes.peasants
 		attacker.runes += spellRes.runes
 		attacker.trpWiz += spellRes.trpWiz
@@ -556,7 +587,7 @@ const attackSpell = async (attacker: Empire, spellCost: number, spell) => {
 		attacker.networth = getNetworth(attacker)
 		await attacker.save()
 
-		console.log('returning with spellTurns')
+		// console.log('returning with spellTurns')
 		return spellTurns
 	} else {
 		let spellTurns = spellCheck(attacker, cost, turns)
@@ -723,7 +754,7 @@ const magicAttack = async (req: Request, res: Response) => {
 			}
 		}
 
-		console.log('can attack', canAttack)
+		// console.log('can attack', canAttack)
 		// handle errors
 		// add break if spell check is false
 		let spellTurns = {}
@@ -792,7 +823,7 @@ const magicAttack = async (req: Request, res: Response) => {
 			})
 		}
 
-		console.log('test', spellTurns)
+		// console.log('test', spellTurns)
 		return res.json(spellTurns)
 	} catch (e) {
 		console.log(e)

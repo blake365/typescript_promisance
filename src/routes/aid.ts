@@ -1,12 +1,10 @@
 import { Request, Response, Router } from 'express'
 import Empire from '../entity/Empire'
-import EmpireEffect from '../entity/EmpireEffect'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { useTurnInternal } from './useturns'
 
 import { eraArray } from '../config/eras'
-import { raceArray } from '../config/races'
 import { createNewsEvent } from '../util/helpers'
 import { TURNS_PROTECTION } from '../config/conifg'
 import { getNetworth } from './actions/actions'
@@ -158,6 +156,9 @@ const sendAid = async (req: Request, res: Response) => {
 		sender.trpFly += spellRes.trpFly
 		sender.trpSea += spellRes.trpSea
 		sender.food += spellRes.food
+		if (sender.food < 0) {
+			sender.food = 0
+		}
 		sender.peasants += spellRes.peasants
 		sender.runes += spellRes.runes
 		sender.trpWiz += spellRes.trpWiz

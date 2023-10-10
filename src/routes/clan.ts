@@ -301,6 +301,7 @@ const getClanMembers = async (req: Request, res: Response) => {
 				'storedturns',
 			],
 			where: { clanId },
+			order: { networth: 'DESC' },
 		})
 
 		return res.json(empires)
