@@ -473,7 +473,7 @@ const recallItem = async (req: Request, res: Response) => {
 		}
 
 		empire[itemArray[item.type]] += Math.round(item.amount * 0.75)
-
+		empire.networth = getNetworth(empire)
 		await item.remove()
 		await empire.save()
 		return res.json({ success: 'Item recalled' })
