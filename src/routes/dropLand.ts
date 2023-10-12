@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express'
 import { BUILD_COST } from '../config/conifg'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
+import Clan from '../entity/Clan'
 
 import { useTurnInternal } from './useturns'
 import user from '../middleware/user'
@@ -62,6 +63,11 @@ const drop = async (req: Request, res: Response) => {
 
 	const empire = await Empire.findOne({ id: empireId })
 
+	let clan = null
+	if (empire.clanId !== 0) {
+		clan = await Clan.findOne({ id: empire.clanId })
+	}
+
 	const { dropRate, canDrop } = getDropAmounts(empire)
 
 	if (drop > canDrop) {
@@ -87,7 +93,7 @@ const drop = async (req: Request, res: Response) => {
 				dropAmount = dropRate
 			}
 			// use one turn
-			let oneTurn = useTurnInternal('drop', 1, empire, true)
+			let oneTurn = useTurnInternal('drop', 1, empire, clan, true)
 			// console.log(oneTurn)
 			let turnRes = oneTurn[0]
 			// extract turn info from result and put individual object in result array

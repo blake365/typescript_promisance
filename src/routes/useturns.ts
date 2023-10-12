@@ -1,6 +1,7 @@
 import { min } from 'class-validator'
 import { Request, Response, Router } from 'express'
 import Empire from '../entity/Empire'
+import Clan from '../entity/Clan'
 import {
 	calcPCI,
 	calcSizeBonus,
@@ -147,11 +148,25 @@ export const useTurn = async (
 
 		expenses -= Math.round(expenses * expensesBonus)
 
-		//TODO: war tax
+		//war tax
 		let wartax = 0
+		if (empire.clanId !== 0) {
+			let clan = await Clan.findOneOrFail({ id: empire.clanId })
+
+			// passive wartax
+			if (clan.enemies.length > 0) {
+				wartax += (clan.enemies.length * empire.networth) / 100
+				// active war tax
+				if (type === 'war') {
+					wartax += expenses / 10
+				}
+			}
+
+			wartax = Math.ceil(wartax)
+		}
 
 		// net income
-		let money = Math.round(income - expenses)
+		let money = Math.round(income - (expenses + wartax))
 		// console.log(money)
 
 		empire.cash += money
@@ -555,6 +570,7 @@ export const useTurnInternal = (
 	type: string,
 	turns: number,
 	empire: Empire,
+	clan: Clan,
 	condensed: boolean
 ) => {
 	let taken: number = 0
@@ -665,11 +681,22 @@ export const useTurnInternal = (
 			income = Math.round(income * 1.25)
 		}
 
-		//TODO: war tax
+		//war tax
 		let wartax = 0
+		if (empire.clanId !== 0) {
+			// passive wartax
+			if (clan && clan.enemies.length > 0) {
+				wartax += (clan.enemies.length * empire.networth) / 100
+				// active war tax
+				if (type === 'war') {
+					wartax += expenses / 10
+				}
+			}
+			wartax = Math.ceil(wartax)
+		}
 
 		// net income
-		let money = income - (expenses + wartax)
+		let money = Math.round(income - (expenses + wartax))
 
 		// empire.cash += money
 

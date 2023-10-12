@@ -7,6 +7,7 @@ import EmpireEffect from '../entity/EmpireEffect'
 import Clan from '../entity/Clan'
 import { TURNS_PROTECTION } from '../config/conifg'
 import bcrypt from 'bcrypt'
+import { createNewsEvent } from '../util/helpers'
 
 const Filter = require('bad-words')
 
@@ -267,7 +268,7 @@ const getClan = async (req: Request, res: Response) => {
 
 const getClanMembers = async (req: Request, res: Response) => {
 	let { clanId } = req.body
-
+	// console.log(req.body)
 	try {
 		const empires = await Empire.find({
 			select: [
@@ -299,11 +300,13 @@ const getClanMembers = async (req: Request, res: Response) => {
 				'peasants',
 				'turns',
 				'storedturns',
+				'diminishingReturns',
 			],
 			where: { clanId },
 			order: { networth: 'DESC' },
 		})
 
+		// console.log(empires)
 		return res.json(empires)
 	} catch (err) {
 		console.log(err)
@@ -470,6 +473,179 @@ const removeClanRole = async (req: Request, res: Response) => {
 	}
 }
 
+const declareWar = async (req: Request, res: Response) => {
+	let { empireId, clanId, enemyClanId } = req.body
+
+	try {
+		const empire = await Empire.findOneOrFail({
+			where: { id: empireId },
+		})
+
+		if (empire.clanId === 0) {
+			return res.status(400).json({ error: 'You are not in a clan' })
+		}
+
+		const clan = await Clan.findOneOrFail({
+			where: { id: empire.clanId },
+		})
+
+		const enemyClan = await Clan.findOneOrFail({
+			where: { id: enemyClanId },
+		})
+
+		const enemyLeader = await Empire.findOneOrFail({
+			where: { id: enemyClan.empireIdLeader },
+		})
+
+		if (
+			clan.empireIdLeader !== empire.id ||
+			clan.empireIdAssistant !== empire.id
+		) {
+			return res
+				.status(400)
+				.json({ error: 'You are not in a position of power' })
+		}
+
+		if (clan.enemies.includes(clanId)) {
+			return res.status(400).json({ error: 'Clan is already an enemy' })
+		}
+
+		enemyClan.enemies.push(clanId)
+		clan.enemies.push(enemyClanId)
+
+		await enemyClan.save()
+		await clan.save()
+
+		let pubContent = `${clan.clanName} has declared war on ${enemyClan.clanName}!`
+		let content = `${clan.clanName} has declared war on you!`
+
+		await createNewsEvent(
+			content,
+			pubContent,
+			empireId,
+			empire.name,
+			enemyClan.empireIdLeader,
+			enemyLeader.name,
+			'war',
+			'success'
+		)
+
+		return res.json(clan)
+	} catch (err) {
+		console.log(err)
+		return res
+			.status(500)
+			.json({ error: 'Something went wrong when declaring war' })
+	}
+}
+
+const offerPeace = async (req: Request, res: Response) => {
+	const { empireId, clanId, enemyClanId } = req.body
+
+	try {
+		const empire = await Empire.findOneOrFail({
+			where: { id: empireId },
+		})
+
+		if (empire.clanId === 0) {
+			return res.status(400).json({ error: 'You are not in a clan' })
+		}
+
+		const clan = await Clan.findOneOrFail({
+			where: { id: empire.clanId },
+		})
+
+		const enemyClan = await Clan.findOneOrFail({
+			where: { id: enemyClanId },
+		})
+
+		const enemyLeader = await Empire.findOneOrFail({
+			where: { id: enemyClan.empireIdLeader },
+		})
+
+		if (
+			clan.empireIdLeader !== empire.id ||
+			clan.empireIdAssistant !== empire.id
+		) {
+			return res
+				.status(400)
+				.json({ error: 'You are not in a position of power' })
+		}
+
+		if (!clan.enemies.includes(clanId)) {
+			return res.status(400).json({ error: 'Clan is not an enemy' })
+		}
+
+		if (clan.peaceOffer.includes(enemyClanId)) {
+			// already offered peace
+			return res
+				.status(400)
+				.json({ error: 'You have already offered peace to this clan' })
+		}
+
+		if (enemyClan.peaceOffer.includes(clanId)) {
+			// peace has been offered by other clan, remove from enemies
+			enemyClan.enemies = enemyClan.enemies.filter((id) => id !== clanId)
+			clan.enemies = clan.enemies.filter((id) => id !== enemyClanId)
+			enemyClan.peaceOffer = enemyClan.peaceOffer.filter((id) => id !== clanId)
+			clan.peaceOffer = clan.peaceOffer.filter((id) => id !== enemyClanId)
+			// peace news event
+			let content = `${clan.clanName} has offered peace to end the war!`
+			let pubContent = `${clan.clanName} has offered peace to end the war with ${enemyClan.clanName}!`
+
+			await createNewsEvent(
+				content,
+				pubContent,
+				empireId,
+				empire.name,
+				enemyClan.empireIdLeader,
+				enemyLeader.name,
+				'peace',
+				'success'
+			)
+		}
+
+		if (clan.peaceOffer.includes(enemyClanId)) {
+			// you have already offered peace
+			return res.status(400).json({
+				error: `You have already offered peace to ${enemyClan.clanName}`,
+			})
+		}
+
+		if (
+			clan.enemies.includes(enemyClanId) &&
+			!clan.peaceOffer.includes(enemyClanId)
+		) {
+			// you are at war and have not offered peace
+			clan.peaceOffer.push(enemyClanId)
+			enemyClan.peaceOffer.push(clanId)
+			// peace is offered by one side
+			let content = `${clan.clanName} has offered peace to end the war!`
+			let pubContent = `${clan.clanName} has offered peace to end the war with ${enemyClan.clanName}!`
+			await createNewsEvent(
+				content,
+				pubContent,
+				empireId,
+				empire.name,
+				enemyClan.empireIdLeader,
+				enemyLeader.name,
+				'peace',
+				'shielded'
+			)
+		}
+
+		await enemyClan.save()
+		await clan.save()
+
+		return res.json(clan)
+	} catch (err) {
+		console.log(err)
+		return res
+			.status(500)
+			.json({ error: 'Something went wrong when declaring peace' })
+	}
+}
+
 const router = Router()
 
 router.post('/create', user, auth, createClan)
@@ -481,5 +657,7 @@ router.get('/getClans', getClans)
 router.get('/getClansData', getClansData)
 router.post('/assignRole', user, auth, assignClanRole)
 router.post('/removeRole', user, auth, removeClanRole)
+router.post('/declareWar', user, auth, declareWar)
+router.post('/offerPeace', user, auth, offerPeace)
 
 export default router

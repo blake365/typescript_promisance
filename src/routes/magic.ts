@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express'
 import { raceArray } from '../config/races'
 import { eraArray } from '../config/eras'
 import Empire from '../entity/Empire'
+import Clan from '../entity/Clan'
 
 import { useTurnInternal } from './useturns'
 import { baseCost } from './spells/general'
@@ -66,6 +67,11 @@ const magic = async (req: Request, res: Response) => {
 
 	const empire = await Empire.findOne({ id: empireId })
 
+	let clan = null
+	if (empire.clanId !== 0) {
+		clan = await Clan.findOne({ id: empire.clanId })
+	}
+
 	// console.log('food:', empire.food, 'cash:', empire.cash, empire.turns, empire.runes)
 	if (empire.trpWiz === 0) {
 		return res.json({
@@ -88,7 +94,7 @@ const magic = async (req: Request, res: Response) => {
 				if (spellCheck(empire, cost, turns) === 'passed') {
 					empire.runes -= cost
 					// use two turns to cast spell
-					let spellTurns = useTurnInternal('magic', turns, empire, true)
+					let spellTurns = useTurnInternal('magic', turns, empire, clan, true)
 					let spellRes = spellTurns[0]
 					// console.log('spell res', spellRes)
 					spellTurns = spellTurns[0]
@@ -149,7 +155,7 @@ const magic = async (req: Request, res: Response) => {
 				if (spellCheck(empire, cost, turns) === 'passed') {
 					empire.runes -= cost
 					// use two turns to cast spell
-					let spellTurns = useTurnInternal('magic', turns, empire, true)
+					let spellTurns = useTurnInternal('magic', turns, empire, clan, true)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 					if (!spellRes?.messages?.desertion) {
@@ -216,7 +222,7 @@ const magic = async (req: Request, res: Response) => {
 				if (spellCheck(empire, cost, turns) === 'passed') {
 					empire.runes -= cost
 					// use two turns to cast spell
-					let spellTurns = useTurnInternal('magic', turns, empire, true)
+					let spellTurns = useTurnInternal('magic', turns, empire, clan, true)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 					if (!spellRes?.messages?.desertion) {
@@ -293,7 +299,7 @@ const magic = async (req: Request, res: Response) => {
 					} else {
 						empire.runes -= cost
 						// use two turns to cast spell
-						let spellTurns = useTurnInternal('magic', turns, empire, true)
+						let spellTurns = useTurnInternal('magic', turns, empire, clan, true)
 						let spellRes = spellTurns[0]
 						spellTurns = spellTurns[0]
 						if (!spellRes?.messages?.desertion) {
@@ -368,7 +374,7 @@ const magic = async (req: Request, res: Response) => {
 					} else {
 						empire.runes -= cost
 						// use two turns to cast spell
-						let spellTurns = useTurnInternal('magic', turns, empire, true)
+						let spellTurns = useTurnInternal('magic', turns, empire, clan, true)
 						let spellRes = spellTurns[0]
 						spellTurns = spellTurns[0]
 						if (!spellRes?.messages?.desertion) {
@@ -431,7 +437,7 @@ const magic = async (req: Request, res: Response) => {
 				if (spellCheck(empire, cost, turns) === 'passed') {
 					empire.runes -= cost
 					// use two turns to cast spell
-					let spellTurns = useTurnInternal('magic', turns, empire, true)
+					let spellTurns = useTurnInternal('magic', turns, empire, clan, true)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 					if (!spellRes?.messages?.desertion) {
@@ -488,7 +494,7 @@ const magic = async (req: Request, res: Response) => {
 				if (spellCheck(empire, cost, turns) === 'passed') {
 					empire.runes -= cost
 					// use two turns to cast spell
-					let spellTurns = useTurnInternal('magic', turns, empire, true)
+					let spellTurns = useTurnInternal('magic', turns, empire, clan, true)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 					if (!spellRes?.messages?.desertion) {
@@ -542,13 +548,18 @@ const magic = async (req: Request, res: Response) => {
 	return res.json(resultArray)
 }
 
-const attackSpell = async (attacker: Empire, spellCost: number, spell) => {
+const attackSpell = async (
+	attacker: Empire,
+	clan,
+	spellCost: number,
+	spell
+) => {
 	const cost = spellCost
 	const turns = 2
 	if (spellCheck(attacker, cost, turns) === 'passed') {
 		attacker.runes -= cost
 		// use two turns to cast spell
-		let spellTurns = useTurnInternal('magic', turns, attacker, true)
+		let spellTurns = useTurnInternal('magic', turns, attacker, clan, true)
 		let spellRes = spellTurns[0]
 		spellTurns = spellTurns[0]
 		let cast: Cast = await spell
@@ -612,6 +623,11 @@ const magicAttack = async (req: Request, res: Response) => {
 	try {
 		const attacker = await Empire.findOne({ id: attackerId })
 		const defender = await Empire.findOne({ id: defenderId })
+
+		let clan = null
+		if (attacker.clanId !== 0) {
+			clan = await Clan.findOne({ id: attacker.clanId })
+		}
 		// console.log('food:', empire.food, 'cash:', empire.cash, empire.turns, empire.runes)
 		if (attacker.trpWiz === 0) {
 			return res.json({
@@ -765,6 +781,7 @@ const magicAttack = async (req: Request, res: Response) => {
 				console.log('blast start')
 				spellTurns = await attackSpell(
 					attacker,
+					clan,
 					blast_cost(base),
 					blast_cast(attacker, defender)
 				)
@@ -774,6 +791,7 @@ const magicAttack = async (req: Request, res: Response) => {
 				console.log('struct start')
 				spellTurns = await attackSpell(
 					attacker,
+					clan,
 					struct_cost(base),
 					struct_cast(attacker, defender)
 				)
@@ -782,6 +800,7 @@ const magicAttack = async (req: Request, res: Response) => {
 				console.log('storm start')
 				spellTurns = await attackSpell(
 					attacker,
+					clan,
 					storm_cost(base),
 					storm_cast(attacker, defender)
 				)
@@ -789,6 +808,7 @@ const magicAttack = async (req: Request, res: Response) => {
 				console.log('steal start')
 				spellTurns = await attackSpell(
 					attacker,
+					clan,
 					steal_cost(base),
 					steal_cast(attacker, defender)
 				)
@@ -796,6 +816,7 @@ const magicAttack = async (req: Request, res: Response) => {
 				console.log('runes start')
 				spellTurns = await attackSpell(
 					attacker,
+					clan,
 					runes_cost(base),
 					runes_cast(attacker, defender)
 				)
@@ -803,6 +824,7 @@ const magicAttack = async (req: Request, res: Response) => {
 				console.log('fight start')
 				spellTurns = await attackSpell(
 					attacker,
+					clan,
 					fight_cost(base),
 					fight_cast(attacker, defender)
 				)
@@ -810,6 +832,7 @@ const magicAttack = async (req: Request, res: Response) => {
 				console.log('spy start')
 				spellTurns = await attackSpell(
 					attacker,
+					clan,
 					spy_cost(base),
 					spy_cast(attacker, defender)
 				)

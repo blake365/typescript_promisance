@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express'
 import { BUILD_COST } from '../config/conifg'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
+import Clan from '../entity/Clan'
 
 import { useTurnInternal } from './useturns'
 import user from '../middleware/user'
@@ -48,6 +49,11 @@ const build = async (req: Request, res: Response) => {
 	}
 
 	const empire = await Empire.findOne({ id: empireId })
+
+	let clan = null
+	if (empire.clanId !== 0) {
+		clan = await Clan.findOne({ id: empire.clanId })
+	}
 
 	const { canBuild, buildRate, buildCost } = getBuildAmounts(empire)
 
@@ -99,7 +105,7 @@ const build = async (req: Request, res: Response) => {
 					buildAmount = buildRate
 				}
 				// use one turn
-				let oneTurn = useTurnInternal('build', 1, empire, true)
+				let oneTurn = useTurnInternal('build', 1, empire, clan, true)
 				// console.log(oneTurn)
 				let turnRes = oneTurn[0]
 				if (!turnRes?.messages?.desertion) {
@@ -176,7 +182,7 @@ const build = async (req: Request, res: Response) => {
 
 const router = Router()
 
-//TODO: needs user and auth middleware
+// needs user and auth middleware
 router.post('/', user, auth, build)
 
 export default router

@@ -245,7 +245,9 @@ const attack = async (req: Request, res: Response) => {
 	// only send troops relevant to the attack type
 	// console.log(req.body)
 	// console.log(req.params)
-	const { attackType, defenderId, type, number, empireId } = req.body
+	const { attackType, defenderId, number, empireId } = req.body
+
+	let { type } = req.body
 
 	if (type !== 'attack') {
 		return res.status(500).send('Invalid')
@@ -427,6 +429,7 @@ const attack = async (req: Request, res: Response) => {
 		defPower *= defender.health / 100
 
 		//TODO: war flag +20% when at war with other clan
+		let clan = null
 		if (attacker.clanId !== 0) {
 			// attacker is in a clan
 
@@ -437,6 +440,7 @@ const attack = async (req: Request, res: Response) => {
 			if (clan.enemies.includes(defender.clanId)) {
 				// clan is at war with defender
 				offPower *= 1.2
+				type = 'war'
 			}
 		}
 
@@ -527,7 +531,7 @@ const attack = async (req: Request, res: Response) => {
 				attacker.trpWiz *= 0.98
 			}
 
-			let attackTurns = useTurnInternal('attack', 2, attacker, true)
+			let attackTurns = useTurnInternal(type, 2, attacker, clan, true)
 
 			let attackRes = attackTurns[0]
 			attackTurns = attackTurns[0]
@@ -557,8 +561,9 @@ const attack = async (req: Request, res: Response) => {
 			attacker.trpWiz += attackRes.trpWiz
 			attacker.turns -= 2
 			attacker.turnsUsed += 2
-			attacker.attacks++
-
+			if (type !== 'war') {
+				attacker.attacks++
+			}
 			attacker.offTotal++
 			defender.defTotal++
 

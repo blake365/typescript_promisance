@@ -78,6 +78,9 @@ export default class Clan extends Model {
 	@Column({ type: 'simple-array', default: '', nullable: true })
 	enemies: number[]
 
+	@Column({ type: 'simple-array', default: '', nullable: true })
+	peaceOffer: number[]
+
 	@BeforeInsert()
 	async hashPassword() {
 		this.clanPassword = await bcrypt.hash(this.clanPassword, 6)

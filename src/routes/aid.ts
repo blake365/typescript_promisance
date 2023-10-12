@@ -3,6 +3,7 @@ import Empire from '../entity/Empire'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { useTurnInternal } from './useturns'
+import Clan from '../entity/Clan'
 
 import { eraArray } from '../config/eras'
 import { createNewsEvent } from '../util/helpers'
@@ -81,7 +82,12 @@ const sendAid = async (req: Request, res: Response) => {
 				.json({ error: 'Cannot send or receive aid while in protection' })
 		}
 
-		let aidTurns = useTurnInternal('aid', turns, sender, true)
+		let clan = null
+		if (sender.clanId !== 0) {
+			clan = await Clan.findOne({ id: sender.clanId })
+		}
+
+		let aidTurns = useTurnInternal('aid', turns, sender, clan, true)
 		let spellRes = aidTurns[0]
 		console.log('spell res', spellRes)
 		aidTurns = aidTurns[0]
