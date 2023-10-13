@@ -23,6 +23,11 @@ export default class ClanMessage extends Model {
 	empireId: number
 
 	@Column({
+		default: '',
+	})
+	empireName: string
+
+	@Column({
 		type: 'text',
 	})
 	clanMessageBody: string
@@ -38,4 +43,13 @@ export default class ClanMessage extends Model {
 		default: 0,
 	})
 	clanMessageFlags: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	clanId: number
+
+	@Column({ type: 'simple-array', default: '', nullable: true })
+	seenBy: string[]
 }

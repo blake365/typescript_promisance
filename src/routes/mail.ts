@@ -1,8 +1,9 @@
 import EmpireMessage from '../entity/EmpireMessage'
+import ClanMessage from '../entity/ClanMessage'
 import { Router, Request, Response } from 'express'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
-import { getConnection } from 'typeorm'
+import { Not, Any, getConnection } from 'typeorm'
 
 const Filter = require('bad-words')
 
@@ -229,6 +230,100 @@ const markRead = async (req: Request, res: Response) => {
 	return res.json({ success: true })
 }
 
+const getClanMessages = async (req: Request, res: Response) => {
+	const { clanId } = req.body
+
+	try {
+		const messages = await ClanMessage.find({
+			where: { clanId: clanId },
+			order: { createdAt: 'ASC' },
+		})
+
+		res.status(200).json(messages)
+	} catch (error) {
+		res.status(500).json({ message: error.message })
+	}
+}
+
+const postClanMessage = async (req: Request, res: Response) => {
+	const { empireId, empireName, clanMessageBody, clanId } = req.body
+	// console.log(req.body)
+	const filter = new Filter()
+	const message = filter.clean(clanMessageBody)
+
+	try {
+		const newMessage = ClanMessage.create({
+			empireId,
+			empireName,
+			clanMessageBody: message,
+			clanId,
+			seenBy: [empireId],
+		})
+
+		await newMessage.save()
+		res.status(201).json(newMessage)
+	} catch (error) {
+		res.status(500).json({ message: error.message })
+	}
+}
+
+const unreadClanMessages = async (req: Request, res: Response) => {
+	// count unread messages
+	let { empireId, clanId } = req.body
+	// console.log(req.body)
+	empireId = empireId.toString()
+	try {
+		const messages = await ClanMessage.find({
+			where: {
+				clanId: clanId,
+			},
+		})
+
+		let newMessages = 0
+		messages.forEach((message) => {
+			// console.log(message.seenBy)
+			if (!message.seenBy.includes(empireId)) {
+				newMessages++
+			}
+		})
+
+		// console.log(newMessages)
+		res.status(200).json(newMessages)
+	} catch (error) {
+		console.log(error)
+		res.status(500).json({ message: error.message })
+	}
+}
+
+const readClanMessages = async (req: Request, res: Response) => {
+	// mark messages as read
+	let { empireId, clanId } = req.body
+	// console.log(req.body)
+	empireId = empireId.toString()
+	try {
+		const messages = await ClanMessage.find({
+			where: {
+				clanId: clanId,
+			},
+			order: { createdAt: 'DESC' },
+		})
+
+		// console.log(messages)
+
+		messages.forEach(async (message) => {
+			if (!message.seenBy.includes(empireId)) {
+				message.seenBy.push(empireId)
+				await message.save()
+			}
+		})
+
+		res.status(200).json({ success: true })
+	} catch (error) {
+		console.log(error)
+		res.status(500).json({ message: error })
+	}
+}
+
 const deleteMessage = async (req: Request, res: Response) => {}
 
 const router = Router()
@@ -236,9 +331,13 @@ const router = Router()
 router.post('/conversations', user, auth, getConversations)
 router.post('/messages', user, auth, getMessages)
 router.post('/message/new', user, auth, postMessage)
-router.get('/:id/count', countNew)
+router.get('/:id/count', user, auth, countNew)
 router.get('/:id/check', user, auth, checkForNew)
 router.get('/:id/read', user, auth, markRead)
 // router.delete('/message', deleteMessage)
+router.post('/clan', user, auth, getClanMessages)
+router.post('/clan/new', user, auth, postClanMessage)
+router.post('/clan/read', user, auth, readClanMessages)
+router.post('/clan/unread', user, auth, unreadClanMessages)
 
 export default router

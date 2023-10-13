@@ -75,7 +75,7 @@ export const useTurn = async (
 
 		if (type === 'explore') {
 			turnResult = exploreAlt(empire, lucky)
-			console.log(turnResult)
+			// console.log(turnResult)
 		}
 
 		// console.log(lucky)
