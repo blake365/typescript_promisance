@@ -252,6 +252,7 @@ const getClan = async (req: Request, res: Response) => {
 				'empireIdAgent1',
 				'empireIdAgent2',
 				'enemies',
+				'peaceOffer',
 			],
 			where: { id: clanId },
 		})
@@ -350,6 +351,7 @@ const getClansData = async (req: Request, res: Response) => {
 				'empireIdAgent1',
 				'empireIdAgent2',
 				'enemies',
+				'peaceOffer',
 			],
 			where: { clanMembers: Not(0) },
 		})
@@ -476,6 +478,7 @@ const removeClanRole = async (req: Request, res: Response) => {
 const declareWar = async (req: Request, res: Response) => {
 	let { empireId, clanId, enemyClanId } = req.body
 
+	console.log(req.body)
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
@@ -498,7 +501,7 @@ const declareWar = async (req: Request, res: Response) => {
 		})
 
 		if (
-			clan.empireIdLeader !== empire.id ||
+			clan.empireIdLeader !== empire.id &&
 			clan.empireIdAssistant !== empire.id
 		) {
 			return res
@@ -506,12 +509,27 @@ const declareWar = async (req: Request, res: Response) => {
 				.json({ error: 'You are not in a position of power' })
 		}
 
-		if (clan.enemies.includes(clanId)) {
+		let enemies = []
+		if (clan.enemies) {
+			enemies = clan.enemies.toString().split(',')
+		}
+
+		console.log(enemies)
+		if (enemies.includes(enemyClanId.toString())) {
 			return res.status(400).json({ error: 'Clan is already an enemy' })
 		}
 
-		enemyClan.enemies.push(clanId)
-		clan.enemies.push(enemyClanId)
+		if (clan.enemies === null) {
+			clan.enemies = [enemyClanId]
+		} else {
+			clan.enemies.push(enemyClanId)
+		}
+
+		if (enemyClan.enemies === null) {
+			enemyClan.enemies = [clanId]
+		} else {
+			enemyClan.enemies.push(clanId)
+		}
 
 		await enemyClan.save()
 		await clan.save()
@@ -542,6 +560,8 @@ const declareWar = async (req: Request, res: Response) => {
 const offerPeace = async (req: Request, res: Response) => {
 	const { empireId, clanId, enemyClanId } = req.body
 
+	console.log(req.body)
+
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
@@ -564,7 +584,7 @@ const offerPeace = async (req: Request, res: Response) => {
 		})
 
 		if (
-			clan.empireIdLeader !== empire.id ||
+			clan.empireIdLeader !== empire.id &&
 			clan.empireIdAssistant !== empire.id
 		) {
 			return res
@@ -572,26 +592,54 @@ const offerPeace = async (req: Request, res: Response) => {
 				.json({ error: 'You are not in a position of power' })
 		}
 
-		if (!clan.enemies.includes(clanId)) {
+		// rework enemy and offer checking
+		let enemies = []
+		let peaceOffer = []
+		let enemyPeaceOffer = []
+		let enemyEnemies = []
+
+		if (clan.enemies) {
+			enemies = clan.enemies.toString().split(',')
+		}
+
+		if (clan.peaceOffer) {
+			peaceOffer = clan.peaceOffer.toString().split(',')
+		}
+
+		if (enemyClan.peaceOffer) {
+			enemyPeaceOffer = enemyClan.peaceOffer.toString().split(',')
+		}
+
+		if (enemyClan.enemies) {
+			enemyEnemies = enemyClan.enemies.toString().split(',')
+		}
+
+		console.log(enemies)
+		console.log(peaceOffer)
+		console.log(enemyPeaceOffer)
+		console.log(enemyEnemies)
+		// console.log(enemies.includes(clan.id.toString()))
+
+		if (enemies.includes(clan.id.toString())) {
 			return res.status(400).json({ error: 'Clan is not an enemy' })
 		}
 
-		if (clan.peaceOffer.includes(enemyClanId)) {
+		if (peaceOffer.includes(enemyClanId.toString())) {
 			// already offered peace
 			return res
 				.status(400)
 				.json({ error: 'You have already offered peace to this clan' })
 		}
 
-		if (enemyClan.peaceOffer.includes(clanId)) {
-			// peace has been offered by other clan, remove from enemies
-			enemyClan.enemies = enemyClan.enemies.filter((id) => id !== clanId)
-			clan.enemies = clan.enemies.filter((id) => id !== enemyClanId)
-			enemyClan.peaceOffer = enemyClan.peaceOffer.filter((id) => id !== clanId)
-			clan.peaceOffer = clan.peaceOffer.filter((id) => id !== enemyClanId)
+		if (enemyPeaceOffer.includes(clanId.toString())) {
+			// peace has been offered by other clan, you are accepting peace, remove from enemies
+			enemyClan.enemies = enemyEnemies.filter((id) => id !== clanId)
+			clan.enemies = enemies.filter((id) => id !== enemyClanId)
+			enemyClan.peaceOffer = enemyPeaceOffer.filter((id) => id !== clanId)
+			clan.peaceOffer = peaceOffer.filter((id) => id !== enemyClanId)
 			// peace news event
-			let content = `${clan.clanName} has offered peace to end the war!`
-			let pubContent = `${clan.clanName} has offered peace to end the war with ${enemyClan.clanName}!`
+			let content = `${clan.clanName} has accepted the peace offering to end the war!`
+			let pubContent = `${clan.clanName} has accepted the peace offering to end the war with ${enemyClan.clanName}!`
 
 			await createNewsEvent(
 				content,
@@ -605,7 +653,7 @@ const offerPeace = async (req: Request, res: Response) => {
 			)
 		}
 
-		if (clan.peaceOffer.includes(enemyClanId)) {
+		if (peaceOffer.includes(enemyClanId.toString())) {
 			// you have already offered peace
 			return res.status(400).json({
 				error: `You have already offered peace to ${enemyClan.clanName}`,
@@ -613,10 +661,10 @@ const offerPeace = async (req: Request, res: Response) => {
 		}
 
 		if (
-			clan.enemies.includes(enemyClanId) &&
-			!clan.peaceOffer.includes(enemyClanId)
+			enemies.includes(enemyClanId.toString()) &&
+			!peaceOffer.includes(enemyClanId.toString())
 		) {
-			// you are at war and have not offered peace
+			// you are at war and have not offered peace yet, first offer
 			clan.peaceOffer.push(enemyClanId)
 			enemyClan.peaceOffer.push(clanId)
 			// peace is offered by one side

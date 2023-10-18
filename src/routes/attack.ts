@@ -436,8 +436,13 @@ const attack = async (req: Request, res: Response) => {
 			// get attacker clan
 			let clan = await Clan.findOne({ id: attacker.clanId })
 
+			let enemies = []
+			if (clan.enemies) {
+				enemies = clan.enemies.toString().split(',')
+			}
 			// check if clan is at war
-			if (clan.enemies.includes(defender.clanId)) {
+			if (enemies.includes(defender.clanId.toString())) {
+				console.log('clan is at war')
 				// clan is at war with defender
 				offPower *= 1.2
 				type = 'war'
@@ -513,22 +518,22 @@ const attack = async (req: Request, res: Response) => {
 				// the attacker is ashamed, troops desert
 				returnText +=
 					'Your troops are ashamed to fight such a weak opponent, many desert...'
-				attacker.trpArm *= 0.98
-				attacker.trpLnd *= 0.98
-				attacker.trpFly *= 0.98
-				attacker.trpSea *= 0.98
-				attacker.trpWiz *= 0.98
+				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
+				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
+				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
+				attacker.trpSea = Math.round(0.98 * attacker.trpSea)
+				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
 			}
 
 			if (attacker.networth < defender.networth * 0.33) {
 				// the attacker is fearful, troops desert
 				returnText +=
 					'Your troops are fearful of fighting such a strong opponent, many desert...'
-				attacker.trpArm *= 0.98
-				attacker.trpLnd *= 0.98
-				attacker.trpFly *= 0.98
-				attacker.trpSea *= 0.98
-				attacker.trpWiz *= 0.98
+				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
+				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
+				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
+				attacker.trpSea = Math.round(0.98 * attacker.trpSea)
+				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
 			}
 
 			let attackTurns = useTurnInternal(type, 2, attacker, clan, true)

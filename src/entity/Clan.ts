@@ -75,11 +75,11 @@ export default class Clan extends Model {
 	@Column({ type: 'varchar', nullable: true })
 	clanPic: string
 
-	@Column({ type: 'simple-array', default: '', nullable: true })
-	enemies: number[]
+	@Column({ type: 'simple-array', default: null, nullable: true })
+	enemies: string[]
 
-	@Column({ type: 'simple-array', default: '', nullable: true })
-	peaceOffer: number[]
+	@Column({ type: 'simple-array', default: null, nullable: true })
+	peaceOffer: string[]
 
 	@BeforeInsert()
 	async hashPassword() {

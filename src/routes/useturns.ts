@@ -154,7 +154,11 @@ export const useTurn = async (
 			let clan = await Clan.findOneOrFail({ id: empire.clanId })
 
 			// passive wartax
-			if (clan.enemies.length > 0) {
+			let enemies = []
+			if (clan.enemies) {
+				enemies = clan.enemies.toString().split(',')
+			}
+			if (enemies.length > 0) {
 				wartax += (clan.enemies.length * empire.networth) / 100
 				// active war tax
 				if (type === 'war') {
@@ -685,11 +689,14 @@ export const useTurnInternal = (
 		let wartax = 0
 		if (empire.clanId !== 0) {
 			// passive wartax
-			if (clan && clan.enemies.length > 0) {
-				wartax += (clan.enemies.length * empire.networth) / 100
-				// active war tax
-				if (type === 'war') {
-					wartax += expenses / 10
+			if (clan && clan.enemies) {
+				let enemies = clan.enemies.toString().split(',')
+				if (enemies.length > 0) {
+					wartax += (clan.enemies.length * empire.networth) / 100
+					// active war tax
+					if (type === 'war') {
+						wartax += expenses / 10
+					}
 				}
 			}
 			wartax = Math.ceil(wartax)
