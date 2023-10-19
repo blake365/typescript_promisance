@@ -11,6 +11,7 @@ import Model from './Model'
 import bcrypt from 'bcrypt'
 import { Exclude } from 'class-transformer'
 import Empire from './Empire'
+import ClanRelation from './ClanRelation'
 // import Empire from './Empire'
 
 @Entity('clans')
@@ -80,6 +81,9 @@ export default class Clan extends Model {
 
 	@Column({ type: 'simple-array', default: null, nullable: true })
 	peaceOffer: string[]
+
+	@OneToMany(() => ClanRelation, (relation) => relation.clan)
+	relation: ClanRelation[]
 
 	@BeforeInsert()
 	async hashPassword() {

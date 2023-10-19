@@ -1,10 +1,22 @@
-import { Entity, Column, Index, PrimaryGeneratedColumn } from 'typeorm'
+import {
+	Entity,
+	Column,
+	Index,
+	PrimaryGeneratedColumn,
+	ManyToOne,
+} from 'typeorm'
 import Model from './Model'
+import Clan from './Clan'
 
 // import Empire from './Empire'
 
 @Entity('clan relations')
 export default class ClanRelation extends Model {
+	constructor(clanRelation: Partial<ClanRelation>) {
+		super()
+		Object.assign(this, clanRelation)
+	}
+
 	@Index()
 	@PrimaryGeneratedColumn()
 	clanRelation_id: number
@@ -25,14 +37,18 @@ export default class ClanRelation extends Model {
 
 	@Index()
 	@Column({
-		type: 'int',
-		default: 0,
+		type: 'varchar',
+		default: '',
+		nullable: true,
 	})
-	clanRelationFlags: number
+	clanRelationFlags: string
 
 	@Column({
 		type: 'int',
 		default: 0,
 	})
 	clanNewsTime: number
+
+	@ManyToOne(() => Clan, (clan) => clan.relation, { onDelete: 'SET NULL' })
+	clan: Clan
 }

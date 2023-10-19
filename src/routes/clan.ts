@@ -8,6 +8,7 @@ import Clan from '../entity/Clan'
 import { TURNS_PROTECTION } from '../config/conifg'
 import bcrypt from 'bcrypt'
 import { createNewsEvent } from '../util/helpers'
+import ClanRelation from '../entity/ClanRelation'
 
 const Filter = require('bad-words')
 
@@ -240,7 +241,7 @@ const getClan = async (req: Request, res: Response) => {
 	let { clanId } = req.body
 
 	try {
-		const clan = await Clan.findOneOrFail({
+		const clan = await Clan.find({
 			select: [
 				'id',
 				'clanName',
@@ -255,6 +256,7 @@ const getClan = async (req: Request, res: Response) => {
 				'peaceOffer',
 			],
 			where: { id: clanId },
+			relations: ['relation'],
 		})
 
 		// console.log(clan)
@@ -354,6 +356,7 @@ const getClansData = async (req: Request, res: Response) => {
 				'peaceOffer',
 			],
 			where: { clanMembers: Not(0) },
+			relations: ['relation'],
 		})
 
 		if (clans.length === 0) {
@@ -490,10 +493,12 @@ const declareWar = async (req: Request, res: Response) => {
 
 		const clan = await Clan.findOneOrFail({
 			where: { id: empire.clanId },
+			relations: ['relation'],
 		})
 
 		const enemyClan = await Clan.findOneOrFail({
 			where: { id: enemyClanId },
+			relations: ['relation'],
 		})
 
 		const enemyLeader = await Empire.findOneOrFail({
@@ -509,30 +514,67 @@ const declareWar = async (req: Request, res: Response) => {
 				.json({ error: 'You are not in a position of power' })
 		}
 
-		let enemies = []
-		if (clan.enemies) {
-			enemies = clan.enemies.toString().split(',')
-		}
+		// console.log(clan.relation)
 
-		console.log(enemies)
-		if (enemies.includes(enemyClanId.toString())) {
-			return res.status(400).json({ error: 'Clan is already an enemy' })
-		}
+		let relations = clan.relation.map((relation) => {
+			if (relation.clanRelationFlags === 'war') {
+				return relation.c_id2
+			}
+		})
 
-		if (clan.enemies === null) {
-			clan.enemies = [enemyClanId]
+		// console.log(enemyClan.relation)
+
+		let enemyRelations = enemyClan.relation.map((relation) => {
+			if (relation.clanRelationFlags === 'war') {
+				return relation.c_id2
+			}
+		})
+
+		if (relations.includes(enemyClanId) || enemyRelations.includes(clanId)) {
+			return res.status(400).json({ error: 'Clan is already at war' })
 		} else {
-			clan.enemies.push(enemyClanId)
+			let myClanRelation = new ClanRelation({
+				c_id1: clanId,
+				c_id2: enemyClanId,
+				clanRelationFlags: 'war',
+				clan: clan,
+			})
+
+			let enemyClanRelation = new ClanRelation({
+				c_id1: enemyClanId,
+				c_id2: clanId,
+				clanRelationFlags: 'war',
+				clan: enemyClan,
+			})
+
+			await myClanRelation.save()
+			await enemyClanRelation.save()
 		}
 
-		if (enemyClan.enemies === null) {
-			enemyClan.enemies = [clanId]
-		} else {
-			enemyClan.enemies.push(clanId)
-		}
+		// let enemies = []
+		// if (clan.enemies) {
+		// 	enemies = clan.enemies.toString().split(',')
+		// }
 
-		await enemyClan.save()
-		await clan.save()
+		// console.log(enemies)
+		// if (enemies.includes(enemyClanId.toString())) {
+		// 	return res.status(400).json({ error: 'Clan is already an enemy' })
+		// }
+
+		// if (clan.enemies === null) {
+		// 	clan.enemies = [enemyClanId]
+		// } else {
+		// 	clan.enemies.push(enemyClanId)
+		// }
+
+		// if (enemyClan.enemies === null) {
+		// 	enemyClan.enemies = [clanId]
+		// } else {
+		// 	enemyClan.enemies.push(clanId)
+		// }
+
+		// await enemyClan.save()
+		// await clan.save()
 
 		let pubContent = `${clan.clanName} has declared war on ${enemyClan.clanName}!`
 		let content = `${clan.clanName} has declared war on you!`
@@ -573,10 +615,12 @@ const offerPeace = async (req: Request, res: Response) => {
 
 		const clan = await Clan.findOneOrFail({
 			where: { id: empire.clanId },
+			relations: ['relation'],
 		})
 
 		const enemyClan = await Clan.findOneOrFail({
 			where: { id: enemyClanId },
+			relations: ['relation'],
 		})
 
 		const enemyLeader = await Empire.findOneOrFail({
@@ -592,51 +636,63 @@ const offerPeace = async (req: Request, res: Response) => {
 				.json({ error: 'You are not in a position of power' })
 		}
 
-		// rework enemy and offer checking
-		let enemies = []
-		let peaceOffer = []
-		let enemyPeaceOffer = []
-		let enemyEnemies = []
+		// check if you are at war
+		// check if you have already offered peace
+		// check if enemy has already offered peace
+		let myWarRelation = clan.relation.map((relation) => {
+			if (relation.clanRelationFlags === 'war') {
+				return relation.c_id2
+			}
+		})
 
-		if (clan.enemies) {
-			enemies = clan.enemies.toString().split(',')
-		}
+		let myPeaceOffer = clan.relation.map((relation) => {
+			if (relation.clanRelationFlags === 'peace') {
+				return relation.c_id2
+			}
+		})
 
-		if (clan.peaceOffer) {
-			peaceOffer = clan.peaceOffer.toString().split(',')
-		}
+		let enemyPeaceOffer = enemyClan.relation.map((relation) => {
+			if (relation.clanRelationFlags === 'peace') {
+				return relation.c_id2
+			}
+		})
 
-		if (enemyClan.peaceOffer) {
-			enemyPeaceOffer = enemyClan.peaceOffer.toString().split(',')
-		}
-
-		if (enemyClan.enemies) {
-			enemyEnemies = enemyClan.enemies.toString().split(',')
-		}
-
-		console.log(enemies)
-		console.log(peaceOffer)
-		console.log(enemyPeaceOffer)
-		console.log(enemyEnemies)
-		// console.log(enemies.includes(clan.id.toString()))
-
-		if (enemies.includes(clan.id.toString())) {
+		if (!myWarRelation.includes(enemyClanId)) {
 			return res.status(400).json({ error: 'Clan is not an enemy' })
 		}
 
-		if (peaceOffer.includes(enemyClanId.toString())) {
+		if (myPeaceOffer.includes(enemyClanId)) {
 			// already offered peace
 			return res
 				.status(400)
 				.json({ error: 'You have already offered peace to this clan' })
 		}
 
-		if (enemyPeaceOffer.includes(clanId.toString())) {
+		console.log(enemyPeaceOffer)
+		console.log(myPeaceOffer)
+		console.log(myWarRelation)
+
+		if (enemyPeaceOffer.includes(clanId)) {
 			// peace has been offered by other clan, you are accepting peace, remove from enemies
-			enemyClan.enemies = enemyEnemies.filter((id) => id !== clanId)
-			clan.enemies = enemies.filter((id) => id !== enemyClanId)
-			enemyClan.peaceOffer = enemyPeaceOffer.filter((id) => id !== clanId)
-			clan.peaceOffer = peaceOffer.filter((id) => id !== enemyClanId)
+			clan.relation.forEach(async (relation) => {
+				if (
+					relation.c_id2 === enemyClanId &&
+					relation.clanRelationFlags === 'war'
+				) {
+					await relation.remove()
+				}
+			})
+
+			enemyClan.relation.forEach(async (relation) => {
+				if (relation.c_id2 === clanId && relation.clanRelationFlags === 'war') {
+					await relation.remove()
+				} else if (
+					relation.c_id2 === clanId &&
+					relation.clanRelationFlags === 'peace'
+				) {
+					await relation.remove()
+				}
+			})
 			// peace news event
 			let content = `${clan.clanName} has accepted the peace offering to end the war!`
 			let pubContent = `${clan.clanName} has accepted the peace offering to end the war with ${enemyClan.clanName}!`
@@ -653,20 +709,16 @@ const offerPeace = async (req: Request, res: Response) => {
 			)
 		}
 
-		if (peaceOffer.includes(enemyClanId.toString())) {
-			// you have already offered peace
-			return res.status(400).json({
-				error: `You have already offered peace to ${enemyClan.clanName}`,
-			})
-		}
-
-		if (
-			enemies.includes(enemyClanId.toString()) &&
-			!peaceOffer.includes(enemyClanId.toString())
-		) {
+		if (myWarRelation.includes(enemyClanId)) {
 			// you are at war and have not offered peace yet, first offer
-			clan.peaceOffer.push(enemyClanId)
-			enemyClan.peaceOffer.push(clanId)
+			let myClanRelation = new ClanRelation({
+				c_id1: clanId,
+				c_id2: enemyClanId,
+				clanRelationFlags: 'peace',
+				clan: clan,
+			})
+
+			await myClanRelation.save()
 			// peace is offered by one side
 			let content = `${clan.clanName} has offered peace to end the war!`
 			let pubContent = `${clan.clanName} has offered peace to end the war with ${enemyClan.clanName}!`
@@ -681,9 +733,6 @@ const offerPeace = async (req: Request, res: Response) => {
 				'shielded'
 			)
 		}
-
-		await enemyClan.save()
-		await clan.save()
 
 		return res.json(clan)
 	} catch (err) {
