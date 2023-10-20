@@ -151,15 +151,19 @@ export const useTurn = async (
 		//war tax
 		let wartax = 0
 		if (empire.clanId !== 0) {
-			let clan = await Clan.findOneOrFail({ id: empire.clanId })
+			let clan = await Clan.findOneOrFail({
+				where: { id: empire.clanId },
+				relations: ['relation'],
+			})
 
-			// passive wartax
-			let enemies = []
-			if (clan.enemies) {
-				enemies = clan.enemies.toString().split(',')
-			}
-			if (enemies.length > 0) {
-				wartax += (clan.enemies.length * empire.networth) / 100
+			// console.log(clan)
+			let relations = clan.relation.map((relation) => {
+				if (relation.clanRelationFlags === 'war') {
+					return relation.c_id2
+				}
+			})
+			if (relations.length > 0) {
+				wartax += (relations.length * empire.networth) / 100
 				// active war tax
 				if (type === 'war') {
 					wartax += expenses / 10
@@ -586,6 +590,7 @@ export const useTurnInternal = (
 	}
 	let turnResult = 0
 
+	// console.log(type)
 	let interruptable = false
 	if (type === 'build' || type === 'demolish') {
 		interruptable = true
@@ -688,11 +693,18 @@ export const useTurnInternal = (
 		//war tax
 		let wartax = 0
 		if (empire.clanId !== 0) {
+			// console.log('calculate war tax')
 			// passive wartax
-			if (clan && clan.enemies) {
-				let enemies = clan.enemies.toString().split(',')
-				if (enemies.length > 0) {
-					wartax += (clan.enemies.length * empire.networth) / 100
+			// console.log(clan)
+			if (clan && clan.relation) {
+				let relations = clan.relation.map((relation) => {
+					if (relation.clanRelationFlags === 'war') {
+						return relation.c_id2
+					}
+				})
+				// console.log(relations)
+				if (relations.length > 0) {
+					wartax += (relations.length * empire.networth) / 100
 					// active war tax
 					if (type === 'war') {
 						wartax += expenses / 10

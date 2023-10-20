@@ -439,12 +439,15 @@ const findOneEmpire = async (req: Request, res: Response) => {
 	const user: User = res.locals.user
 
 	try {
-		const empire = await Empire.findOneOrFail({ uuid }, { relations: ['user'] })
+		const empire = await Empire.findOneOrFail(
+			{ uuid },
+			{ relations: ['user', 'clan'] }
+		)
 		if (user.username !== empire.user.username) {
 			return res.status(403).json({ error: 'unauthorized' })
 		}
 		if (empire.clanId !== 0 && empire.clanId !== null) {
-			const clan = await Clan.findOne({
+			const clan = await Clan.find({
 				select: [
 					'id',
 					'clanName',
@@ -454,10 +457,11 @@ const findOneEmpire = async (req: Request, res: Response) => {
 					'empireIdAgent2',
 				],
 				where: { id: empire.clanId },
+				relations: ['relation'],
 			})
 
-			if (clan) {
-				empire['clan'] = clan
+			if (clan[0]) {
+				empire['clan'] = clan[0]
 			}
 
 			return res.json(empire)

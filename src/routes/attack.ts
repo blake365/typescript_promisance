@@ -428,20 +428,25 @@ const attack = async (req: Request, res: Response) => {
 		offPower *= attacker.health / 100
 		defPower *= defender.health / 100
 
-		//TODO: war flag +20% when at war with other clan
+		// war flag +20% when at war with other clan
 		let clan = null
 		if (attacker.clanId !== 0) {
 			// attacker is in a clan
 
 			// get attacker clan
-			let clan = await Clan.findOne({ id: attacker.clanId })
+			clan = await Clan.findOneOrFail({
+				where: { id: attacker.clanId },
+				relations: ['relation'],
+			})
 
-			let enemies = []
-			if (clan.enemies) {
-				enemies = clan.enemies.toString().split(',')
-			}
+			// console.log(clan)
+			let relations = clan.relation.map((relation) => {
+				if (relation.clanRelationFlags === 'war') {
+					return relation.c_id2
+				}
+			})
 			// check if clan is at war
-			if (enemies.includes(defender.clanId.toString())) {
+			if (relations.includes(defender.clanId)) {
 				console.log('clan is at war')
 				// clan is at war with defender
 				offPower *= 1.2

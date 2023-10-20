@@ -85,6 +85,9 @@ export default class Clan extends Model {
 	@OneToMany(() => ClanRelation, (relation) => relation.clan)
 	relation: ClanRelation[]
 
+	@OneToMany(() => Empire, (empire) => empire.clan)
+	empires: Empire[]
+
 	@BeforeInsert()
 	async hashPassword() {
 		this.clanPassword = await bcrypt.hash(this.clanPassword, 6)

@@ -36,6 +36,9 @@ export default class Empire extends Model {
 	})
 	clanId: number
 
+	@ManyToOne(() => Clan, (clan) => clan.empires)
+	clan: Clan
+
 	@ManyToOne(() => User, (user) => user.empires)
 	@JoinColumn({ name: 'username', referencedColumnName: 'username' })
 	user: User

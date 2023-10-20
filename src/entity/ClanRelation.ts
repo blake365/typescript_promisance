@@ -49,6 +49,20 @@ export default class ClanRelation extends Model {
 	})
 	clanNewsTime: number
 
+	@Column({
+		type: 'varchar',
+		default: '',
+		nullable: true,
+	})
+	clan1Name: string
+
+	@Column({
+		type: 'varchar',
+		default: '',
+		nullable: true,
+	})
+	clan2Name: string
+
 	@ManyToOne(() => Clan, (clan) => clan.relation, { onDelete: 'SET NULL' })
 	clan: Clan
 }

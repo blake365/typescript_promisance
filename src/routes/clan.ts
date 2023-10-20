@@ -535,14 +535,18 @@ const declareWar = async (req: Request, res: Response) => {
 		} else {
 			let myClanRelation = new ClanRelation({
 				c_id1: clanId,
+				clan1Name: clan.clanName,
 				c_id2: enemyClanId,
+				clan2Name: enemyClan.clanName,
 				clanRelationFlags: 'war',
 				clan: clan,
 			})
 
 			let enemyClanRelation = new ClanRelation({
 				c_id1: enemyClanId,
+				clan1Name: enemyClan.clanName,
 				c_id2: clanId,
+				clan2Name: clan.clanName,
 				clanRelationFlags: 'war',
 				clan: enemyClan,
 			})
@@ -550,31 +554,6 @@ const declareWar = async (req: Request, res: Response) => {
 			await myClanRelation.save()
 			await enemyClanRelation.save()
 		}
-
-		// let enemies = []
-		// if (clan.enemies) {
-		// 	enemies = clan.enemies.toString().split(',')
-		// }
-
-		// console.log(enemies)
-		// if (enemies.includes(enemyClanId.toString())) {
-		// 	return res.status(400).json({ error: 'Clan is already an enemy' })
-		// }
-
-		// if (clan.enemies === null) {
-		// 	clan.enemies = [enemyClanId]
-		// } else {
-		// 	clan.enemies.push(enemyClanId)
-		// }
-
-		// if (enemyClan.enemies === null) {
-		// 	enemyClan.enemies = [clanId]
-		// } else {
-		// 	enemyClan.enemies.push(clanId)
-		// }
-
-		// await enemyClan.save()
-		// await clan.save()
 
 		let pubContent = `${clan.clanName} has declared war on ${enemyClan.clanName}!`
 		let content = `${clan.clanName} has declared war on you!`
@@ -707,13 +686,13 @@ const offerPeace = async (req: Request, res: Response) => {
 				'peace',
 				'success'
 			)
-		}
-
-		if (myWarRelation.includes(enemyClanId)) {
+		} else if (myWarRelation.includes(enemyClanId)) {
 			// you are at war and have not offered peace yet, first offer
 			let myClanRelation = new ClanRelation({
 				c_id1: clanId,
+				clan1Name: clan.clanName,
 				c_id2: enemyClanId,
+				clan2Name: enemyClan.clanName,
 				clanRelationFlags: 'peace',
 				clan: clan,
 			})
