@@ -90,6 +90,8 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		enemyEmpire.land -= bldLoss
 		empire.land += bldLoss
 		empire.freeLand += bldLoss
+		empire.attackGains += bldLoss
+		enemyEmpire.attackLosses += bldLoss
 		empire.offSucc++
 		empire.offTotal++
 		enemyEmpire.defTotal++

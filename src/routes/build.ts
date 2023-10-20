@@ -1,5 +1,11 @@
 import { Request, Response, Router } from 'express'
-import { BUILD_COST } from '../config/conifg'
+import {
+	BUILD_COST,
+	PVTM_TRPARM,
+	PVTM_TRPLND,
+	PVTM_TRPFLY,
+	PVTM_TRPSEA,
+} from '../config/conifg'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
@@ -123,6 +129,9 @@ const build = async (req: Request, res: Response) => {
 						empire.cash = 0
 					}
 
+					empire.income += turnRes.income
+					empire.expenses += turnRes.expenses + turnRes.wartax
+
 					empire[key] += buildAmount
 					empire.freeLand -= buildAmount
 					// empire.cash -= buildAmount * buildCost
@@ -135,7 +144,21 @@ const build = async (req: Request, res: Response) => {
 					empire.trpLnd += turnRes.trpLnd
 					empire.trpFly += turnRes.trpFly
 					empire.trpSea += turnRes.trpSea
+
+					empire.indyProd +=
+						turnRes.trpArm * PVTM_TRPARM +
+						turnRes.trpLnd * PVTM_TRPLND +
+						turnRes.trpFly * PVTM_TRPFLY +
+						turnRes.trpSea * PVTM_TRPSEA
+
 					empire.food += turnRes.food
+					empire.foodpro += turnRes.foodpro
+					empire.foodcon += turnRes.foodcon
+
+					if (empire.food < 0) {
+						empire.food = 0
+					}
+
 					empire.peasants += turnRes.peasants
 					empire.runes += turnRes.runes
 					empire.trpWiz += turnRes.trpWiz
@@ -155,12 +178,24 @@ const build = async (req: Request, res: Response) => {
 						empire.cash = 0
 					}
 
+					empire.income += turnRes.income
+					empire.expenses += turnRes.expenses + turnRes.wartax
+
 					empire.loan -= turnRes.loanpayed + turnRes.loanInterest
 					empire.trpArm += turnRes.trpArm
 					empire.trpLnd += turnRes.trpLnd
 					empire.trpFly += turnRes.trpFly
 					empire.trpSea += turnRes.trpSea
+					empire.indyProd +=
+						turnRes.trpArm * PVTM_TRPARM +
+						turnRes.trpLnd * PVTM_TRPLND +
+						turnRes.trpFly * PVTM_TRPFLY +
+						turnRes.trpSea * PVTM_TRPSEA
+
 					empire.food += turnRes.food
+					empire.foodpro += turnRes.foodpro
+					empire.foodcon += turnRes.foodcon
+
 					empire.peasants += turnRes.peasants
 					empire.runes += turnRes.runes
 					empire.trpWiz += turnRes.trpWiz

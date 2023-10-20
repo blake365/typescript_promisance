@@ -23,7 +23,16 @@ import { steal_cast, steal_cost } from './spells/steal'
 import { runes_cast, runes_cost } from './spells/runes'
 import { fight_cast, fight_cost } from './spells/fight'
 import { spy_cast, spy_cost } from './spells/spy'
-import { MAX_SPELLS, TURNS_PROTECTION } from '../config/conifg'
+import {
+	MAX_SPELLS,
+	PVTM_FOOD,
+	TURNS_PROTECTION,
+	PVTM_TRPARM,
+	PVTM_TRPFLY,
+	PVTM_TRPLND,
+	PVTM_TRPSEA,
+} from '../config/conifg'
+
 import { getNetworth } from './actions/actions'
 // FIXED: internal turns not working
 
@@ -121,15 +130,30 @@ const magic = async (req: Request, res: Response) => {
 					if (empire.cash < 0) {
 						empire.cash = 0
 					}
+
+					empire.income += spellRes.income
+					empire.expenses += spellRes.expenses + spellRes.wartax
+
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
 					empire.trpFly += spellRes.trpFly
 					empire.trpSea += spellRes.trpSea
+
+					empire.indyProd +=
+						spellRes.trpArm * PVTM_TRPARM +
+						spellRes.trpLnd * PVTM_TRPLND +
+						spellRes.trpFly * PVTM_TRPFLY +
+						spellRes.trpSea * PVTM_TRPSEA
+
 					empire.food += spellRes.food
 					if (empire.food < 0) {
 						empire.food = 0
 					}
+
+					empire.foodpro += spellRes.foodpro
+					empire.foodcon += spellRes.foodcon
+
 					empire.peasants += spellRes.peasants
 					empire.runes += spellRes.runes
 					empire.trpWiz += spellRes.trpWiz
@@ -166,6 +190,7 @@ const magic = async (req: Request, res: Response) => {
 						// console.log(cast)
 						if (cast.result === 'success') {
 							empire.food += cast.food
+							empire.magicProd += cast.food * PVTM_FOOD
 						}
 						if (cast.result === 'fail') {
 							empire.trpWiz -= cast.wizloss
@@ -187,15 +212,29 @@ const magic = async (req: Request, res: Response) => {
 						empire.cash = 0
 					}
 
+					empire.income += spellRes.income
+					empire.expenses += spellRes.expenses + spellRes.wartax
+
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
 					empire.trpFly += spellRes.trpFly
 					empire.trpSea += spellRes.trpSea
+
+					empire.indyProd +=
+						spellRes.trpArm * PVTM_TRPARM +
+						spellRes.trpLnd * PVTM_TRPLND +
+						spellRes.trpFly * PVTM_TRPFLY +
+						spellRes.trpSea * PVTM_TRPSEA
+
 					empire.food += spellRes.food
 					if (empire.food < 0) {
 						empire.food = 0
 					}
+
+					empire.foodpro += spellRes.foodpro
+					empire.foodcon += spellRes.foodcon
+
 					empire.peasants += spellRes.peasants
 					empire.runes += spellRes.runes
 					empire.trpWiz += spellRes.trpWiz
@@ -233,6 +272,7 @@ const magic = async (req: Request, res: Response) => {
 						// console.log(cast)
 						if (cast.result === 'success') {
 							empire.cash += cast.cash
+							empire.magicProd += cast.cash
 						}
 						if (cast.result === 'fail') {
 							empire.trpWiz -= cast.wizloss
@@ -252,15 +292,29 @@ const magic = async (req: Request, res: Response) => {
 						empire.cash = 0
 					}
 
+					empire.income += spellRes.income
+					empire.expenses += spellRes.expenses + spellRes.wartax
+
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
 					empire.trpFly += spellRes.trpFly
 					empire.trpSea += spellRes.trpSea
+
+					empire.indyProd +=
+						spellRes.trpArm * PVTM_TRPARM +
+						spellRes.trpLnd * PVTM_TRPLND +
+						spellRes.trpFly * PVTM_TRPFLY +
+						spellRes.trpSea * PVTM_TRPSEA
+
 					empire.food += spellRes.food
 					if (empire.food < 0) {
 						empire.food = 0
 					}
+
+					empire.foodpro += spellRes.foodpro
+					empire.foodcon += spellRes.foodcon
+
 					empire.peasants += spellRes.peasants
 					empire.runes += spellRes.runes
 					empire.trpWiz += spellRes.trpWiz
@@ -326,15 +380,29 @@ const magic = async (req: Request, res: Response) => {
 						if (empire.cash < 0) {
 							empire.cash = 0
 						}
+						empire.income += spellRes.income
+						empire.expenses += spellRes.expenses + spellRes.wartax
+
 						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 						empire.trpArm += spellRes.trpArm
 						empire.trpLnd += spellRes.trpLnd
 						empire.trpFly += spellRes.trpFly
 						empire.trpSea += spellRes.trpSea
+
+						empire.indyProd +=
+							spellRes.trpArm * PVTM_TRPARM +
+							spellRes.trpLnd * PVTM_TRPLND +
+							spellRes.trpFly * PVTM_TRPFLY +
+							spellRes.trpSea * PVTM_TRPSEA
+
 						empire.food += spellRes.food
 						if (empire.food < 0) {
 							empire.food = 0
 						}
+
+						empire.foodpro += spellRes.foodpro
+						empire.foodcon += spellRes.foodcon
+
 						empire.peasants += spellRes.peasants
 						empire.runes += spellRes.runes
 						empire.trpWiz += spellRes.trpWiz
@@ -401,15 +469,29 @@ const magic = async (req: Request, res: Response) => {
 						if (empire.cash < 0) {
 							empire.cash = 0
 						}
+						empire.income += spellRes.income
+						empire.expenses += spellRes.expenses + spellRes.wartax
+
 						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 						empire.trpArm += spellRes.trpArm
 						empire.trpLnd += spellRes.trpLnd
 						empire.trpFly += spellRes.trpFly
 						empire.trpSea += spellRes.trpSea
+
+						empire.indyProd +=
+							spellRes.trpArm * PVTM_TRPARM +
+							spellRes.trpLnd * PVTM_TRPLND +
+							spellRes.trpFly * PVTM_TRPFLY +
+							spellRes.trpSea * PVTM_TRPSEA
+
 						empire.food += spellRes.food
 						if (empire.food < 0) {
 							empire.food = 0
 						}
+
+						empire.foodpro += spellRes.foodpro
+						empire.foodcon += spellRes.foodcon
+
 						empire.peasants += spellRes.peasants
 						empire.runes += spellRes.runes
 						empire.trpWiz += spellRes.trpWiz
@@ -462,15 +544,29 @@ const magic = async (req: Request, res: Response) => {
 					if (empire.cash < 0) {
 						empire.cash = 0
 					}
+					empire.income += spellRes.income
+					empire.expenses += spellRes.expenses + spellRes.wartax
+
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
 					empire.trpFly += spellRes.trpFly
 					empire.trpSea += spellRes.trpSea
+
+					empire.indyProd +=
+						spellRes.trpArm * PVTM_TRPARM +
+						spellRes.trpLnd * PVTM_TRPLND +
+						spellRes.trpFly * PVTM_TRPFLY +
+						spellRes.trpSea * PVTM_TRPSEA
+
 					empire.food += spellRes.food
 					if (empire.food < 0) {
 						empire.food = 0
 					}
+
+					empire.foodpro += spellRes.foodpro
+					empire.foodcon += spellRes.foodcon
+
 					empire.peasants += spellRes.peasants
 					empire.runes += spellRes.runes
 					empire.trpWiz += spellRes.trpWiz
@@ -519,15 +615,29 @@ const magic = async (req: Request, res: Response) => {
 					if (empire.cash < 0) {
 						empire.cash = 0
 					}
+					empire.income += spellRes.income
+					empire.expenses += spellRes.expenses + spellRes.wartax
+
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
 					empire.trpFly += spellRes.trpFly
 					empire.trpSea += spellRes.trpSea
+
+					empire.indyProd +=
+						spellRes.trpArm * PVTM_TRPARM +
+						spellRes.trpLnd * PVTM_TRPLND +
+						spellRes.trpFly * PVTM_TRPFLY +
+						spellRes.trpSea * PVTM_TRPSEA
+
 					empire.food += spellRes.food
 					if (empire.food < 0) {
 						empire.food = 0
 					}
+
+					empire.foodpro += spellRes.foodpro
+					empire.foodcon += spellRes.foodcon
+
 					empire.peasants += spellRes.peasants
 					empire.runes += spellRes.runes
 					empire.trpWiz += spellRes.trpWiz
@@ -580,15 +690,29 @@ const attackSpell = async (
 		if (attacker.cash < 0) {
 			attacker.cash = 0
 		}
+		attacker.income += spellRes.income
+		attacker.expenses += spellRes.expenses + spellRes.wartax
+
 		attacker.loan -= spellRes.loanpayed + spellRes.loanInterest
 		attacker.trpArm += spellRes.trpArm
 		attacker.trpLnd += spellRes.trpLnd
 		attacker.trpFly += spellRes.trpFly
 		attacker.trpSea += spellRes.trpSea
+
+		attacker.indyProd +=
+			spellRes.trpArm * PVTM_TRPARM +
+			spellRes.trpLnd * PVTM_TRPLND +
+			spellRes.trpFly * PVTM_TRPFLY +
+			spellRes.trpSea * PVTM_TRPSEA
+
 		attacker.food += spellRes.food
 		if (attacker.food < 0) {
 			attacker.food = 0
 		}
+
+		attacker.foodpro += spellRes.foodpro
+		attacker.foodcon += spellRes.foodcon
+
 		attacker.peasants += spellRes.peasants
 		attacker.runes += spellRes.runes
 		attacker.trpWiz += spellRes.trpWiz

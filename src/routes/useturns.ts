@@ -16,6 +16,10 @@ import {
 	BANK_SAVERATE,
 	BASE_LUCK,
 	INDUSTRY_MULT,
+	PVTM_TRPARM,
+	PVTM_TRPFLY,
+	PVTM_TRPLND,
+	PVTM_TRPSEA,
 	TURNS_PROTECTION,
 } from '../config/conifg'
 import user from '../middleware/user'
@@ -227,7 +231,9 @@ export const useTurn = async (
 
 		// console.log(money)
 		current['income'] = income
+		empire.income += income
 		current['expenses'] = expenses
+		empire.expenses += expenses + wartax
 		current['wartax'] = wartax
 		if (loanpayed < 0) {
 			current['loanpayed'] = loanincrease
@@ -297,6 +303,12 @@ export const useTurn = async (
 		empire.trpFly += trpfly
 		empire.trpSea += trpsea
 
+		empire.indyProd +=
+			trparm * PVTM_TRPARM +
+			trplnd * PVTM_TRPLND +
+			trpfly * PVTM_TRPFLY +
+			trpsea * PVTM_TRPSEA
+
 		current['trpArm'] = trparm
 		current['trpLnd'] = trplnd
 		current['trpFly'] = trpfly
@@ -351,7 +363,9 @@ export const useTurn = async (
 		}
 
 		current['foodpro'] = foodpro
+		empire.foodpro += foodpro
 		current['foodcon'] = foodcon
+		empire.foodcon += foodcon
 		current['food'] = food
 
 		if (empire.food <= 0) {

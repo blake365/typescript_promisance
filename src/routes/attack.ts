@@ -8,7 +8,15 @@ import { useTurnInternal } from './useturns'
 import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
 import { createNewsEvent } from '../util/helpers'
-import { DR_RATE, MAX_ATTACKS, TURNS_PROTECTION } from '../config/conifg'
+import {
+	DR_RATE,
+	MAX_ATTACKS,
+	TURNS_PROTECTION,
+	PVTM_TRPARM,
+	PVTM_TRPLND,
+	PVTM_TRPFLY,
+	PVTM_TRPSEA,
+} from '../config/conifg'
 import { getNetworth } from './actions/actions'
 import Clan from '../entity/Clan'
 
@@ -192,9 +200,11 @@ export const destroyBuildings = async (
 	switch (attackType) {
 		case 'standard':
 			defender.land -= loss
+			defender.attackLosses += loss
 			defender[type] -= loss
 			buildLoss[type] += loss
 			attacker.land += loss
+			attacker.attackGains += loss
 			attacker[type] += gain
 			buildGain[type] += gain
 			attacker.freeLand += loss - gain
@@ -204,9 +214,11 @@ export const destroyBuildings = async (
 		case 'trparm':
 			// attacks don't steal buildings, they just destroy them
 			defender.land -= loss
+			defender.attackLosses += loss
 			defender[type] -= loss
 			buildLoss[type] += loss
 			attacker.land += loss
+			attacker.attackGains += loss
 			attacker.freeLand += loss
 			buildGain['freeLand'] += loss
 			break
@@ -222,13 +234,14 @@ export const destroyBuildings = async (
 			}
 
 			defender.land -= gain
+			defender.attackLosses += gain
 			defender[type] -= loss
 			buildLoss[type] += loss
 			defender.freeLand += loss - gain
 			// buildLoss['freeLand'] will be negative because the free land is increasing as buildings are destroyed
 			buildLoss['freeLand'] -= loss - gain
-
 			attacker.land += gain
+			attacker.attackGains += gain
 			attacker.freeLand += gain
 			buildGain['freeLand'] += gain
 			break
@@ -523,11 +536,11 @@ const attack = async (req: Request, res: Response) => {
 				// the attacker is ashamed, troops desert
 				returnText +=
 					'Your troops are ashamed to fight such a weak opponent, many desert...'
-				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
-				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
-				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
-				attacker.trpSea = Math.round(0.98 * attacker.trpSea)
-				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
+				attacker.trpArm = Math.round(0.97 * attacker.trpArm)
+				attacker.trpLnd = Math.round(0.97 * attacker.trpLnd)
+				attacker.trpFly = Math.round(0.97 * attacker.trpFly)
+				attacker.trpSea = Math.round(0.97 * attacker.trpSea)
+				attacker.trpWiz = Math.round(0.97 * attacker.trpWiz)
 			}
 
 			if (attacker.networth < defender.networth * 0.33) {
@@ -557,15 +570,29 @@ const attack = async (req: Request, res: Response) => {
 				attacker.cash = 0
 			}
 
-			attacker.loan -= attackRes.loanpayed + attackRes?.loanInterest
+			attacker.income += attackRes.income
+			attacker.expenses += attackRes.expenses + attackRes.wartax
+
+			attacker.loan -= attackRes.loanpayed + attackRes.loanInterest
 			attacker.trpArm += attackRes.trpArm
 			attacker.trpLnd += attackRes.trpLnd
 			attacker.trpFly += attackRes.trpFly
 			attacker.trpSea += attackRes.trpSea
+
+			attacker.indyProd +=
+				attackRes.trpArm * PVTM_TRPARM +
+				attackRes.trpLnd * PVTM_TRPLND +
+				attackRes.trpFly * PVTM_TRPFLY +
+				attackRes.trpSea * PVTM_TRPSEA
+
 			attacker.food += attackRes.food
 			if (attacker.food < 0) {
 				attacker.food = 0
 			}
+
+			attacker.foodpro += attackRes.foodpro
+			attacker.foodcon += attackRes.foodcon
+
 			attacker.peasants += attackRes.peasants
 			attacker.runes += attackRes.runes
 			attacker.trpWiz += attackRes.trpWiz
@@ -826,9 +853,9 @@ const attack = async (req: Request, res: Response) => {
 				}
 
 				let totalBuildGain = sumBuildGain(buildGain)
-				console.log('buildGain', buildGain)
-				console.log('buildLoss', buildLoss)
-				// TODO: create return text for captured buildings
+				// console.log('buildGain', buildGain)
+				// console.log('buildLoss', buildLoss)
+				// create return text for captured buildings
 
 				// take enemy land
 				// attacker.land += buildGain.freeLand

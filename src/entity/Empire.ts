@@ -491,6 +491,33 @@ export default class Empire extends Model {
 	@Column({ type: 'int', default: 4 })
 	aidCredits: number
 
+	@Column({ type: 'int', default: 0 })
+	income: number
+
+	@Column({ type: 'int', default: 0 })
+	expenses: number
+
+	@Column({ type: 'int', default: 0 })
+	foodpro: number
+
+	@Column({ type: 'int', default: 0 })
+	foodcon: number
+
+	@Column({ type: 'int', default: 0 })
+	attackGains: number
+
+	@Column({ type: 'int', default: 0 })
+	attackLosses: number
+
+	@Column({ type: 'int', default: 0 })
+	exploreGains: number
+
+	@Column({ type: 'int', default: 0 })
+	indyProd: number
+
+	@Column({ type: 'int', default: 0 })
+	magicProd: number
+
 	// after load, set updatedAt to now
 	// @AfterLoad()
 	// updateDate() {

@@ -7,7 +7,13 @@ import Clan from '../entity/Clan'
 
 import { eraArray } from '../config/eras'
 import { createNewsEvent } from '../util/helpers'
-import { TURNS_PROTECTION } from '../config/conifg'
+import {
+	TURNS_PROTECTION,
+	PVTM_TRPARM,
+	PVTM_TRPLND,
+	PVTM_TRPFLY,
+	PVTM_TRPSEA,
+} from '../config/conifg'
 import { getNetworth } from './actions/actions'
 
 // send aid to another empire
@@ -84,7 +90,10 @@ const sendAid = async (req: Request, res: Response) => {
 
 		let clan = null
 		if (sender.clanId !== 0) {
-			clan = await Clan.findOne({ id: sender.clanId })
+			clan = await Clan.findOneOrFail({
+				where: { id: sender.clanId },
+				relations: ['relation'],
+			})
 		}
 
 		let aidTurns = useTurnInternal('aid', turns, sender, clan, true)
@@ -156,12 +165,26 @@ const sendAid = async (req: Request, res: Response) => {
 			sender.cash = 0
 		}
 
+		sender.income += spellRes.income
+		sender.expenses += spellRes.expenses + spellRes.wartax
+
 		sender.loan -= spellRes.loanpayed + spellRes.loanInterest
 		sender.trpArm += spellRes.trpArm
 		sender.trpLnd += spellRes.trpLnd
 		sender.trpFly += spellRes.trpFly
 		sender.trpSea += spellRes.trpSea
+
+		sender.indyProd +=
+			spellRes.trpArm * PVTM_TRPARM +
+			spellRes.trpLnd * PVTM_TRPLND +
+			spellRes.trpFly * PVTM_TRPFLY +
+			spellRes.trpSea * PVTM_TRPSEA
+
 		sender.food += spellRes.food
+
+		sender.foodpro += spellRes.foodpro
+		sender.foodcon += spellRes.foodcon
+
 		if (sender.food < 0) {
 			sender.food = 0
 		}
