@@ -55,7 +55,10 @@ const demolish = async (req: Request, res: Response) => {
 
 	let clan = null
 	if (empire.clanId !== 0) {
-		clan = await Clan.findOne({ id: empire.clanId })
+		clan = await Clan.findOneOrFail({
+			where: { id: empire.clanId },
+			relations: ['relation'],
+		})
 	}
 
 	const { canDemolish, demolishRate, demolishCost } = getDemolishAmounts(empire)

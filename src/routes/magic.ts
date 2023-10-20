@@ -69,7 +69,10 @@ const magic = async (req: Request, res: Response) => {
 
 	let clan = null
 	if (empire.clanId !== 0) {
-		clan = await Clan.findOne({ id: empire.clanId })
+		clan = await Clan.findOneOrFail({
+			where: { id: empire.clanId },
+			relations: ['relation'],
+		})
 	}
 
 	// console.log('food:', empire.food, 'cash:', empire.cash, empire.turns, empire.runes)

@@ -407,7 +407,7 @@ const attack = async (req: Request, res: Response) => {
 		}
 
 		// calculate power levels
-		if (attackType === 'standard') {
+		if (attackType === 'standard' || attackType === 'surprise') {
 			troopTypes.forEach((type) => {
 				offPower += calcUnitPower(attacker, type, 'o')
 			})
@@ -655,8 +655,10 @@ const attack = async (req: Request, res: Response) => {
 					break
 				//FIXME: surprise attack and standard attack losses
 				case 'surprise':
+					console.log('surprise attack')
 					omod *= 1.2
 				case 'standard':
+					console.log('standard attack')
 					result = calcUnitLosses(
 						attacker.trpArm,
 						defender.trpArm,
@@ -712,6 +714,9 @@ const attack = async (req: Request, res: Response) => {
 				attacker.trpSea -= attackLosses.trpsea
 				defender.trpSea -= defenseLosses.trpsea
 			} else if (attackType === 'surprise' || attackType === 'standard') {
+				console.log('surprise or standard attack')
+				console.log(attackLosses)
+				console.log(defenseLosses)
 				attacker.trpArm -= attackLosses.trparm
 				defender.trpArm -= defenseLosses.trparm
 				attacker.trpLnd -= attackLosses.trplnd
@@ -810,50 +815,121 @@ const attack = async (req: Request, res: Response) => {
 					buildGain
 				) // 3rd argument MUST be 0 (for Standard attacks)
 
-				// console.log('buildGain', buildGain)
-				// console.log('buildLoss', buildLoss)
+				const sumBuildGain = (buildGain: { [key: string]: number }): number => {
+					let sum = 0
+					for (const key in buildGain) {
+						if (Object.prototype.hasOwnProperty.call(buildGain, key)) {
+							sum += buildGain[key]
+						}
+					}
+					return sum
+				}
+
+				let totalBuildGain = sumBuildGain(buildGain)
+				console.log('buildGain', buildGain)
+				console.log('buildLoss', buildLoss)
 				// TODO: create return text for captured buildings
 
 				// take enemy land
 				// attacker.land += buildGain.freeLand
+				if (attackType !== 'surprise' && attackType !== 'standard') {
+					returnText +=
+						'' +
+						buildGain.freeLand.toLocaleString() +
+						' acres of land were captured from ' +
+						defender.name
 
-				returnText +=
-					'' +
-					buildGain.freeLand.toLocaleString() +
-					' acres of land were captured from ' +
-					defender.name
+					attackDescription = {
+						result: 'success',
+						attackType: attackType,
+						troopType: eraArray[attacker.era][attackType],
+						message: returnText,
+						troopLoss: attackLosses,
+						troopKilled: defenseLosses,
+						buildingGain: buildGain,
+					}
+				} else {
+					returnText +=
+						'' +
+						totalBuildGain.toLocaleString() +
+						' acres of land and buildings were captured from ' +
+						defender.name
 
-				attackDescription = {
-					result: 'success',
-					attackType: attackType,
-					troopType: eraArray[attacker.era][attackType],
-					message: returnText,
-					troopLoss: attackLosses,
-					troopKilled: defenseLosses,
-					buildingGain: buildGain,
+					attackDescription = {
+						result: 'success',
+						attackType: attackType,
+						era: attacker.era,
+						message: returnText,
+						troopLoss: attackLosses,
+						troopKilled: defenseLosses,
+						buildingGain: buildGain,
+					}
 				}
+
 				// attacker off success
 				attacker.offSucc++
 
-				let content = `${attacker.name} attacked you with ${
-					eraArray[attacker.era][attackType]
-				} and captured ${buildGain.freeLand.toLocaleString()} acres of land. /n In the battle you lost: ${defenseLosses[
-					attackType
-				].toLocaleString()} ${
-					eraArray[defender.era][attackType]
-				} /n You killed: ${attackLosses[attackType].toLocaleString()} ${
-					eraArray[attacker.era][attackType]
-				}.`
+				// console.log(defenseLosses)
+				// console.log(attackLosses)
+				// console.log(buildGain)
 
-				let pubContent = `${attacker.name} attacked ${defender.name} with ${
-					eraArray[attacker.era][attackType]
-				} and captured ${buildGain.freeLand.toLocaleString()} acres of land. /n In the battle ${
-					defender.name
-				} lost: ${defenseLosses[attackType].toLocaleString()} ${
-					eraArray[defender.era][attackType]
-				} /n ${attacker.name} lost: ${attackLosses[
-					attackType
-				].toLocaleString()} ${eraArray[attacker.era][attackType]}.`
+				let content = ''
+				let pubContent = ''
+
+				if (attackType !== 'surprise' && attackType !== 'standard') {
+					content = `${attacker.name} attacked you with ${
+						eraArray[attacker.era][attackType]
+					} and captured ${buildGain.freeLand.toLocaleString()} acres of land. /n In the battle you lost: ${defenseLosses[
+						attackType
+					].toLocaleString()} ${
+						eraArray[defender.era][attackType]
+					} /n You killed: ${attackLosses[attackType].toLocaleString()} ${
+						eraArray[attacker.era][attackType]
+					}.`
+
+					pubContent = `${attacker.name} attacked ${defender.name} with ${
+						eraArray[attacker.era][attackType]
+					} and captured ${buildGain.freeLand.toLocaleString()} acres of land. /n In the battle ${
+						defender.name
+					} lost: ${defenseLosses[attackType].toLocaleString()} ${
+						eraArray[defender.era][attackType]
+					} /n ${attacker.name} lost: ${attackLosses[
+						attackType
+					].toLocaleString()} ${eraArray[attacker.era][attackType]}.`
+				} else {
+					content = `${
+						attacker.name
+					} attacked you with a ${attackType} attack and captured ${totalBuildGain.toLocaleString()} acres of land and buildings. /n 
+					In the battle you lost: /n
+					${defenseLosses.trparm.toLocaleString()} ${
+						eraArray[defender.era].trparm
+					} /n ${defenseLosses.trplnd.toLocaleString()} ${
+						eraArray[defender.era].trplnd
+					} /n ${defenseLosses.trpfly.toLocaleString()} ${
+						eraArray[defender.era].trpfly
+					} /n ${defenseLosses.trpsea.toLocaleString()} ${
+						eraArray[defender.era].trpsea
+					} /n 
+					You killed: /n
+					${attackLosses.trparm.toLocaleString()} ${eraArray[attacker.era].trparm} /n 
+					${attackLosses.trplnd.toLocaleString()} ${eraArray[attacker.era].trplnd} /n 
+					${attackLosses.trpfly.toLocaleString()} ${eraArray[attacker.era].trpfly} /n 
+					${attackLosses.trpsea.toLocaleString()} ${eraArray[attacker.era].trpsea}.`
+
+					pubContent = `${attacker.name} attacked ${
+						defender.name
+					} with a ${attackType} attack and captured ${totalBuildGain.toLocaleString()} acres of land and buildings. /n 
+					In the battle ${defender.name} lost: /n
+					${defenseLosses.trparm.toLocaleString()} ${eraArray[defender.era].trparm} /n
+					${defenseLosses.trplnd.toLocaleString()} ${eraArray[defender.era].trplnd} /n
+					${defenseLosses.trpfly.toLocaleString()} ${eraArray[defender.era].trpfly} /n
+					${defenseLosses.trpsea.toLocaleString()} ${eraArray[defender.era].trpsea} /n
+					${attacker.name} lost: /n
+					${attackLosses.trparm.toLocaleString()} ${eraArray[attacker.era].trparm} /n
+					${attackLosses.trplnd.toLocaleString()} ${eraArray[attacker.era].trplnd} /n
+					${attackLosses.trpfly.toLocaleString()} ${eraArray[attacker.era].trpfly} /n
+					${attackLosses.trpsea.toLocaleString()} ${eraArray[attacker.era].trpsea}.`
+				}
 
 				await createNewsEvent(
 					content,
@@ -866,45 +942,100 @@ const attack = async (req: Request, res: Response) => {
 					'fail'
 				)
 
-				//TODO: check for kill
+				// check for kill
 			} else {
 				let landLoss = 0
 
-				attackDescription = {
-					result: 'fail',
-					attackType: attackType,
-					troopType: eraArray[attacker.era][attackType],
-					message: returnText,
-					troopLoss: attackLosses,
-					troopKilled: defenseLosses,
-					buildingGain: null,
+				if (attackType !== 'surprise' && attackType !== 'standard') {
+					attackDescription = {
+						result: 'fail',
+						attackType: attackType,
+						troopType: eraArray[attacker.era][attackType],
+						message: returnText,
+						troopLoss: attackLosses,
+						troopKilled: defenseLosses,
+						buildingGain: null,
+					}
+				} else {
+					attackDescription = {
+						result: 'fail',
+						attackType: attackType,
+						era: attacker.era,
+						message: returnText,
+						troopLoss: attackLosses,
+						troopKilled: defenseLosses,
+						buildingGain: null,
+					}
 				}
 				// defender def success
 				defender.defSucc++
 
-				let content = `You successfully defended your empire. /n ${
-					attacker.name
-				} attacked you with ${
-					eraArray[attacker.era][attackType]
-				}. /n In the battle you lost: ${defenseLosses[
-					attackType
-				].toLocaleString()} ${
-					eraArray[defender.era][attackType]
-				} /n You killed: ${attackLosses[attackType].toLocaleString()} ${
-					eraArray[attacker.era][attackType]
-				}. `
+				let content = ''
+				let pubContent = ''
 
-				let pubContent = `${
-					defender.name
-				} successfully defended their empire against ${
-					attacker.name
-				}. /n In the battle ${defender.name} lost: ${defenseLosses[
-					attackType
-				].toLocaleString()} ${eraArray[defender.era][attackType]} /n ${
-					attacker.name
-				} lost: ${attackLosses[attackType].toLocaleString()} ${
-					eraArray[attacker.era][attackType]
-				}.`
+				if (attackType !== 'surprise' && attackType !== 'standard') {
+					content = `You successfully defended your empire. /n ${
+						attacker.name
+					} attacked you with ${
+						eraArray[attacker.era][attackType]
+					}. /n In the battle you lost: ${defenseLosses[
+						attackType
+					].toLocaleString()} ${
+						eraArray[defender.era][attackType]
+					} /n You killed: ${attackLosses[attackType].toLocaleString()} ${
+						eraArray[attacker.era][attackType]
+					}. `
+
+					pubContent = `${
+						defender.name
+					} successfully defended their empire against ${
+						attacker.name
+					}. /n In the battle ${defender.name} lost: ${defenseLosses[
+						attackType
+					].toLocaleString()} ${eraArray[defender.era][attackType]} /n ${
+						attacker.name
+					} lost: ${attackLosses[attackType].toLocaleString()} ${
+						eraArray[attacker.era][attackType]
+					}.`
+				} else {
+					content = `You successfully defended your empire. /n ${
+						attacker.name
+					} attacked you with a ${attackType} attack. /n In the battle you lost: /n
+					${defenseLosses.trparm.toLocaleString()} ${
+						eraArray[defender.era].trparm
+					} /n ${defenseLosses.trplnd.toLocaleString()} ${
+						eraArray[defender.era].trplnd
+					} /n ${defenseLosses.trpfly.toLocaleString()} ${
+						eraArray[defender.era].trpfly
+					} /n ${defenseLosses.trpsea.toLocaleString()} ${
+						eraArray[defender.era].trpsea
+					} /n
+					You killed: /n
+					${attackLosses.trparm.toLocaleString()} ${
+						eraArray[attacker.era].trparm
+					} /n ${attackLosses.trplnd.toLocaleString()} ${
+						eraArray[attacker.era].trplnd
+					} /n ${attackLosses.trpfly.toLocaleString()} ${
+						eraArray[attacker.era].trpfly
+					} /n ${attackLosses.trpsea.toLocaleString()} ${
+						eraArray[attacker.era].trpsea
+					}.`
+
+					pubContent = `${
+						defender.name
+					} successfully defended their empire against ${
+						attacker.name
+					}. /n In the battle ${defender.name} lost: /n
+					${defenseLosses.trparm.toLocaleString()} ${eraArray[defender.era].trparm} /n
+					${defenseLosses.trplnd.toLocaleString()} ${eraArray[defender.era].trplnd} /n
+					${defenseLosses.trpfly.toLocaleString()} ${eraArray[defender.era].trpfly} /n
+					${defenseLosses.trpsea.toLocaleString()} ${eraArray[defender.era].trpsea} /n
+					${attacker.name} lost: /n
+					${attackLosses.trparm.toLocaleString()} ${eraArray[attacker.era].trparm} /n
+					${attackLosses.trplnd.toLocaleString()} ${eraArray[attacker.era].trplnd} /n
+					${attackLosses.trpfly.toLocaleString()} ${eraArray[attacker.era].trpfly} /n
+					${attackLosses.trpsea.toLocaleString()} ${eraArray[attacker.era].trpsea}.`
+				}
 
 				await createNewsEvent(
 					content,

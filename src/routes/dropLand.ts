@@ -65,7 +65,10 @@ const drop = async (req: Request, res: Response) => {
 
 	let clan = null
 	if (empire.clanId !== 0) {
-		clan = await Clan.findOne({ id: empire.clanId })
+		clan = await Clan.findOneOrFail({
+			where: { id: empire.clanId },
+			relations: ['relation'],
+		})
 	}
 
 	const { dropRate, canDrop } = getDropAmounts(empire)
