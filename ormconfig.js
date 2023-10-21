@@ -22,5 +22,6 @@ module.exports = {
 		migrationsDir: rootDir + '/migrations',
 		subscribersDir: rootDir + '/subscribers',
 	},
+	name: 'default',
 	// cache: true,
 }

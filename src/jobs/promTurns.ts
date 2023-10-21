@@ -1,5 +1,5 @@
 import { AsyncTask, Task } from 'toad-scheduler'
-import { getConnection } from 'typeorm'
+import { getConnection, getRepository } from 'typeorm'
 import ClanInvite from '../entity/ClanInvite'
 import Empire from '../entity/Empire'
 import Market from '../entity/Market'
@@ -11,9 +11,12 @@ import {
 	MAX_ATTACKS,
 	MAX_SPELLS,
 	DR_RATE,
+	PUBMKT_MAXTIME,
+	PUBMKT_START,
 } from '../config/conifg'
 import EmpireEffect from '../entity/EmpireEffect'
 import User from '../entity/User'
+import { getNetworth } from '../routes/actions/actions'
 
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
@@ -260,23 +263,29 @@ export const hourlyUpdate = new AsyncTask('hourly update', async () => {
 export const cleanMarket = new AsyncTask('clean market', async () => {
 	// max time on market 72 hours
 	console.log('cleaning market')
+	// take unsold market items and return them to the empire
+	const now = new Date()
+	const maxTime = (PUBMKT_START + PUBMKT_MAXTIME) * 60 * 60 * 1000 // 78 hours in milliseconds
+	const oldestDate = new Date(now.getTime() - maxTime)
 
-	let now = new Date()
+	const items = await getRepository(Market)
+		.createQueryBuilder('market')
+		.where('market.createdAt <= :oldestDate', { oldestDate })
+		.getMany()
 
-	// const markets = await getConnection()
-	// 	.createQueryBuilder()
-	// 	.select()
-	// 	.from(Market, 'market')
-	// 	.where(`time < (${now} - 3600 * 72)`)
-	// 	.getMany()
+	// console.log(items)
 
-	// console.log(markets)
+	let itemsArray = ['trpArm', 'trpLnd', 'trpFly', 'trpSea', 'food', 'runes']
 
-	// defCosts = []
-
-	//TODO: return unsold goods
-
-	//TODO: delete from market
+	for (let i = 0; i < items.length; i++) {
+		//return unsold goods
+		let item = items[i]
+		let empire = await Empire.findOne({ id: items[i].empire_id })
+		empire[itemsArray[item.type]] += Math.round(item.amount * 0.75)
+		empire.networth = getNetworth(empire)
+		await empire.save()
+		await item.remove()
+	}
 })
 
 export const updateRanks = new AsyncTask('update ranks', async () => {

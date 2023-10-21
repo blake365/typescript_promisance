@@ -37,6 +37,7 @@ import clans from './routes/clan'
 
 import {
 	cleanDemoAccounts,
+	cleanMarket,
 	hourlyUpdate,
 	promTurns,
 	thirtyMinUpdate,
@@ -171,6 +172,12 @@ const turns = new SimpleIntervalJob(
 	'id_1'
 )
 
+const cleanMarketJob = new SimpleIntervalJob(
+	{ minutes: 30, runImmediately: false },
+	cleanMarket,
+	'id_6'
+)
+
 const thirtyMin = new SimpleIntervalJob(
 	{
 		minutes: 30,
@@ -204,5 +211,6 @@ if (gameOn) {
 	scheduler.addSimpleIntervalJob(thirtyMin)
 	scheduler.addSimpleIntervalJob(hourly)
 	scheduler.addSimpleIntervalJob(daily)
+	scheduler.addSimpleIntervalJob(cleanMarketJob)
 }
 // console.log(scheduler.getById('id_1').getStatus());
