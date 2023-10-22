@@ -43,7 +43,8 @@
   },
   "scripts": {
     "start": "NODE_ENV=production node build/index.js",
-    "build": "tsc && yarn sentry:sourcemaps",
+    "build": "tsc",
+    "sentry": "tsc && yarn sentry:sourcemaps",
     "typeorm": "ts-node ./node_modules/typeorm/cli.js",
     "dev": "nodemon --exec ts-node src/index.ts",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org blake-morgan --project node-express ./build && sentry-cli sourcemaps upload --org blake-morgan --project node-express ./build"
