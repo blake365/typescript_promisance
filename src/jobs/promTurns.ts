@@ -46,23 +46,6 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 		})
 		.execute()
 
-	// clan troop sharing
-	// await getConnection()
-	// 	.createQueryBuilder()
-	// 	.update(Empire)
-	// 	.set({
-	// 		// update available quantity on market
-	// 		sharing: () => 'sharing - 1',
-	// 	})
-	// 	.where('sharing > 0 AND id != 0')
-	// 	.execute()
-
-	//TODO: clean up expired clan invites
-
-	console.log('Turns update', new Date())
-})
-
-export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 	// Reduce maximum private market sell percentage (by 1% base, up to 2% if the player has nothing but bldcash)
 	// TODO: can't figure out what this is doing...
 	await getConnection()
@@ -120,7 +103,7 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktArm: () => '(mkt_arm + 8 * (land + bld_cost))*0.75',
+			mktArm: () => 'mkt_arm + (8 * (land + bld_cost)*0.75)',
 		})
 		.where('mkt_arm / 250 < land + 2 * bld_cost AND id != 0')
 		.execute()
@@ -130,7 +113,7 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktLnd: () => '(mkt_lnd + 5 * (land + bld_cost))*0.75',
+			mktLnd: () => 'mkt_lnd + (5 * (land + bld_cost)*0.75)',
 		})
 		.where('mkt_lnd / 250 < land + 2 * bld_cost AND id != 0')
 		.execute()
@@ -140,7 +123,7 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktFly: () => '(mkt_fly + 3 * (land + bld_cost))*0.75',
+			mktFly: () => 'mkt_fly + (3 * (land + bld_cost)*0.75)',
 		})
 		.where('mkt_fly / 250 < land + 2 * bld_cost AND id != 0')
 		.execute()
@@ -150,7 +133,7 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktSea: () => '(mkt_sea + 2 * (land + bld_cost))*0.75',
+			mktSea: () => 'mkt_sea + (2 * (land + bld_cost)*0.75)',
 		})
 		.where('mkt_sea / 250 < land + 2 * bld_cost AND id != 0')
 		.execute()
@@ -170,11 +153,28 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktRunes: () => '(mkt_runes + 2 * (land + bld_cost))*0.75',
+			mktRunes: () => 'mkt_runes + (2 * (land + bld_cost)*0.75)',
 		})
 		.where('mkt_food / 250 < land + 2 * bld_cost AND id != 0')
 		.execute()
 
+	// clan troop sharing
+	// await getConnection()
+	// 	.createQueryBuilder()
+	// 	.update(Empire)
+	// 	.set({
+	// 		// update available quantity on market
+	// 		sharing: () => 'sharing - 1',
+	// 	})
+	// 	.where('sharing > 0 AND id != 0')
+	// 	.execute()
+
+	//TODO: clean up expired clan invites
+
+	console.log('Turns update', new Date())
+})
+
+export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 	// max attack counter
 	if (MAX_ATTACKS > 0) {
 		await getConnection()

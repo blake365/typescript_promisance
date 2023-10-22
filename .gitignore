@@ -8,3 +8,6 @@ temp/
 
 # Sentry Auth Token
 .sentryclirc
+
+# Sentry Config File
+.sentryclirc
