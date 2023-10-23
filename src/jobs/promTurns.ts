@@ -13,6 +13,7 @@ import {
 	DR_RATE,
 	PUBMKT_MAXTIME,
 	PUBMKT_START,
+	AID_MAXCREDITS,
 } from '../config/conifg'
 import EmpireEffect from '../entity/EmpireEffect'
 import User from '../entity/User'
@@ -247,7 +248,9 @@ export const hourlyUpdate = new AsyncTask('hourly update', async () => {
 			.where('spells < 0 AND id != 0')
 			.execute()
 	}
+})
 
+export const aidCredits = new AsyncTask('aid credits', async () => {
 	// add aid credits
 	await getConnection()
 		.createQueryBuilder()
@@ -256,7 +259,10 @@ export const hourlyUpdate = new AsyncTask('hourly update', async () => {
 			// update number of credits
 			aidCredits: () => 'aid_credits + 1',
 		})
-		.where('id != 0 AND aid_credits < 4 AND mode != :mode', { mode: 'demo' })
+		.where('id != 0 AND aid_credits < :max AND mode != :mode', {
+			mode: 'demo',
+			max: AID_MAXCREDITS,
+		})
 		.execute()
 })
 

@@ -80,9 +80,7 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 		let pubContent = `${empire.name} cast ${
 			eraArray[empire.era].spell_spy
-		} on ${enemyEmpire.name}(#${
-			enemyEmpire.id
-		}) and viewed their empire information.`
+		} on ${enemyEmpire.name} and viewed their empire information.`
 
 		await createNewsEvent(
 			content,

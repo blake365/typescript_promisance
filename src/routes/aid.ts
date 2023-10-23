@@ -94,11 +94,34 @@ const sendAid = async (req: Request, res: Response) => {
 				where: { id: sender.clanId },
 				relations: ['relation'],
 			})
+
+			console.log(clan.relation)
+			let relations = clan.relation.map((relation) => {
+				if (relation.clanRelationFlags === 'war') {
+					return relation.c_id2
+				}
+			})
+			// check if clan is at war
+			if (relations.includes(receiver.clanId)) {
+				console.log('clan is at war')
+				// clan is at war with receiver
+				return res
+					.status(400)
+					.json({ error: 'Cannot send aid to a clan you are at war with' })
+			}
+		}
+
+		if (sender.clanId !== receiver.clanId) {
+			if (sender.networth < receiver.networth * 0.33) {
+				return res
+					.status(400)
+					.json({ error: 'Cannot send aid to such a large empire' })
+			}
 		}
 
 		let aidTurns = useTurnInternal('aid', turns, sender, clan, true)
 		let spellRes = aidTurns[0]
-		console.log('spell res', spellRes)
+		// console.log('spell res', spellRes)
 		aidTurns = aidTurns[0]
 		if (!spellRes?.messages?.desertion) {
 			// remove items from sender
@@ -141,7 +164,7 @@ const sendAid = async (req: Request, res: Response) => {
 
 			let content = `${sender.name} sent you ${sentString.join(', ')}.`
 
-			console.log('content', content)
+			// console.log('content', content)
 			await createNewsEvent(
 				content,
 				pubContent,
@@ -202,7 +225,7 @@ const sendAid = async (req: Request, res: Response) => {
 		return res.status(400).json({ error: 'something went wrong' })
 	}
 
-	console.log('result array', resultArray)
+	// console.log('result array', resultArray)
 	return res.json(resultArray)
 	// createNewsEvent()
 }

@@ -36,6 +36,7 @@ import aid from './routes/aid'
 import clans from './routes/clan'
 
 import {
+	aidCredits,
 	cleanDemoAccounts,
 	cleanMarket,
 	hourlyUpdate,
@@ -45,7 +46,7 @@ import {
 } from './jobs/promTurns'
 
 import trim from './middleware/trim'
-import { ROUND_START, TURNS_FREQ, ROUND_END } from './config/conifg'
+import { ROUND_START, TURNS_FREQ, ROUND_END, AID_DELAY } from './config/conifg'
 
 const app = express()
 
@@ -205,6 +206,12 @@ const daily = new SimpleIntervalJob(
 	'id_4'
 )
 
+const aidJob = new SimpleIntervalJob(
+	{ hours: AID_DELAY / 60 / 60, runImmediately: false },
+	aidCredits,
+	'id_7'
+)
+
 if (gameOn) {
 	scheduler.addSimpleIntervalJob(turns)
 	scheduler.addSimpleIntervalJob(ranks)
@@ -212,5 +219,6 @@ if (gameOn) {
 	scheduler.addSimpleIntervalJob(hourly)
 	scheduler.addSimpleIntervalJob(daily)
 	scheduler.addSimpleIntervalJob(cleanMarketJob)
+	scheduler.addSimpleIntervalJob(aidJob)
 }
 // console.log(scheduler.getById('id_1').getStatus());

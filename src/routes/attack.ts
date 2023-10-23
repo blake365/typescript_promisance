@@ -467,8 +467,12 @@ const attack = async (req: Request, res: Response) => {
 			}
 		}
 
+		if (attackType === 'surprise') {
+			offPower *= 1.25
+		}
+
 		// clan shared defense
-		if (defender.clanId !== 0) {
+		if (defender.clanId !== 0 && attackType !== 'surprise') {
 			// defender is in a clan
 
 			// get defender clan
@@ -1077,6 +1081,9 @@ const attack = async (req: Request, res: Response) => {
 			}
 
 			attacker.health -= 6
+			if (attackType === 'surprise') {
+				attacker.health -= 5
+			}
 
 			let adjustedDR =
 				DR_RATE + Math.round((defender.bldDef / defender.land) * 100) / 100

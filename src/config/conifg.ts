@@ -97,7 +97,7 @@ export const BASE_LUCK = 5 // Base luck
 
 export const AID_ENABLE = true // Enable sending foreign aid
 export const AID_MAXCREDITS = 5 // Maximum number of aid credits that can be accumulated at once
-export const AID_DELAY = 60 * 60 // Once you send too much aid, how many seconds before you can send more
+export const AID_DELAY = 60 * 60 * 3 // Once you send too much aid, how many seconds before you can send more
 export const MESSAGES_MAXCREDITS = 5 // Maximum number of new private messages that can be sent at once
 export const MESSAGES_DELAY = 10 * 60 // Once you send too many messages, how many seconds before you can send more
 export const FRIEND_MAGIC_ENABLE = false // Enable casting spells on friendly empires
