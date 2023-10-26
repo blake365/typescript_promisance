@@ -18,6 +18,7 @@ import {
 import EmpireEffect from '../entity/EmpireEffect'
 import User from '../entity/User'
 import { getNetworth } from '../routes/actions/actions'
+import Session from '../entity/Session'
 
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
@@ -357,5 +358,14 @@ export const cleanDemoAccounts = new AsyncTask(
 				effect.remove()
 			}
 		})
+
+		// clear old sessions
+		// if createdAt date is older than 1 day, delete
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(Session)
+			.where('createdAt < :date', { date: new Date(Date.now() - 86400000) })
+			.execute()
 	}
 )

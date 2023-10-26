@@ -22,7 +22,10 @@ const destroyBuildings = async (
 	let loss = 0
 
 	if (enemyEmpire[type] > 0) {
-		loss = randomIntFromInterval(1, Math.ceil(pcloss * enemyEmpire[type] + 2))
+		loss = randomIntFromInterval(
+			enemyEmpire[type] * 0.01,
+			Math.ceil(pcloss * enemyEmpire[type] + 2)
+		)
 		if (loss > enemyEmpire[type]) {
 			loss = enemyEmpire[type]
 		}
