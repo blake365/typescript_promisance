@@ -536,7 +536,7 @@ const attack = async (req: Request, res: Response) => {
 
 		// console.log('can attack', canAttack)
 		if (canAttack) {
-			if (attacker.networth > defender.networth * 2) {
+			if (attacker.networth > defender.networth * 2 && type !== 'war') {
 				// the attacker is ashamed, troops desert
 				returnText +=
 					'Your troops are ashamed to fight such a weak opponent, many desert...'
@@ -547,7 +547,7 @@ const attack = async (req: Request, res: Response) => {
 				attacker.trpWiz = Math.round(0.97 * attacker.trpWiz)
 			}
 
-			if (attacker.networth < defender.networth * 0.33) {
+			if (attacker.networth < defender.networth * 0.33 && type !== 'war') {
 				// the attacker is fearful, troops desert
 				returnText +=
 					'Your troops are fearful of fighting such a strong opponent, many desert...'
