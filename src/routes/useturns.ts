@@ -93,7 +93,7 @@ export const useTurn = async (
 				empire.bank -= withdraw
 				empire.cash += withdraw
 			} else {
-				let saveRate = BANK_SAVERATE + size
+				let saveRate = BANK_SAVERATE - size
 				let bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
 				empire.bank = Math.min(empire.bank + bankInterest, bankMax)
 			}
@@ -653,7 +653,7 @@ export const useTurnInternal = (
 				empire.bank -= withdraw
 				empire.cash += withdraw
 			} else {
-				let saveRate = BANK_SAVERATE + size
+				let saveRate = BANK_SAVERATE - size
 				let bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
 				empire.bank = Math.min(empire.bank + bankInterest, bankMax)
 			}
