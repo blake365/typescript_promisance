@@ -236,6 +236,58 @@ const leaveClan = async (req: Request, res: Response) => {
 			.json({ error: 'Something went wrong when leaving clan' })
 	}
 }
+const kickFromClan = async (req: Request, res: Response) => {
+	let { empireId, clanId } = req.body
+
+	try {
+		const empire = await Empire.findOneOrFail({
+			where: { id: empireId },
+		})
+
+		if (empire.clanId === 0) {
+			return res.status(400).json({ error: 'You are not in a clan' })
+		}
+
+		const clan = await Clan.findOneOrFail({
+			where: { id: empire.clanId },
+		})
+
+		if (clan.empireIdLeader === empire.id) {
+			return res.status(400).json({ error: 'Clan leader cannot be kicked out' })
+		}
+
+		if (clan.empireIdAssistant === empire.id) {
+			clan.empireIdAssistant = 0
+		}
+
+		clan.clanMembers--
+		await clan.save()
+
+		empire.clanId = 0
+		await empire.save()
+
+		// create effect
+		let empireEffectName = 'leave clan'
+		let empireEffectValue = 3 * 60 * 24
+		let effectOwnerId = empire.id
+
+		let newEffect: EmpireEffect
+		newEffect = new EmpireEffect({
+			effectOwnerId,
+			empireEffectName,
+			empireEffectValue,
+		})
+		// console.log(effect)
+		await newEffect.save()
+
+		return res.json(empire)
+	} catch (err) {
+		console.log(err)
+		return res
+			.status(500)
+			.json({ error: 'Something went wrong when leaving clan' })
+	}
+}
 
 const getClan = async (req: Request, res: Response) => {
 	let { clanId } = req.body

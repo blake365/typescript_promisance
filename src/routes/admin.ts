@@ -432,6 +432,27 @@ const countAll = async (req: Request, res: Response) => {
 	}
 }
 
+// reset game and round
+const resetGame = async (req: Request, res: Response) => {
+	if (res.locals.user.role !== 'admin') {
+		return res.status(401).json({
+			error: 'Not authorized',
+		})
+	}
+
+	// create round history
+	// save empire data into empire history table
+	// save clan data into clan history
+	// delete empires, intel, clans, clan relations, messages, clan messages, news, market, sessions, lottery, etc...
+
+	try {
+		return res.json({ message: 'Game reset' })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
 const router = Router()
 
 router.get('/empires', user, auth, getEmpires)

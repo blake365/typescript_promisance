@@ -1,4 +1,3 @@
-import { min } from 'class-validator'
 import { Request, Response, Router } from 'express'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
@@ -361,6 +360,8 @@ export const useTurn = async (
 		if (type === 'farm') {
 			turnResult = food
 		}
+
+		foodpro = Math.round(foodpro)
 
 		current['foodpro'] = foodpro
 		empire.foodpro += foodpro
@@ -873,7 +874,7 @@ export const useTurnInternal = (
 		if (type === 'farm') {
 			foodpro = Math.round(1.25 * foodpro)
 		}
-		let food = foodpro - foodcon
+		let food = Math.round(foodpro - foodcon)
 		// empire.food += food
 		// if (type === 'farm') {
 		// 	turnResult += food

@@ -536,7 +536,7 @@ const attack = async (req: Request, res: Response) => {
 
 		// console.log('can attack', canAttack)
 		if (canAttack) {
-			if (attacker.networth > defender.networth * 2.33) {
+			if (attacker.networth > defender.networth * 2) {
 				// the attacker is ashamed, troops desert
 				returnText +=
 					'Your troops are ashamed to fight such a weak opponent, many desert...'
