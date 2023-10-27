@@ -236,8 +236,9 @@ const leaveClan = async (req: Request, res: Response) => {
 			.json({ error: 'Something went wrong when leaving clan' })
 	}
 }
+
 const kickFromClan = async (req: Request, res: Response) => {
-	let { empireId, clanId } = req.body
+	let { empireId } = req.body
 
 	try {
 		const empire = await Empire.findOneOrFail({
@@ -279,6 +280,20 @@ const kickFromClan = async (req: Request, res: Response) => {
 		})
 		// console.log(effect)
 		await newEffect.save()
+
+		let pubContent = `${empire.name} has been kicked out of ${clan.clanName}!`
+		let content = `You have been kicked out of ${clan.clanName}!`
+
+		await createNewsEvent(
+			content,
+			pubContent,
+			clan.empireIdLeader,
+			clan.clanName,
+			empire.id,
+			empire.name,
+			'clan',
+			'fail'
+		)
 
 		return res.json(empire)
 	} catch (err) {
@@ -446,15 +461,20 @@ const getClansData = async (req: Request, res: Response) => {
 
 // assign empire to clan role
 const assignClanRole = async (req: Request, res: Response) => {
-	let { empireId, clanRole } = req.body
+	let { empireId, clanRole, memberId } = req.body
 
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
 		})
+
 		if (empire.clanId === 0) {
 			return res.status(400).json({ error: 'You are not in a clan' })
 		}
+
+		const member = await Empire.findOneOrFail({
+			where: { id: memberId },
+		})
 
 		const clan = await Clan.findOneOrFail({
 			where: { id: empire.clanId },
@@ -464,14 +484,18 @@ const assignClanRole = async (req: Request, res: Response) => {
 			return res.status(400).json({ error: 'You are not the clan leader' })
 		}
 
+		if (clan.empireIdAssistant !== 0) {
+			return res.status(400).json({ error: 'Assistant already assigned' })
+		}
+
 		if (clanRole === 'leader') {
-			clan.empireIdLeader = empire.id
+			clan.empireIdLeader = member.id
 		} else if (clanRole === 'assistant') {
-			clan.empireIdAssistant = empire.id
+			clan.empireIdAssistant = member.id
 		} else if (clanRole === 'agent1') {
-			clan.empireIdAgent1 = empire.id
+			clan.empireIdAgent1 = member.id
 		} else if (clanRole === 'agent2') {
-			clan.empireIdAgent2 = empire.id
+			clan.empireIdAgent2 = member.id
 		} else {
 			return res.status(400).json({ error: 'Invalid role' })
 		}
@@ -779,6 +803,7 @@ const router = Router()
 router.post('/create', user, auth, createClan)
 router.post('/join', user, auth, joinClan)
 router.post('/leave', user, auth, leaveClan)
+router.post('/kick', user, auth, kickFromClan)
 router.post('/get', user, auth, getClan)
 router.post('/getMembers', user, auth, getClanMembers)
 router.get('/getClans', getClans)
