@@ -1,5 +1,9 @@
 import { Request, Response, Router } from 'express'
-import { PUBMKT_MAXSELL } from '../config/conifg'
+import {
+	PUBMKT_MAXFOOD,
+	PUBMKT_MAXRUNES,
+	PUBMKT_MAXSELL,
+} from '../config/conifg'
 import Empire from '../entity/Empire'
 import { getNetworth } from './actions/actions'
 import Market from '../entity/Market'
@@ -261,10 +265,28 @@ const pubSell = async (req: Request, res: Response) => {
 
 	for (let index = 0; index < sellArray.length; index++) {
 		let item: number = sellArray[index]
-		console.log(item)
+		// console.log(item)
+		// console.log(index)
 		if (item < 1) {
 			console.log('no items for sale')
-		} else if (item > (trpArray[index] * PUBMKT_MAXSELL) / 100) {
+		} else if (index === 4 && item > (trpArray[index] * PUBMKT_MAXFOOD) / 100) {
+			console.log('too much food for sale')
+			returnArray[
+				index
+			].error = `You can't sell that many ${itemsEraArray[index]}.`
+		} else if (
+			index === 5 &&
+			item > (trpArray[index] * PUBMKT_MAXRUNES) / 100
+		) {
+			console.log('too much runes for sale')
+			returnArray[
+				index
+			].error = `You can't sell that many ${itemsEraArray[index]}.`
+		} else if (
+			index !== 4 &&
+			index !== 5 &&
+			item > (trpArray[index] * PUBMKT_MAXSELL) / 100
+		) {
 			console.log('too many items for sale')
 			returnArray[
 				index
@@ -280,9 +302,9 @@ const pubSell = async (req: Request, res: Response) => {
 			let type: number = index
 			let amount: number = item
 			let price: number = priceArray[index]
-			console.log(index)
-			console.log(price)
-			console.log(amount)
+			// console.log(index)
+			// console.log(price)
+			// console.log(amount)
 			let empire_id = empire.id
 			returnArray[index].amount = amount
 			returnArray[index].price = price
@@ -313,8 +335,8 @@ const pubSell = async (req: Request, res: Response) => {
 
 	await empire.save()
 
-	console.log(returnArray)
-	console.log(empire.networth)
+	// console.log(returnArray)
+	// console.log(empire.networth)
 	return res.json(returnArray)
 }
 
