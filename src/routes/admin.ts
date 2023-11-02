@@ -4,9 +4,24 @@ import User from '../entity/User'
 import EmpireNews from '../entity/EmpireNews'
 import Market from '../entity/Market'
 import EmpireMessage from '../entity/EmpireMessage'
+import Clan from '../entity/Clan'
+import ClanHistory from '../entity/ClanHistory'
+import EmpireHistory from '../entity/EmpireHistory'
 
 import auth from '../middleware/auth'
 import user from '../middleware/user'
+import RoundHistory from '../entity/RoundHistory'
+import {
+	ROUND_DESCRIPTION,
+	ROUND_NAME,
+	ROUND_START,
+	ROUND_END,
+} from '../config/conifg'
+import { makeId } from '../util/helpers'
+import { raceArray } from '../config/races'
+import { eraArray } from '../config/eras'
+import ClanRelation from '../entity/ClanRelation'
+import Session from '../entity/Session'
 
 // READ
 const getEmpires = async (req: Request, res: Response) => {
@@ -434,18 +449,138 @@ const countAll = async (req: Request, res: Response) => {
 
 // reset game and round
 const resetGame = async (req: Request, res: Response) => {
-	if (res.locals.user.role !== 'admin') {
+	const { code } = req.body
+
+	if (!res.locals.user || res.locals.user.role !== 'admin') {
 		return res.status(401).json({
 			error: 'Not authorized',
 		})
 	}
 
-	// create round history
-	// save empire data into empire history table
-	// save clan data into clan history
-	// delete empires, intel, clans, clan relations, messages, clan messages, news, market, sessions, lottery, etc...
+	if (code !== process.env.GAME_RESET) {
+		return res.status(401).json({
+			error: 'Not authorized',
+		})
+	}
 
 	try {
+		// create round history
+		let round_h_id = makeId(10)
+		let name: string = ROUND_NAME
+		let description: string = ROUND_DESCRIPTION
+		let startDate = ROUND_START
+		let stopDate = ROUND_END
+
+		// get clans
+		let clans = await Clan.find()
+		clans.forEach(async (clan) => {
+			// create clan history
+			let roundHistory_id = round_h_id
+			let clanHistoryName = clan.clanName
+			let clanHistoryMembers = clan.clanMembers
+			let totalNetworth = 0
+			const empires = await Empire.find({
+				where: { clanId: clan.id },
+			})
+
+			empires.forEach((empire) => {
+				totalNetworth += empire.networth
+			})
+			let clanHistoryTotalNet = totalNetworth
+
+			// create clan history
+			await new ClanHistory({
+				roundHistory_id,
+				clanHistoryName,
+				clanHistoryMembers,
+				clanHistoryTotalNet,
+			}).save()
+			clan.remove()
+		})
+
+		// get empires
+		let empires = await Empire.find({
+			relations: ['user'],
+		})
+		empires.forEach(async (empire) => {
+			let roundHistory_id = round_h_id
+			let u_id = empire.user.id
+			let empireHistoryName = empire.name
+			let empireHistoryRace = raceArray[empire.race].name
+			let empireHistoryEra = eraArray[empire.era].name
+			let clanHistory_id = empire.clanId
+			let empireHistoryOffSucc = empire.offSucc
+			let empireHistoryOffTotal = empire.offTotal
+			let empireHistoryDefSucc = empire.defSucc
+			let empireHistoryDefTotal = empire.defTotal
+			let empireHistoryNetworth = empire.networth
+			let empireHistoryLand = empire.land
+			let empireHistoryRank = empire.rank
+
+			// create empire history
+			await new EmpireHistory({
+				roundHistory_id,
+				u_id,
+				empireHistoryName,
+				empireHistoryRace,
+				empireHistoryEra,
+				clanHistory_id,
+				empireHistoryOffSucc,
+				empireHistoryOffTotal,
+				empireHistoryDefSucc,
+				empireHistoryDefTotal,
+				empireHistoryNetworth,
+				empireHistoryLand,
+				empireHistoryRank,
+			}).save()
+			empire.remove()
+		})
+
+		let allClans = clans.length
+		let allEmpires = empires.length
+		const countUnclanned = empires.filter((empire) => {
+			return empire.clanId === 0
+		})
+		let nonClanEmpires = countUnclanned.length
+
+		await new RoundHistory({
+			round_h_id,
+			name,
+			description,
+			startDate,
+			stopDate,
+			allClans,
+			allEmpires,
+			nonClanEmpires,
+		}).save()
+		// save empire data into empire history table
+		// save clan data into clan history
+		// delete empires, intel, clans, clan relations, messages, clan messages, news, market, sessions, lottery, etc...
+		let clanMessages = await EmpireMessage.find()
+		clanMessages.forEach((message) => {
+			message.remove()
+		})
+		let messages = await EmpireMessage.find()
+		messages.forEach((message) => {
+			message.remove()
+		})
+		let markets = await Market.find()
+		markets.forEach((market) => {
+			market.remove()
+		})
+		let news = await EmpireNews.find()
+		news.forEach((news) => {
+			news.remove()
+		})
+		let clanRelation = await ClanRelation.find()
+		clanRelation.forEach((relation) => {
+			relation.remove()
+		})
+		let sessions = await Session.find()
+		sessions.forEach((session) => {
+			session.remove()
+		})
+
 		return res.json({ message: 'Game reset' })
 	} catch (error) {
 		console.log(error)
@@ -483,5 +618,7 @@ router.post('/updatemarket/:uuid', user, auth, updateMarket)
 router.delete('/deletemarket/:uuid', user, auth, deleteMarket)
 router.post('/updatemail/:uuid', user, auth, updateMail)
 router.delete('/deletemail/:uuid', user, auth, deleteMail)
+
+router.post('/resetgame', user, auth, resetGame)
 
 export default router

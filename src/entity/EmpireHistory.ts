@@ -5,17 +5,18 @@ import Model from './Model'
 
 @Entity('empire history')
 export default class EmpireHistory extends Model {
+	constructor(empireHistory: Partial<EmpireHistory>) {
+		super()
+		Object.assign(this, empireHistory)
+	}
+
 	@Index()
 	@PrimaryGeneratedColumn()
 	empireHistory_id: number
 
 	@Index()
-	@Column({
-		type: 'int',
-		default: 0,
-		unique: true,
-	})
-	roundHistory_id: number
+	@Column()
+	roundHistory_id: string
 
 	@Column({
 		type: 'int',

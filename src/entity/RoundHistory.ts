@@ -5,9 +5,17 @@ import Model from './Model'
 
 @Entity('round history')
 export default class RoundHistory extends Model {
+	constructor(roundHistory: Partial<RoundHistory>) {
+		super()
+		Object.assign(this, roundHistory)
+	}
+
 	@Index()
 	@PrimaryGeneratedColumn()
 	round_id: number
+
+	@Column()
+	round_h_id: string
 
 	@Column()
 	name: string
@@ -17,17 +25,11 @@ export default class RoundHistory extends Model {
 	})
 	description: string
 
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	startDate: number
+	@Column()
+	startDate: Date
 
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	stopDate: number
+	@Column()
+	stopDate: Date
 
 	@Column({
 		type: 'int',

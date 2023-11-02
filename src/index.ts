@@ -148,9 +148,11 @@ function checkTime() {
 
 const checkTimeTask = new Task('check time', () => {
 	let now = new Date()
+	console.log('checking time')
 	if (now > ROUND_START && now < ROUND_END) {
 		gameOn = true
 	}
+	return gameOn
 })
 
 checkTime()
@@ -161,10 +163,11 @@ checkTime()
 const scheduler = new ToadScheduler()
 
 const gameActive = new SimpleIntervalJob(
-	{ minutes: 1, runImmediately: true },
+	{ minutes: 10, runImmediately: true },
 	checkTimeTask,
 	'id_0'
 )
+
 scheduler.addSimpleIntervalJob(gameActive)
 
 const turns = new SimpleIntervalJob(
@@ -212,7 +215,9 @@ const aidJob = new SimpleIntervalJob(
 	'id_7'
 )
 
-if (gameOn) {
+console.log('gameOn', gameOn)
+while (gameOn) {
+	scheduler.addSimpleIntervalJob(gameActive)
 	scheduler.addSimpleIntervalJob(turns)
 	scheduler.addSimpleIntervalJob(ranks)
 	scheduler.addSimpleIntervalJob(thirtyMin)
