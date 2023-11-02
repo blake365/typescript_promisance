@@ -147,11 +147,13 @@ function checkTime() {
 }
 
 const checkTimeTask = new Task('check time', () => {
+	// console.log(gameOn)
 	let now = new Date()
 	// console.log('checking time')
 	if (now > ROUND_START && now < ROUND_END) {
 		gameOn = true
 	}
+	// console.log(gameOn)
 	return gameOn
 })
 
@@ -173,7 +175,7 @@ scheduler.addSimpleIntervalJob(gameActive)
 const turns = new SimpleIntervalJob(
 	{ minutes: TURNS_FREQ, runImmediately: false },
 	promTurns,
-	'id_1'
+	'id_10'
 )
 
 const cleanMarketJob = new SimpleIntervalJob(
@@ -216,14 +218,15 @@ const aidJob = new SimpleIntervalJob(
 )
 
 // console.log('gameOn', gameOn)
-while (gameOn) {
-	scheduler.addSimpleIntervalJob(gameActive)
-	scheduler.addSimpleIntervalJob(turns)
-	scheduler.addSimpleIntervalJob(ranks)
-	scheduler.addSimpleIntervalJob(thirtyMin)
-	scheduler.addSimpleIntervalJob(hourly)
-	scheduler.addSimpleIntervalJob(daily)
-	scheduler.addSimpleIntervalJob(cleanMarketJob)
-	scheduler.addSimpleIntervalJob(aidJob)
+scheduler.addSimpleIntervalJob(turns)
+scheduler.addSimpleIntervalJob(ranks)
+scheduler.addSimpleIntervalJob(thirtyMin)
+scheduler.addSimpleIntervalJob(hourly)
+scheduler.addSimpleIntervalJob(daily)
+scheduler.addSimpleIntervalJob(cleanMarketJob)
+scheduler.addSimpleIntervalJob(aidJob)
+
+if (!gameOn) {
+	scheduler.stop()
 }
 // console.log(scheduler.getById('id_1').getStatus());
