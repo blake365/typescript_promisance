@@ -148,7 +148,7 @@ function checkTime() {
 
 const checkTimeTask = new Task('check time', () => {
 	let now = new Date()
-	console.log('checking time')
+	// console.log('checking time')
 	if (now > ROUND_START && now < ROUND_END) {
 		gameOn = true
 	}
@@ -215,7 +215,7 @@ const aidJob = new SimpleIntervalJob(
 	'id_7'
 )
 
-console.log('gameOn', gameOn)
+// console.log('gameOn', gameOn)
 while (gameOn) {
 	scheduler.addSimpleIntervalJob(gameActive)
 	scheduler.addSimpleIntervalJob(turns)

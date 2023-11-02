@@ -20,7 +20,7 @@ export const DEFAULT_LANGUAGE = 'en-US' // Default language pack to use, also us
 export const BASE_LANGUAGE = 'en-US' // Base language pack, used for anything not defined in current/default
 
 export const ROUND_START = new Date('2023-11-02T08:00:00') // Date and time of round start
-export const ROUND_END = new Date('2023-21-30T12:00:00') // Date and time of round end
+export const ROUND_END = new Date('2023-11-21T12:00:00') // Date and time of round end
 
 export const ROUND_NAME = 'Round 0' // Name of round
 export const ROUND_DESCRIPTION = 'Test' // Description of round
