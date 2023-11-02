@@ -16,6 +16,8 @@ import {
 	ROUND_NAME,
 	ROUND_START,
 	ROUND_END,
+	PVTM_FOOD,
+	PVTM_TRPARM,
 } from '../config/conifg'
 import { makeId } from '../util/helpers'
 import { raceArray } from '../config/races'
@@ -471,6 +473,44 @@ const resetGame = async (req: Request, res: Response) => {
 		let startDate = ROUND_START
 		let stopDate = ROUND_END
 
+		// save empire data into empire history table
+		// save clan data into clan history
+		// delete empires, intel, clans, clan relations, messages, clan messages, news, market, sessions, lottery, etc...
+		// update user stats
+		let users = await User.find()
+		users.forEach(async (user) => {
+			let empire = await Empire.findOne({
+				where: { userId: user.id },
+			})
+
+			if (empire.rank > user.bestRank) {
+				user.bestRank = empire.rank
+			}
+
+			user.defSucc += empire.defSucc
+			user.defTotal += empire.defTotal
+			user.offSucc += empire.offSucc
+			user.offTotal += empire.offTotal
+			user.numPlays += 1
+
+			if (user.avgRank === 0) {
+				user.avgRank = empire.rank
+			} else {
+				user.avgRank = (user.avgRank + empire.rank) / user.numPlays
+			}
+
+			user.totalProduction +=
+				empire.income +
+				empire.foodpro * (PVTM_FOOD / PVTM_TRPARM) +
+				empire.indyProd +
+				empire.magicProd
+
+			user.totalConsumption +=
+				empire.expenses + empire.foodcon * (PVTM_FOOD / PVTM_TRPARM)
+
+			await user.save()
+		})
+
 		// get clans
 		let clans = await Clan.find()
 		clans.forEach(async (clan) => {
@@ -553,9 +593,7 @@ const resetGame = async (req: Request, res: Response) => {
 			allEmpires,
 			nonClanEmpires,
 		}).save()
-		// save empire data into empire history table
-		// save clan data into clan history
-		// delete empires, intel, clans, clan relations, messages, clan messages, news, market, sessions, lottery, etc...
+
 		let clanMessages = await EmpireMessage.find()
 		clanMessages.forEach((message) => {
 			message.remove()

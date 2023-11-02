@@ -147,4 +147,16 @@ export default class User extends Model {
 		default: 0,
 	})
 	timezone: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	totalProduction: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	totalConsumption: number
 }
