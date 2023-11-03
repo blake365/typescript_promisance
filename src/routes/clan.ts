@@ -237,6 +237,87 @@ const leaveClan = async (req: Request, res: Response) => {
 	}
 }
 
+const disbandClan = async (req: Request, res: Response) => {
+	let { empireId, clanId } = req.body
+
+	try {
+		const empire = await Empire.findOneOrFail({
+			where: { id: empireId },
+		})
+
+		const effect = await EmpireEffect.findOne({
+			where: { effectOwnerId: empire.id, empireEffectName: 'join clan' },
+			order: { createdAt: 'DESC' },
+		})
+
+		let now = new Date()
+		let timeLeft = 0
+
+		if (effect) {
+			let effectAge =
+				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+			timeLeft = effect.empireEffectValue - effectAge
+			// age in minutes
+			// console.log(effectAge)
+			effectAge = Math.floor(effectAge)
+		}
+
+		if (timeLeft > 0) {
+			return res
+				.status(400)
+				.json({
+					error: 'You cannot disband a clan for 3 days after creating it',
+				})
+		}
+
+		if (empire.clanId === 0) {
+			return res.status(400).json({ error: 'You are not in a clan' })
+		}
+
+		const clan = await Clan.findOneOrFail({
+			where: { id: empire.clanId },
+		})
+
+		if (clan.empireIdLeader !== empire.id) {
+			return res
+				.status(400)
+				.json({ error: 'You do not have authority to disband the clan' })
+		}
+
+		const members = await Empire.find({
+			where: { clanId: clanId },
+		})
+
+		await clan.remove()
+
+		members.forEach(async (member) => {
+			member.clanId = 0
+			await member.save()
+		})
+
+		// create effect
+		let empireEffectName = 'leave clan'
+		let empireEffectValue = 3 * 60 * 24
+		let effectOwnerId = empire.id
+
+		let newEffect: EmpireEffect
+		newEffect = new EmpireEffect({
+			effectOwnerId,
+			empireEffectName,
+			empireEffectValue,
+		})
+		// console.log(effect)
+		await newEffect.save()
+
+		return res.json(empire)
+	} catch (err) {
+		console.log(err)
+		return res
+			.status(500)
+			.json({ error: 'Something went wrong when leaving clan' })
+	}
+}
+
 const kickFromClan = async (req: Request, res: Response) => {
 	let { empireId } = req.body
 
@@ -803,6 +884,7 @@ const router = Router()
 router.post('/create', user, auth, createClan)
 router.post('/join', user, auth, joinClan)
 router.post('/leave', user, auth, leaveClan)
+router.post('/disband', user, auth, disbandClan)
 router.post('/kick', user, auth, kickFromClan)
 router.post('/get', user, auth, getClan)
 router.post('/getMembers', user, auth, getClanMembers)
