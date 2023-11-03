@@ -600,6 +600,7 @@ export const useTurnInternal = (
 	let overall = {}
 	let statsArray = []
 	let message = {
+		error: '',
 		production: '',
 		desertion: '',
 	}
@@ -621,9 +622,13 @@ export const useTurnInternal = (
 	}
 
 	if (turns > empire.turns) {
-		return { message: 'not enough turns available' }
+		message.error = 'not enough turns available'
+		statsArray.push(message)
+		return statsArray
 	} else if (turns === 0) {
-		return { message: 'specify number of turns to use' }
+		message.error = 'specify number of turns to use'
+		statsArray.push(message)
+		return statsArray
 	}
 
 	while (taken < turns) {

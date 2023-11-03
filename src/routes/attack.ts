@@ -320,9 +320,17 @@ const attack = async (req: Request, res: Response) => {
 				error: returnText,
 			})
 		}
+
+		if (attacker.turns < 2) {
+			canAttack = false
+			returnText = 'You do not have enough turns to attack.'
+			return res.json({
+				error: returnText,
+			})
+		}
 		// check eras and time gates
 		let defenderTimegate = false
-		if (attacker.era === defender.era && attacker.turns > 2) {
+		if (attacker.era === defender.era) {
 			canAttack = true
 		} else if (attacker.era !== defender.era) {
 			// use attacker time gate first then try defender

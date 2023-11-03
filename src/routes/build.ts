@@ -89,9 +89,12 @@ const build = async (req: Request, res: Response) => {
 	// console.log(buildArray)
 	buildArray = buildArray.filter((object) => Object.values(object)[0] > 0)
 
-	// let totalTurns = buildTotal / buildRate
+	let totalTurns = buildTotal / buildRate
 
 	const buildLoop = async () => {
+		if (totalTurns > empire.turns) {
+			return res.json({ error: 'Not enough turns' })
+		}
 		let resultArray = []
 		for (let i = 0; i < buildArray.length; i++) {
 			// console.log(buildArray[i])
@@ -117,7 +120,10 @@ const build = async (req: Request, res: Response) => {
 				let oneTurn = useTurnInternal('build', 1, empire, clan, true)
 				// console.log(oneTurn)
 				let turnRes = oneTurn[0]
-				if (!turnRes?.messages?.desertion) {
+				if (turnRes?.messages?.error) {
+					resultArray.push(turnRes)
+					break
+				} else if (!turnRes?.messages?.desertion) {
 					empire.cash =
 						empire.cash +
 						turnRes.withdraw +

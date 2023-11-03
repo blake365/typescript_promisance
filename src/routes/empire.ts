@@ -180,7 +180,7 @@ const getScores = async (_: Request, res: Response) => {
 			const newEmpires = await Promise.all(
 				empires.map(async (empire) => {
 					if (empire.clanId !== 0 && empire.clanId !== null) {
-						const clan = await Clan.findOne({
+						const clan = await Clan.find({
 							select: [
 								'id',
 								'clanName',
@@ -191,9 +191,12 @@ const getScores = async (_: Request, res: Response) => {
 								'empireIdAgent2',
 							],
 							where: { id: empire.clanId },
+							relations: ['relation'],
 						})
 
-						return { clan, ...empire }
+						let clanReturn = clan[0]
+
+						return { clanReturn, ...empire }
 					} else {
 						return empire
 					}
