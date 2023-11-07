@@ -123,7 +123,7 @@ export const useTurn = async (
 		if (type === 'cash') {
 			income = Math.round(income * 1.25)
 			if (lucky) {
-				income *= 1.5
+				income = Math.round(income * 1.5)
 			}
 		}
 		if (type === 'heal') {

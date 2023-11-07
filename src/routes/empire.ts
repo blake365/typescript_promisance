@@ -480,11 +480,10 @@ const findOneEmpire = async (req: Request, res: Response) => {
 const getEmpireEffects = async (req: Request, res: Response) => {
 	const { empireId } = req.body
 
-	function isOld(createdAt, effectValue) {
+	function isOld(updatedAt, effectValue) {
 		let effectAge =
-			(Date.now().valueOf() - new Date(createdAt).getTime()) / 60000
+			(Date.now().valueOf() - new Date(updatedAt).getTime()) / 60000
 		effectAge = Math.floor(effectAge)
-
 		// console.log(effectAge)
 		// console.log(effectValue)
 
@@ -504,7 +503,7 @@ const getEmpireEffects = async (req: Request, res: Response) => {
 		// console.log(effects)
 
 		let filterEffects = effects.filter((effect) =>
-			isOld(effect.createdAt, effect.empireEffectValue)
+			isOld(effect.updatedAt, effect.empireEffectValue)
 		)
 
 		return res.json(filterEffects)
