@@ -19,6 +19,8 @@ import EmpireEffect from '../entity/EmpireEffect'
 import User from '../entity/User'
 import { getNetworth } from '../routes/actions/actions'
 import Session from '../entity/Session'
+import { eraArray } from '../config/eras'
+import { createNewsEvent } from '../util/helpers'
 
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
@@ -290,6 +292,30 @@ export const cleanMarket = new AsyncTask('clean market', async () => {
 		let empire = await Empire.findOne({ id: items[i].empire_id })
 		empire[itemsArray[item.type]] += Math.round(item.amount * 0.75)
 		empire.networth = getNetworth(empire)
+
+		// news event for expired market item
+		// create news entry
+		let sourceId = empire.id
+		let sourceName = empire.name
+		let destinationId = empire.id
+		let destinationName = empire.name
+		let content: string = `You're ${
+			eraArray[empire.era][item.type]
+		} on the public market has expired and 75% has been returned to you.`
+		let pubContent: string = `${empire.name} failed to sell their item on the public market.`
+
+		// create news event for seller that goods have been purchased
+		await createNewsEvent(
+			content,
+			pubContent,
+			sourceId,
+			sourceName,
+			destinationId,
+			destinationName,
+			'market',
+			'fail'
+		)
+
 		await empire.save()
 		await item.remove()
 	}

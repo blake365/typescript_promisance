@@ -11,9 +11,12 @@ import {
 	TURNS_DEMO,
 	TURNS_INITIAL,
 	TURNS_MAXIMUM,
+	TURNS_PROTECTION,
 	TURNS_STORED,
 } from '../config/conifg'
 import Clan from '../entity/Clan'
+import ClanRelation from '../entity/ClanRelation'
+import ClanMessage from '../entity/ClanMessage'
 
 const Filter = require('bad-words')
 
@@ -315,18 +318,23 @@ const changeRace = async (req: Request, res: Response) => {
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
 
-		if (race !== empire.race && empire.turns >= TURNS_MAXIMUM / 2) {
+		if (empire.turnsUsed > TURNS_PROTECTION) {
+			if (race !== empire.race && empire.turns >= TURNS_MAXIMUM / 2) {
+				empire.race = race
+				empire.turns -= Math.floor(TURNS_MAXIMUM / 2)
+				empire.cash -= Math.floor(empire.cash * 0.25)
+				empire.food -= Math.floor(empire.food * 0.25)
+				empire.runes -= Math.floor(empire.runes * 0.25)
+				empire.peasants -= Math.floor(empire.peasants * 0.1)
+				empire.trpArm -= Math.floor(empire.trpArm * 0.1)
+				empire.trpLnd -= Math.floor(empire.trpLnd * 0.1)
+				empire.trpFly -= Math.floor(empire.trpFly * 0.1)
+				empire.trpSea -= Math.floor(empire.trpSea * 0.1)
+				empire.networth = getNetworth(empire)
+				await empire.save()
+			}
+		} else {
 			empire.race = race
-			empire.turns -= Math.floor(TURNS_MAXIMUM / 2)
-			empire.cash -= Math.floor(empire.cash * 0.25)
-			empire.food -= Math.floor(empire.food * 0.25)
-			empire.runes -= Math.floor(empire.runes * 0.25)
-			empire.peasants -= Math.floor(empire.peasants * 0.1)
-			empire.trpArm -= Math.floor(empire.trpArm * 0.1)
-			empire.trpLnd -= Math.floor(empire.trpLnd * 0.1)
-			empire.trpFly -= Math.floor(empire.trpFly * 0.1)
-			empire.trpSea -= Math.floor(empire.trpSea * 0.1)
-			empire.networth = getNetworth(empire)
 			await empire.save()
 		}
 
@@ -425,8 +433,57 @@ const bank = async (req: Request, res: Response) => {
 const deleteEmpire = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 
+	const user: User = res.locals.user
+
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
+
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
+		if (empire.clanId !== 0) {
+			const clan = await Clan.findOne({ id: empire.clanId })
+			if (clan.empireIdLeader === empire.id) {
+				clan.empireIdLeader = 0
+				if (clan.empireIdAssistant) {
+					clan.empireIdLeader = clan.empireIdAssistant
+					clan.empireIdAssistant = 0
+				} else {
+					let members = await Empire.find({ clanId: clan.id })
+					if (members.length > 1) {
+						members = members.filter((member) => member.id !== empire.id)
+						members = members.sort((a, b) => b.networth - a.networth)
+						clan.empireIdLeader = members[0].id
+					}
+				}
+			} else if (clan.empireIdAssistant === empire.id) {
+				clan.empireIdAssistant = 0
+			}
+
+			clan.clanMembers -= 1
+
+			if (clan.clanMembers < 1) {
+				const relations = await ClanRelation.find({
+					where: [{ c_id1: clan.id }, { c_id2: clan.id }],
+				})
+				if (relations) {
+					relations.forEach(async (relation) => {
+						await relation.remove()
+					})
+				}
+
+				const messages = await ClanMessage.find({ clanId: clan.id })
+				if (messages) {
+					messages.forEach(async (message) => {
+						await message.remove()
+					})
+				}
+
+				await clan.remove()
+			} else {
+				await clan.save()
+			}
+		}
 		await empire.remove()
 		return res.json({ message: 'empire deleted' })
 	} catch (error) {
@@ -654,6 +711,6 @@ router.post('/:uuid/changeRace', user, auth, changeRace)
 // router.put('/give/resources', giveResources)
 // router.put('/give/turns', giveTurns)
 
-// router.delete('/:uuid', deleteEmpire)
+router.delete('/:uuid', user, auth, deleteEmpire)
 
 export default router
