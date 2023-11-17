@@ -47,6 +47,10 @@ export const useTurn = async (
 
 	const empire = await Empire.findOneOrFail({ id: empireId })
 
+	if (empire.flags === 1) {
+		return { message: 'Your empire has been disabled by administration.' }
+	}
+
 	if (empire.tax < 1) {
 		empire.tax = 1
 	}
@@ -610,6 +614,12 @@ export const useTurnInternal = (
 	let interruptable = false
 	if (type === 'build' || type === 'demolish') {
 		interruptable = true
+	}
+
+	if (empire.flags === 1) {
+		message.error = 'Your empire has been disabled by administration.'
+		statsArray.push(message)
+		return statsArray
 	}
 
 	let deserted = 1

@@ -220,6 +220,28 @@ const deleteEmpire = async (req: Request, res: Response) => {
 	}
 }
 
+const disableEmpire = async (req: Request, res: Response) => {
+	if (res.locals.user.role !== 'admin') {
+		return res.status(401).json({ message: 'Not authorized' })
+	}
+
+	const { uuid } = req.params
+
+	try {
+		const empire = await Empire.findOne({ uuid: uuid })
+		if (empire.flags === 0) {
+			empire.flags = 1
+		} else if (empire.flags === 1) {
+			empire.flags = 0
+		}
+		await empire.save()
+		return res.json({ message: 'Empire disabled status changed' })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
 const updateUser = async (req: Request, res: Response) => {
 	if (res.locals.user.role !== 'admin') {
 		return res.status(401).json({ message: 'Not authorized' })
@@ -648,6 +670,7 @@ router.get('/mail/:uuid', user, auth, loadOneMessage)
 
 router.post('/updateempire/:uuid', user, auth, updateEmpire)
 router.delete('/deleteempire/:uuid', user, auth, deleteEmpire)
+router.post('/disableempire/:uuid', user, auth, disableEmpire)
 router.post('/updateuser/:uuid', user, auth, updateUser)
 router.delete('/deleteuser/:uuid', user, auth, deleteUser)
 router.post('/updatenews/:uuid', user, auth, updateNews)
