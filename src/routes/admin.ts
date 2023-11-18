@@ -458,12 +458,16 @@ const countAll = async (req: Request, res: Response) => {
 		const news = await EmpireNews.count()
 		const markets = await Market.count()
 		const mail = await EmpireMessage.count()
+		const mailReports = await EmpireMessage.count({
+			where: { messageFlags: 1 },
+		})
 		return res.json({
 			users: users,
 			empires: empires,
 			news: news,
 			markets: markets,
 			mail: mail,
+			reports: mailReports,
 		})
 	} catch (error) {
 		console.log(error)

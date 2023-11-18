@@ -324,6 +324,50 @@ const readClanMessages = async (req: Request, res: Response) => {
 	}
 }
 
+const reportMessage = async (req: Request, res: Response) => {
+	const { conversationId } = req.body
+
+	try {
+		await getConnection()
+			.createQueryBuilder()
+			.update(EmpireMessage)
+			.set({
+				// update rank
+				messageFlags: 1,
+			})
+			.where('conversationId = :conversationId', { conversationId })
+			.execute()
+
+		res.status(200).json({ success: true })
+	} catch (error) {
+		console.log(error)
+		res.status(500).json({ message: error })
+	}
+}
+
+const toggleReport = async (req: Request, res: Response) => {
+	const { uuid } = req.params
+
+	try {
+		const message = await EmpireMessage.findOne({
+			where: { uuid: uuid },
+		})
+
+		if (message.messageFlags === 1) {
+			message.messageFlags = 0
+		} else {
+			message.messageFlags = 1
+		}
+
+		await message.save()
+
+		res.status(200).json({ message: 'Message report status changed' })
+	} catch (error) {
+		console.log(error)
+		res.status(500).json({ message: error })
+	}
+}
+
 const deleteMessage = async (req: Request, res: Response) => {}
 
 const router = Router()
@@ -339,5 +383,7 @@ router.post('/clan', user, auth, getClanMessages)
 router.post('/clan/new', user, auth, postClanMessage)
 router.post('/clan/read', user, auth, readClanMessages)
 router.post('/clan/unread', user, auth, unreadClanMessages)
+router.post('/report', user, auth, reportMessage)
+router.get('/togglereport/:uuid', user, auth, toggleReport)
 
 export default router
