@@ -36,6 +36,12 @@ const buy = async (req: Request, res: Response) => {
 	const { type, empireId, buyArm, buyLnd, buyFly, buySea, buyFood, buyRunes } =
 		req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.json({ error: 'unauthorized' })
+	}
+
 	if (type !== 'buy') {
 		return res.json({ error: 'Something went wrong' })
 	}
@@ -140,6 +146,12 @@ const sell = async (req: Request, res: Response) => {
 
 	if (type !== 'sell') {
 		return res.json({ error: 'Something went wrong' })
+	}
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.json({ error: 'unauthorized' })
 	}
 
 	const empire = await Empire.findOne({ id: empireId })

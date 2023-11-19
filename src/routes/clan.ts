@@ -16,6 +16,12 @@ const createClan = async (req: Request, res: Response) => {
 	let { clanName, clanPassword, empireId } = req.body
 	const filter = new Filter()
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
 	// console.log(clanName, clanPassword, empireId)
 	clanName = filter.clean(clanName)
 
@@ -80,6 +86,12 @@ const createClan = async (req: Request, res: Response) => {
 
 const joinClan = async (req: Request, res: Response) => {
 	let { clanName, clanPassword, empireId } = req.body
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
 
 	try {
 		const empire = await Empire.findOneOrFail({
@@ -168,6 +180,12 @@ const joinClan = async (req: Request, res: Response) => {
 const leaveClan = async (req: Request, res: Response) => {
 	let { empireId } = req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
@@ -240,6 +258,12 @@ const leaveClan = async (req: Request, res: Response) => {
 const disbandClan = async (req: Request, res: Response) => {
 	let { empireId, clanId } = req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
@@ -263,11 +287,9 @@ const disbandClan = async (req: Request, res: Response) => {
 		}
 
 		if (timeLeft > 0) {
-			return res
-				.status(400)
-				.json({
-					error: 'You cannot disband a clan for 3 days after creating it',
-				})
+			return res.status(400).json({
+				error: 'You cannot disband a clan for 3 days after creating it',
+			})
 		}
 
 		if (empire.clanId === 0) {
@@ -320,6 +342,12 @@ const disbandClan = async (req: Request, res: Response) => {
 
 const kickFromClan = async (req: Request, res: Response) => {
 	let { empireId } = req.body
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
 
 	try {
 		const empire = await Empire.findOneOrFail({
@@ -544,6 +572,12 @@ const getClansData = async (req: Request, res: Response) => {
 const assignClanRole = async (req: Request, res: Response) => {
 	let { empireId, clanRole, memberId } = req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
@@ -596,6 +630,12 @@ const assignClanRole = async (req: Request, res: Response) => {
 const removeClanRole = async (req: Request, res: Response) => {
 	let { empireId, clanRole } = req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
@@ -638,7 +678,13 @@ const removeClanRole = async (req: Request, res: Response) => {
 const declareWar = async (req: Request, res: Response) => {
 	let { empireId, clanId, enemyClanId } = req.body
 
-	console.log(req.body)
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
+	// console.log(req.body)
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
@@ -738,7 +784,13 @@ const declareWar = async (req: Request, res: Response) => {
 const offerPeace = async (req: Request, res: Response) => {
 	const { empireId, clanId, enemyClanId } = req.body
 
-	console.log(req.body)
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
+	// console.log(req.body)
 
 	try {
 		const empire = await Empire.findOneOrFail({

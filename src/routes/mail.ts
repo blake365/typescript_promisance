@@ -17,6 +17,12 @@ const concatenateIntegers = (a, b) => {
 const getConversations = async (req: Request, res: Response) => {
 	const { empireId } = req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(401).json({ message: 'Unauthorized' })
+	}
+
 	try {
 		const conversations = await EmpireMessage.find({
 			select: [
@@ -62,6 +68,12 @@ const getConversations = async (req: Request, res: Response) => {
 const getMessages = async (req: Request, res: Response) => {
 	const { conversationId, empireId } = req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(401).json({ message: 'Unauthorized' })
+	}
+
 	try {
 		const messages = await EmpireMessage.find({
 			where: { conversationId: conversationId },
@@ -84,6 +96,12 @@ const getMessages = async (req: Request, res: Response) => {
 const postMessage = async (req: Request, res: Response) => {
 	let { sourceId, sourceName, destinationId, destinationName, message } =
 		req.body
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== sourceId) {
+		return res.status(401).json({ message: 'Unauthorized' })
+	}
 
 	if (!destinationName) {
 		let splitter = destinationId.split(',')
@@ -179,6 +197,12 @@ const checkForNew = async (req: Request, res: Response) => {
 	console.log('checking for new mail')
 	const { id } = req.params
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== id) {
+		return res.status(401).json({ message: 'Unauthorized' })
+	}
+
 	try {
 		const news = await EmpireMessage.find({
 			where: { empireIdDestination: id },
@@ -202,6 +226,12 @@ const countNew = async (req: Request, res: Response) => {
 	// console.log('checking for new mail')
 	const { id } = req.params
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== id) {
+		return res.status(401).json({ message: 'Unauthorized' })
+	}
+
 	try {
 		const news = await EmpireMessage.findAndCount({
 			where: { empireIdDestination: id, seen: false },
@@ -217,8 +247,14 @@ const countNew = async (req: Request, res: Response) => {
 }
 
 const markRead = async (req: Request, res: Response) => {
-	console.log('marking mail as read')
+	// console.log('marking mail as read')
 	const { id } = req.params
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== id) {
+		return res.status(401).json({ message: 'Unauthorized' })
+	}
 
 	await getConnection()
 		.createQueryBuilder()
@@ -247,6 +283,12 @@ const getClanMessages = async (req: Request, res: Response) => {
 
 const postClanMessage = async (req: Request, res: Response) => {
 	const { empireId, empireName, clanMessageBody, clanId } = req.body
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(401).json({ message: 'Unauthorized' })
+	}
 	// console.log(req.body)
 	const filter = new Filter()
 	const message = filter.clean(clanMessageBody)
@@ -270,6 +312,12 @@ const postClanMessage = async (req: Request, res: Response) => {
 const unreadClanMessages = async (req: Request, res: Response) => {
 	// count unread messages
 	let { empireId, clanId } = req.body
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(401).json({ message: 'Unauthorized' })
+	}
 	// console.log(req.body)
 	empireId = empireId.toString()
 	try {
@@ -298,6 +346,12 @@ const unreadClanMessages = async (req: Request, res: Response) => {
 const readClanMessages = async (req: Request, res: Response) => {
 	// mark messages as read
 	let { empireId, clanId } = req.body
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(401).json({ message: 'Unauthorized' })
+	}
 	// console.log(req.body)
 	empireId = empireId.toString()
 	try {

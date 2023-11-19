@@ -29,6 +29,12 @@ const getPageNews = async (req: Request, res: Response) => {
 const getEmpireNews = async (req: Request, res: Response) => {
 	const { id } = req.params
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== id) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
 	try {
 		const news = await EmpireNews.find({
 			where: { empireIdDestination: id },
@@ -48,6 +54,12 @@ const markRead = async (req: Request, res: Response) => {
 	console.log('marking news as read')
 	const { id } = req.params
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== id) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
 	await getConnection()
 		.createQueryBuilder()
 		.update(EmpireNews)
@@ -60,6 +72,12 @@ const markRead = async (req: Request, res: Response) => {
 
 const checkForNew = async (req: Request, res: Response) => {
 	const { id } = req.params
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== id) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
 
 	try {
 		const news = await EmpireNews.find({
@@ -82,6 +100,12 @@ const checkForNew = async (req: Request, res: Response) => {
 
 const countNew = async (req: Request, res: Response) => {
 	const { id } = req.params
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== id) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
 
 	try {
 		const news = await EmpireNews.findAndCount({

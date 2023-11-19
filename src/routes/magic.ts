@@ -74,6 +74,12 @@ const magic = async (req: Request, res: Response) => {
 		return res.json({ error: 'Something went wrong' })
 	}
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
 	const empire = await Empire.findOne({ id: empireId })
 
 	let clan = null

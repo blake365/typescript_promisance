@@ -31,6 +31,12 @@ const sendAid = async (req: Request, res: Response) => {
 		type,
 	} = req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
 	if (type !== 'aid') {
 		return res.status(400).json({ error: 'something went wrong' })
 	}

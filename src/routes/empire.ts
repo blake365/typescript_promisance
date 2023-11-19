@@ -222,6 +222,12 @@ const updateTax = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { tax } = req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
+
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
 		empire.tax = tax
@@ -238,6 +244,12 @@ const updateProfile = async (req: Request, res: Response) => {
 
 	console.log(req.body)
 	const filter = new Filter()
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
 
 	try {
 		const empire = await Empire.findOneOrFail({ id: empireId })
@@ -256,6 +268,12 @@ const updateProfile = async (req: Request, res: Response) => {
 const updateIcon = async (req: Request, res: Response) => {
 	const { empireId, type, icon } = req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
+
 	try {
 		const empire = await Empire.findOneOrFail({ id: empireId })
 
@@ -273,6 +291,12 @@ const updateIcon = async (req: Request, res: Response) => {
 const updateIndustry = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { indArmy, indFly, indLnd, indSea } = req.body
+
+	const { user } = res.locals
+
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
 
 	console.log(req.body)
 	if (indArmy + indFly + indLnd + indSea !== 100) {
@@ -314,6 +338,12 @@ const changeRace = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { race } = req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
+
 	console.log(race)
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
@@ -351,6 +381,11 @@ const bank = async (req: Request, res: Response) => {
 	let { depositAmt, withdrawAmt, type, loanAmt, repayAmt } = req.body
 
 	// console.log(req.body)
+	const { user } = res.locals
+
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
@@ -498,14 +533,16 @@ const findOneEmpire = async (req: Request, res: Response) => {
 
 	const user: User = res.locals.user
 
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
+
 	try {
 		const empire = await Empire.findOneOrFail(
 			{ uuid },
 			{ relations: ['user', 'clan'] }
 		)
-		if (user.username !== empire.user.username) {
-			return res.status(403).json({ error: 'unauthorized' })
-		}
+
 		if (empire.clanId !== 0 && empire.clanId !== null) {
 			const clan = await Clan.find({
 				select: [
@@ -536,6 +573,12 @@ const findOneEmpire = async (req: Request, res: Response) => {
 
 const getEmpireEffects = async (req: Request, res: Response) => {
 	const { empireId } = req.body
+
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
 
 	function isOld(updatedAt, effectValue) {
 		let effectAge =
@@ -574,6 +617,12 @@ const addEmpireEffect = async (req: Request, res: Response) => {
 	// const {uuid} = req.params
 	const { empireId, effectName, effectValue } = req.body
 
+	const { user } = res.locals
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
+
 	let effectOwnerId = empireId
 	let empireEffectName = effectName
 	let empireEffectValue = effectValue
@@ -598,7 +647,11 @@ const updateEmpireFavorite = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { favorite } = req.body
 
-	console.log(favorite)
+	const { user } = res.locals
+
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
@@ -623,6 +676,12 @@ const bonusTurns = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 
 	const { empireId } = req.body
+
+	const { user } = res.locals
+
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
 
 	function isOld(createdAt, effectValue) {
 		let effectAge =
