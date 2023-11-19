@@ -13,6 +13,8 @@ import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import { getNetworth } from './actions/actions'
 import User from '../entity/User'
+import auth from '../middleware/auth'
+import user from '../middleware/user'
 
 const getCost = (empire: Empire, base) => {
 	let cost = base
@@ -39,7 +41,7 @@ const buy = async (req: Request, res: Response) => {
 
 	const user: User = res.locals.user
 
-	if (user.empires[0].id !== empireId) {
+	if (user.empires[0].id !== parseInt(empireId)) {
 		return res.json({ error: 'unauthorized' })
 	}
 
@@ -151,7 +153,7 @@ const sell = async (req: Request, res: Response) => {
 
 	const user: User = res.locals.user
 
-	if (user.empires[0].id !== empireId) {
+	if (user.empires[0].id !== parseInt(empireId)) {
 		return res.json({ error: 'unauthorized' })
 	}
 
@@ -226,7 +228,7 @@ const sell = async (req: Request, res: Response) => {
 const router = Router()
 
 //TODO: needs user and auth middleware
-router.post('/buy', buy)
-router.post('/sell', sell)
+router.post('/buy', user, auth, buy)
+router.post('/sell', user, auth, sell)
 
 export default router

@@ -104,7 +104,7 @@ const checkForNew = async (req: Request, res: Response) => {
 const countNew = async (req: Request, res: Response) => {
 	const { id } = req.params
 
-	console.log(id)
+	// console.log(id)
 	const user: User = res.locals.user
 
 	if (user.empires[0].id != parseInt(id)) {
