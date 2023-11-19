@@ -2,13 +2,14 @@ import EmpireIntel from '../entity/EmpireIntel'
 import { Request, Response, Router } from 'express'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
+import User from '../entity/User'
 
 const getIntel = async (req: Request, res: Response) => {
 	const id = req.params.id
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
-	if (user.empires[0].id !== id) {
+	if (user.empires[0].id !== parseInt(id)) {
 		return res.status(400).json({ error: 'unauthorized' })
 	}
 
@@ -57,7 +58,7 @@ const getClanIntel = async (req: Request, res: Response) => {
 const getEmpireIntel = async (req: Request, res: Response) => {
 	const { spiedEmpireId, ownerId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== ownerId) {
 		return res.status(400).json({ error: 'unauthorized' })

@@ -13,6 +13,7 @@ import user from '../middleware/user'
 
 import { Not, Raw } from 'typeorm'
 import { createNewsEvent } from '../util/helpers'
+import User from '../entity/User'
 
 interface ReturnObject {
 	amount: number
@@ -23,7 +24,7 @@ interface ReturnObject {
 const pubBuyTwo = async (req: Request, res: Response) => {
 	const { empireId, action, type, buy, item } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(500).json({ error: 'Empire ID mismatch' })
@@ -218,7 +219,7 @@ const pubSell = async (req: Request, res: Response) => {
 		return res.json({ error: 'Something went wrong' })
 	}
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(500).json({ error: 'unauthorized' })
@@ -497,7 +498,7 @@ const recallItem = async (req: Request, res: Response) => {
 	// return 75% of the items to the empire
 	const { itemId, empireId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(500).json({ error: 'Empire ID mismatch' })
@@ -528,7 +529,7 @@ const editPrice = async (req: Request, res: Response) => {
 	// change the price of an item but decrease the amount by 10%
 	const { itemId, empireId, price } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(500).json({ error: 'Empire ID mismatch' })

@@ -12,6 +12,7 @@ import {
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import { getNetworth } from './actions/actions'
+import User from '../entity/User'
 
 const getCost = (empire: Empire, base) => {
 	let cost = base
@@ -36,7 +37,7 @@ const buy = async (req: Request, res: Response) => {
 	const { type, empireId, buyArm, buyLnd, buyFly, buySea, buyFood, buyRunes } =
 		req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.json({ error: 'unauthorized' })
@@ -148,7 +149,7 @@ const sell = async (req: Request, res: Response) => {
 		return res.json({ error: 'Something went wrong' })
 	}
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.json({ error: 'unauthorized' })

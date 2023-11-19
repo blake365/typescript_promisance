@@ -34,6 +34,7 @@ import {
 } from '../config/conifg'
 
 import { getNetworth } from './actions/actions'
+import User from '../entity/User'
 // FIXED: internal turns not working
 
 const spellCheck = (empire: Empire, cost: number, turns: number) => {
@@ -74,7 +75,7 @@ const magic = async (req: Request, res: Response) => {
 		return res.json({ error: 'Something went wrong' })
 	}
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(400).json({ error: 'unauthorized' })

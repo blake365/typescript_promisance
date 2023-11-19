@@ -6,6 +6,7 @@ import EmpireNews from '../entity/EmpireNews'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { getConnection } from 'typeorm'
+import User from '../entity/User'
 
 // set up route for pagination of news data
 const getPageNews = async (req: Request, res: Response) => {
@@ -29,10 +30,12 @@ const getPageNews = async (req: Request, res: Response) => {
 const getEmpireNews = async (req: Request, res: Response) => {
 	const { id } = req.params
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
-	if (user.empires[0].id !== id) {
-		return res.status(400).json({ error: 'unauthorized' })
+	console.log(user.empires[0].id)
+
+	if (user.empires[0].id !== parseInt(id)) {
+		return res.status(403).json({ error: 'unauthorized' })
 	}
 
 	try {
@@ -54,9 +57,9 @@ const markRead = async (req: Request, res: Response) => {
 	console.log('marking news as read')
 	const { id } = req.params
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
-	if (user.empires[0].id !== id) {
+	if (user.empires[0].id !== parseInt(id)) {
 		return res.status(400).json({ error: 'unauthorized' })
 	}
 
@@ -73,9 +76,9 @@ const markRead = async (req: Request, res: Response) => {
 const checkForNew = async (req: Request, res: Response) => {
 	const { id } = req.params
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
-	if (user.empires[0].id !== id) {
+	if (user.empires[0].id !== parseInt(id)) {
 		return res.status(400).json({ error: 'unauthorized' })
 	}
 
@@ -101,9 +104,10 @@ const checkForNew = async (req: Request, res: Response) => {
 const countNew = async (req: Request, res: Response) => {
 	const { id } = req.params
 
-	const { user } = res.locals
+	console.log(id)
+	const user: User = res.locals.user
 
-	if (user.empires[0].id !== id) {
+	if (user.empires[0].id != parseInt(id)) {
 		return res.status(400).json({ error: 'unauthorized' })
 	}
 

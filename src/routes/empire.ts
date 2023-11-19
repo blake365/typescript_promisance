@@ -222,7 +222,7 @@ const updateTax = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { tax } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].uuid !== uuid) {
 		return res.status(403).json({ error: 'unauthorized' })
@@ -245,7 +245,7 @@ const updateProfile = async (req: Request, res: Response) => {
 	console.log(req.body)
 	const filter = new Filter()
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(403).json({ error: 'unauthorized' })
@@ -268,7 +268,7 @@ const updateProfile = async (req: Request, res: Response) => {
 const updateIcon = async (req: Request, res: Response) => {
 	const { empireId, type, icon } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(403).json({ error: 'unauthorized' })
@@ -292,7 +292,7 @@ const updateIndustry = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { indArmy, indFly, indLnd, indSea } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].uuid !== uuid) {
 		return res.status(403).json({ error: 'unauthorized' })
@@ -338,7 +338,7 @@ const changeRace = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { race } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].uuid !== uuid) {
 		return res.status(403).json({ error: 'unauthorized' })
@@ -381,7 +381,7 @@ const bank = async (req: Request, res: Response) => {
 	let { depositAmt, withdrawAmt, type, loanAmt, repayAmt } = req.body
 
 	// console.log(req.body)
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].uuid !== uuid) {
 		return res.status(403).json({ error: 'unauthorized' })
@@ -574,7 +574,7 @@ const findOneEmpire = async (req: Request, res: Response) => {
 const getEmpireEffects = async (req: Request, res: Response) => {
 	const { empireId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(403).json({ error: 'unauthorized' })
@@ -617,7 +617,7 @@ const addEmpireEffect = async (req: Request, res: Response) => {
 	// const {uuid} = req.params
 	const { empireId, effectName, effectValue } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(403).json({ error: 'unauthorized' })
@@ -647,7 +647,7 @@ const updateEmpireFavorite = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { favorite } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].uuid !== uuid) {
 		return res.status(403).json({ error: 'unauthorized' })
@@ -677,7 +677,7 @@ const bonusTurns = async (req: Request, res: Response) => {
 
 	const { empireId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].uuid !== uuid) {
 		return res.status(403).json({ error: 'unauthorized' })

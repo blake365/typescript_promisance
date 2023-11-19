@@ -4,6 +4,7 @@ import { Router, Request, Response } from 'express'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
 import { Not, Any, getConnection } from 'typeorm'
+import User from '../entity/User'
 
 const Filter = require('bad-words')
 
@@ -17,7 +18,7 @@ const concatenateIntegers = (a, b) => {
 const getConversations = async (req: Request, res: Response) => {
 	const { empireId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(401).json({ message: 'Unauthorized' })
@@ -68,7 +69,7 @@ const getConversations = async (req: Request, res: Response) => {
 const getMessages = async (req: Request, res: Response) => {
 	const { conversationId, empireId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(401).json({ message: 'Unauthorized' })
@@ -97,7 +98,7 @@ const postMessage = async (req: Request, res: Response) => {
 	let { sourceId, sourceName, destinationId, destinationName, message } =
 		req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== sourceId) {
 		return res.status(401).json({ message: 'Unauthorized' })
@@ -197,9 +198,9 @@ const checkForNew = async (req: Request, res: Response) => {
 	console.log('checking for new mail')
 	const { id } = req.params
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
-	if (user.empires[0].id !== id) {
+	if (user.empires[0].id !== parseInt(id)) {
 		return res.status(401).json({ message: 'Unauthorized' })
 	}
 
@@ -226,9 +227,9 @@ const countNew = async (req: Request, res: Response) => {
 	// console.log('checking for new mail')
 	const { id } = req.params
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
-	if (user.empires[0].id !== id) {
+	if (user.empires[0].id !== parseInt(id)) {
 		return res.status(401).json({ message: 'Unauthorized' })
 	}
 
@@ -250,9 +251,9 @@ const markRead = async (req: Request, res: Response) => {
 	// console.log('marking mail as read')
 	const { id } = req.params
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
-	if (user.empires[0].id !== id) {
+	if (user.empires[0].id !== parseInt(id)) {
 		return res.status(401).json({ message: 'Unauthorized' })
 	}
 
@@ -284,7 +285,7 @@ const getClanMessages = async (req: Request, res: Response) => {
 const postClanMessage = async (req: Request, res: Response) => {
 	const { empireId, empireName, clanMessageBody, clanId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(401).json({ message: 'Unauthorized' })
@@ -313,7 +314,7 @@ const unreadClanMessages = async (req: Request, res: Response) => {
 	// count unread messages
 	let { empireId, clanId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(401).json({ message: 'Unauthorized' })
@@ -347,7 +348,7 @@ const readClanMessages = async (req: Request, res: Response) => {
 	// mark messages as read
 	let { empireId, clanId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(401).json({ message: 'Unauthorized' })

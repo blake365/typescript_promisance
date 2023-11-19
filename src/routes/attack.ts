@@ -19,6 +19,7 @@ import {
 } from '../config/conifg'
 import { getNetworth } from './actions/actions'
 import Clan from '../entity/Clan'
+import User from '../entity/User'
 
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
@@ -30,25 +31,30 @@ function getRandomInt(min, max) {
 
 const calcUnitPower = (empire: Empire, unit: string, mode: string) => {
 	// convert unit from trparm to trpArm
+	console.log('unit: ', unit)
+
 	let unitM =
 		unit.substring(0, 3) + unit.charAt(3).toUpperCase() + unit.substring(4)
 
 	let lookup = ''
-	if ((mode = 'o')) {
+	if (mode === 'o') {
 		lookup = 'o_' + unit
-	} else if ((mode = 'd')) {
+	} else if (mode === 'd') {
 		lookup = 'd_' + unit
 	}
+
 	// console.log(empire)
-	// console.log(unit)
-	// console.log(lookup)
+	console.log(lookup)
 
 	let quantity = empire[unitM]
-	// console.log('quantity: ', quantity)
-
+	if (!quantity) {
+		quantity = 0
+	}
+	console.log('quantity: ', quantity)
+	console.log('era: ', eraArray[empire.era][lookup])
 	let power = eraArray[empire.era][lookup] * quantity
+	console.log('power: ', power)
 
-	// console.log('power: ', power)
 	return power
 }
 
@@ -61,12 +67,12 @@ const calcUnitLosses = (
 	omod: number,
 	dmod: number
 ) => {
-	// console.log('attackUnits: ', attackUnits)
-	// console.log('defendUnits: ', defendUnits)
-	// console.log('oper: ', oper)
-	// console.log('dper: ', dper)
-	// console.log('omod: ', omod)
-	// console.log('dmod: ', dmod)
+	console.log('attackUnits: ', attackUnits)
+	console.log('defendUnits: ', defendUnits)
+	console.log('oper: ', oper)
+	console.log('dper: ', dper)
+	console.log('omod: ', omod)
+	console.log('dmod: ', dmod)
 
 	let attackLosses = Math.min(
 		getRandomInt(0, Math.ceil(attackUnits * oper * omod) + 1),
@@ -260,7 +266,7 @@ const attack = async (req: Request, res: Response) => {
 	// console.log(req.params)
 	const { attackType, defenderId, number, empireId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(403).json({ error: 'Unauthorized' })
@@ -282,6 +288,8 @@ const attack = async (req: Request, res: Response) => {
 
 	try {
 		const attacker = await Empire.findOneOrFail({ id: empireId })
+
+		// console.log(attacker)
 
 		const defender = await Empire.findOneOrFail({ id: defenderId })
 
@@ -435,12 +443,14 @@ const attack = async (req: Request, res: Response) => {
 
 		// calculate power levels
 		if (attackType === 'standard' || attackType === 'surprise') {
+			console.log(troopTypes)
 			troopTypes.forEach((type) => {
 				offPower += calcUnitPower(attacker, type, 'o')
 			})
 
 			troopTypes.forEach((type) => {
 				defPower += calcUnitPower(defender, type, 'd')
+				// console.log(defPower)
 			})
 		} else {
 			offPower = calcUnitPower(attacker, attackType, 'o')
@@ -519,15 +529,32 @@ const attack = async (req: Request, res: Response) => {
 						let timeLeft = effect.empireEffectValue - effectAge
 
 						if (timeLeft > 0) {
+							let allyDef = 0
 							// time gate is active
-							let allyDef = calcUnitPower(member, attackType, 'd') * 0.1
+							if (attackType === 'standard' || attackType === 'surprise') {
+								troopTypes.forEach((type) => {
+									allyDef += calcUnitPower(defender, type, 'd') * 0.1
+									// console.log(defPower)
+								})
+							} else {
+								calcUnitPower(member, attackType, 'd') * 0.1
+							}
 							allyDef *= member.health / 100
 							allyDef *= (100 + raceArray[member.race].mod_defense) / 100
 							defBonus += allyDef
 						}
 					}
 				} else {
-					let allyDef = calcUnitPower(member, attackType, 'd') * 0.1
+					let allyDef = 0
+					// time gate is active
+					if (attackType === 'standard' || attackType === 'surprise') {
+						troopTypes.forEach((type) => {
+							allyDef += calcUnitPower(defender, type, 'd') * 0.1
+							// console.log(defPower)
+						})
+					} else {
+						calcUnitPower(member, attackType, 'd') * 0.1
+					}
 					allyDef *= member.health / 100
 					allyDef *= (100 + raceArray[member.race].mod_defense) / 100
 					defBonus += allyDef
@@ -641,6 +668,8 @@ const attack = async (req: Request, res: Response) => {
 
 			// modification to attacker losses (towers excluded)
 			// let omod = Math.sqrt((defPower - towerDef) / (offPower + 1))
+			console.log('offPower', offPower)
+			console.log('defPower', defPower)
 			let omod = Math.sqrt(defPower / (offPower + 1))
 			// modification to enemy losses
 			let dmod = Math.sqrt(offPower / (defPower + 1))
@@ -712,6 +741,7 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
+					console.log(result)
 					attackLosses['trparm'] = result.attackLosses
 					defenseLosses['trparm'] = result.defendLosses
 					result = calcUnitLosses(
@@ -722,6 +752,7 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
+					console.log(result)
 					attackLosses['trplnd'] = result.attackLosses
 					defenseLosses['trplnd'] = result.defendLosses
 					result = calcUnitLosses(
@@ -732,6 +763,7 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
+					console.log(result)
 					attackLosses['trpfly'] = result.attackLosses
 					defenseLosses['trpfly'] = result.defendLosses
 					result = calcUnitLosses(
@@ -742,6 +774,7 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
+					console.log(result)
 					attackLosses['trpsea'] = result.attackLosses
 					defenseLosses['trpsea'] = result.defendLosses
 			}

@@ -9,6 +9,7 @@ import { TURNS_PROTECTION } from '../config/conifg'
 import bcrypt from 'bcrypt'
 import { createNewsEvent } from '../util/helpers'
 import ClanRelation from '../entity/ClanRelation'
+import User from '../entity/User'
 
 const Filter = require('bad-words')
 
@@ -16,7 +17,7 @@ const createClan = async (req: Request, res: Response) => {
 	let { clanName, clanPassword, empireId } = req.body
 	const filter = new Filter()
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(400).json({ error: 'unauthorized' })
@@ -87,7 +88,7 @@ const createClan = async (req: Request, res: Response) => {
 const joinClan = async (req: Request, res: Response) => {
 	let { clanName, clanPassword, empireId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(400).json({ error: 'unauthorized' })
@@ -180,7 +181,7 @@ const joinClan = async (req: Request, res: Response) => {
 const leaveClan = async (req: Request, res: Response) => {
 	let { empireId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(400).json({ error: 'unauthorized' })
@@ -258,7 +259,7 @@ const leaveClan = async (req: Request, res: Response) => {
 const disbandClan = async (req: Request, res: Response) => {
 	let { empireId, clanId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(400).json({ error: 'unauthorized' })
@@ -343,7 +344,7 @@ const disbandClan = async (req: Request, res: Response) => {
 const kickFromClan = async (req: Request, res: Response) => {
 	let { empireId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(400).json({ error: 'unauthorized' })
@@ -572,7 +573,7 @@ const getClansData = async (req: Request, res: Response) => {
 const assignClanRole = async (req: Request, res: Response) => {
 	let { empireId, clanRole, memberId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(400).json({ error: 'unauthorized' })
@@ -630,7 +631,7 @@ const assignClanRole = async (req: Request, res: Response) => {
 const removeClanRole = async (req: Request, res: Response) => {
 	let { empireId, clanRole } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(400).json({ error: 'unauthorized' })
@@ -678,7 +679,7 @@ const removeClanRole = async (req: Request, res: Response) => {
 const declareWar = async (req: Request, res: Response) => {
 	let { empireId, clanId, enemyClanId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(400).json({ error: 'unauthorized' })
@@ -784,7 +785,7 @@ const declareWar = async (req: Request, res: Response) => {
 const offerPeace = async (req: Request, res: Response) => {
 	const { empireId, clanId, enemyClanId } = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(400).json({ error: 'unauthorized' })

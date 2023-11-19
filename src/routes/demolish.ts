@@ -14,6 +14,7 @@ import { useTurnInternal } from './useturns'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { calcSizeBonus } from './actions/actions'
+import User from '../entity/User'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
@@ -57,7 +58,7 @@ const demolish = async (req: Request, res: Response) => {
 		return res.json({ error: 'Something went wrong' })
 	}
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.json({ error: 'unauthorized' })

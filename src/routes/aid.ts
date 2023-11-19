@@ -15,6 +15,7 @@ import {
 	PVTM_TRPSEA,
 } from '../config/conifg'
 import { getNetworth } from './actions/actions'
+import User from '../entity/User'
 
 // send aid to another empire
 const sendAid = async (req: Request, res: Response) => {
@@ -31,7 +32,7 @@ const sendAid = async (req: Request, res: Response) => {
 		type,
 	} = req.body
 
-	const { user } = res.locals
+	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
 		return res.status(400).json({ error: 'unauthorized' })
