@@ -363,9 +363,9 @@ export const cleanDemoAccounts = new AsyncTask(
 
 		let effects = await EmpireEffect.find()
 
-		function isOld(createdAt, effectValue) {
+		function isOld(updatedAt, effectValue) {
 			let effectAge =
-				(Date.now().valueOf() - new Date(createdAt).getTime()) / 60000
+				(Date.now().valueOf() - new Date(updatedAt).getTime()) / 60000
 			effectAge = Math.floor(effectAge)
 
 			// console.log(effectAge)
@@ -379,7 +379,7 @@ export const cleanDemoAccounts = new AsyncTask(
 		}
 
 		effects.forEach(async (effect) => {
-			let old = isOld(effect.createdAt, effect.empireEffectValue)
+			let old = isOld(effect.updatedAt, effect.empireEffectValue)
 			if (old) {
 				effect.remove()
 			}

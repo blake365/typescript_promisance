@@ -580,6 +580,8 @@ const getEmpireEffects = async (req: Request, res: Response) => {
 		return res.status(403).json({ error: 'unauthorized' })
 	}
 
+	// console.log(Date.now().valueOf())
+
 	function isOld(updatedAt, effectValue) {
 		let effectAge =
 			(Date.now().valueOf() - new Date(updatedAt).getTime()) / 60000
