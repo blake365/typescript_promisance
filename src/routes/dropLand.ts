@@ -120,7 +120,8 @@ const drop = async (req: Request, res: Response) => {
 					empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
 
 				empire.income += turnRes.income
-				empire.expenses += turnRes.expenses + turnRes.wartax
+				empire.expenses +=
+					turnRes.expenses + turnRes.wartax + turnRes.corruption
 
 				empire.loan -= turnRes.loanpayed + turnRes.loanInterest
 				empire.trpArm += turnRes.trpArm
@@ -158,7 +159,8 @@ const drop = async (req: Request, res: Response) => {
 					empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
 
 				empire.income += turnRes.income
-				empire.expenses += turnRes.expenses + turnRes.wartax
+				empire.expenses +=
+					turnRes.expenses + turnRes.wartax + turnRes.corruption
 
 				empire.loan -= turnRes.loanpayed + turnRes.loanInterest
 				empire.trpArm += turnRes.trpArm

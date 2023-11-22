@@ -616,7 +616,8 @@ const attack = async (req: Request, res: Response) => {
 			}
 
 			attacker.income += attackRes.income
-			attacker.expenses += attackRes.expenses + attackRes.wartax
+			attacker.expenses +=
+				attackRes.expenses + attackRes.wartax + attackRes.corruption
 
 			attacker.loan -= attackRes.loanpayed + attackRes.loanInterest
 			attacker.trpArm += attackRes.trpArm

@@ -92,10 +92,10 @@ export const PVTM_TRPSEA = 3000
 export const PVTM_FOOD = 30
 export const PVTM_RUNES = 1400
 
-export const INDUSTRY_MULT = 2.8 // Industry output multiplier
-export const MAX_ATTACKS = 25 // Maximum number of attacks
-export const MAX_SPELLS = 20 // Maximum number of attack spells
-export const DR_RATE = 2 // diminishing returns rate
+export const INDUSTRY_MULT = 3 // Industry output multiplier
+export const MAX_ATTACKS = 35 // Maximum number of attacks
+export const MAX_SPELLS = 25 // Maximum number of attack spells
+export const DR_RATE = 1.5 // diminishing returns rate
 export const BASE_LUCK = 5 // Base luck
 
 export const AID_ENABLE = true // Enable sending foreign aid

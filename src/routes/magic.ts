@@ -139,7 +139,8 @@ const magic = async (req: Request, res: Response) => {
 					}
 
 					empire.income += spellRes.income
-					empire.expenses += spellRes.expenses + spellRes.wartax
+					empire.expenses +=
+						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
@@ -220,7 +221,8 @@ const magic = async (req: Request, res: Response) => {
 					}
 
 					empire.income += spellRes.income
-					empire.expenses += spellRes.expenses + spellRes.wartax
+					empire.expenses +=
+						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
@@ -300,7 +302,8 @@ const magic = async (req: Request, res: Response) => {
 					}
 
 					empire.income += spellRes.income
-					empire.expenses += spellRes.expenses + spellRes.wartax
+					empire.expenses +=
+						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
@@ -388,7 +391,8 @@ const magic = async (req: Request, res: Response) => {
 							empire.cash = 0
 						}
 						empire.income += spellRes.income
-						empire.expenses += spellRes.expenses + spellRes.wartax
+						empire.expenses +=
+							spellRes.expenses + spellRes.wartax + spellRes.corruption
 
 						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 						empire.trpArm += spellRes.trpArm
@@ -477,7 +481,8 @@ const magic = async (req: Request, res: Response) => {
 							empire.cash = 0
 						}
 						empire.income += spellRes.income
-						empire.expenses += spellRes.expenses + spellRes.wartax
+						empire.expenses +=
+							spellRes.expenses + spellRes.wartax + spellRes.corruption
 
 						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 						empire.trpArm += spellRes.trpArm
@@ -552,7 +557,8 @@ const magic = async (req: Request, res: Response) => {
 						empire.cash = 0
 					}
 					empire.income += spellRes.income
-					empire.expenses += spellRes.expenses + spellRes.wartax
+					empire.expenses +=
+						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
@@ -623,7 +629,8 @@ const magic = async (req: Request, res: Response) => {
 						empire.cash = 0
 					}
 					empire.income += spellRes.income
-					empire.expenses += spellRes.expenses + spellRes.wartax
+					empire.expenses +=
+						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
@@ -698,7 +705,8 @@ const attackSpell = async (
 			attacker.cash = 0
 		}
 		attacker.income += spellRes.income
-		attacker.expenses += spellRes.expenses + spellRes.wartax
+		attacker.expenses +=
+			spellRes.expenses + spellRes.wartax + spellRes.corruption
 
 		attacker.loan -= spellRes.loanpayed + spellRes.loanInterest
 		attacker.trpArm += spellRes.trpArm

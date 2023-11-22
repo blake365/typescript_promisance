@@ -12,7 +12,7 @@ export const baseCost = (empire: Empire) => {
 		empire.land * 0.1 +
 		100 +
 		empire.bldWiz *
-			0.3 *
+			0.5 *
 			((100 + raceArray[empire.race].mod_magic) / 100) *
 			calcSizeBonus(empire)
 	)

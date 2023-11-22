@@ -142,7 +142,7 @@ export const useTurn = async (
 				empire.trpFly * 2 +
 				empire.trpSea * 3.5 +
 				empire.land * 4 +
-				empire.trpWiz * 0.25
+				empire.trpWiz * 0.5
 		)
 
 		//set up race/era modifier
@@ -180,8 +180,14 @@ export const useTurn = async (
 			wartax = Math.ceil(wartax)
 		}
 
+		let corruption = 0
+		if (empire.cash > empire.networth * 110) {
+			corruption = Math.round(expenses * size * size)
+			console.log(corruption)
+		}
+
 		// net income
-		let money = Math.round(income - (expenses + wartax))
+		let money = Math.round(income - (expenses + wartax + corruption))
 		// console.log(money)
 
 		empire.cash += money
@@ -238,6 +244,7 @@ export const useTurn = async (
 		current['expenses'] = expenses
 		empire.expenses += expenses + wartax
 		current['wartax'] = wartax
+		current['corruption'] = corruption
 		if (loanpayed < 0) {
 			current['loanpayed'] = loanincrease
 		} else current['loanpayed'] = loanpayed
@@ -330,7 +337,7 @@ export const useTurn = async (
 		let production =
 			10 * empire.freeLand +
 			empire.bldFood *
-				85 *
+				95 *
 				Math.sqrt(1 - (0.75 * empire.bldFood) / Math.max(empire.land, 1))
 		production *=
 			(100 +
@@ -410,7 +417,7 @@ export const useTurn = async (
 		}
 
 		let popBase = Math.round(
-			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 60) /
+			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 65) /
 				(0.95 + taxrate + taxpenalty)
 		) // 14495
 
@@ -452,8 +459,8 @@ export const useTurn = async (
 		if (empire.bldWiz / empire.land > 0.15) {
 			runes = Math.round(
 				getRandomInt(
-					Math.round(empire.bldWiz * 1.1),
-					Math.round(empire.bldWiz * 1.5)
+					Math.round(empire.bldWiz * 1.05),
+					Math.round(empire.bldWiz * 1.35)
 				) * runeMultiplier
 			)
 		} else {
@@ -466,6 +473,7 @@ export const useTurn = async (
 					eraArray[empire.era].mod_runepro) /
 					100)
 		)
+
 		empire.runes += runes
 		current['runes'] = runes
 
@@ -480,15 +488,15 @@ export const useTurn = async (
 		let trpWiz = 0
 
 		if (empire.trpWiz < empire.bldWiz * 25) {
-			trpWiz = empire.bldWiz * 0.45 * 1.25
+			trpWiz = empire.bldWiz * 0.45 * 0.9
 		} else if (empire.trpWiz < empire.bldWiz * 50) {
-			trpWiz = empire.bldWiz * 0.3 * 1.25
+			trpWiz = empire.bldWiz * 0.3 * 0.9
 		} else if (empire.trpWiz < empire.bldWiz * 90) {
-			trpWiz = empire.bldWiz * 0.15 * 1.25
+			trpWiz = empire.bldWiz * 0.15 * 0.9
 		} else if (empire.trpWiz < empire.bldWiz * 100) {
-			trpWiz = empire.bldWiz * 0.1 * 1.25
+			trpWiz = empire.bldWiz * 0.1 * 0.9
 		} else if (empire.trpWiz > empire.bldWiz * 175) {
-			trpWiz = empire.trpWiz * -0.05 * 1.25
+			trpWiz = empire.trpWiz * -0.05
 		}
 		// console.log(trpWiz)
 		trpWiz = Math.round(
@@ -744,8 +752,14 @@ export const useTurnInternal = (
 			wartax = Math.ceil(wartax)
 		}
 
+		let corruption = 0
+		if (empire.cash > empire.networth * 110) {
+			corruption = Math.round(expenses * size * size)
+			console.log(corruption)
+		}
+
 		// net income
-		let money = Math.round(income - (expenses + wartax))
+		let money = Math.round(income - (expenses + wartax + corruption))
 
 		// empire.cash += money
 
@@ -799,6 +813,7 @@ export const useTurnInternal = (
 		current['income'] = income
 		current['expenses'] = expenses
 		current['wartax'] = wartax
+		current['corruption'] = corruption
 		if (loanpayed < 0) {
 			current['loanpayed'] = loanincrease
 		} else current['loanpayed'] = loanpayed

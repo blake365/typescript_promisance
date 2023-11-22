@@ -39,7 +39,7 @@ export const shield_cast = async (empire: Empire) => {
 				console.log('expired')
 				// create effect
 				let empireEffectName = 'spell shield'
-				let empireEffectValue = 12 * 60
+				let empireEffectValue = 24 * 60
 				let effectOwnerId = empire.id
 
 				let newEffect: EmpireEffect
@@ -55,7 +55,7 @@ export const shield_cast = async (empire: Empire) => {
 					result: 'success',
 					message: `Your ${eraArray[empire.era].trpwiz} cast ${
 						eraArray[empire.era].spell_shield
-					}. /n Your spell shield is now active for 12 hours.`,
+					}. /n Your spell shield is now active for 24 hours.`,
 					wizloss: 0,
 					descriptor: eraArray[empire.era].trpwiz,
 				}
@@ -64,7 +64,7 @@ export const shield_cast = async (empire: Empire) => {
 			if (timeLeft < 9 * 60) {
 				console.log('renew')
 				// renew effect
-				effect.empireEffectValue = 12 * 60
+				effect.empireEffectValue = 24 * 60
 				// console.log(effect)
 				await effect.save()
 
@@ -72,7 +72,7 @@ export const shield_cast = async (empire: Empire) => {
 					result: 'success',
 					message: `Your ${eraArray[empire.era].trpwiz} cast ${
 						eraArray[empire.era].spell_shield
-					}. /n Your shield is has been renewed to 12 hours.`,
+					}. /n Your shield is has been renewed to 24 hours.`,
 				}
 				return result
 			} else {
@@ -98,7 +98,7 @@ export const shield_cast = async (empire: Empire) => {
 			console.log('create')
 			// create effect
 			let empireEffectName = 'spell shield'
-			let empireEffectValue = 12 * 60
+			let empireEffectValue = 24 * 60
 			let effectOwnerId = empire.id
 
 			let effect: EmpireEffect
@@ -114,7 +114,7 @@ export const shield_cast = async (empire: Empire) => {
 				result: 'success',
 				message: `Your ${eraArray[empire.era].trpwiz} cast ${
 					eraArray[empire.era].spell_shield
-				}. /n Your spell shield is now active for 12 hours.`,
+				}. /n Your spell shield is now active for 24 hours.`,
 				wizloss: 0,
 				descriptor: eraArray[empire.era].trpwiz,
 			}

@@ -196,7 +196,7 @@ const sendAid = async (req: Request, res: Response) => {
 		}
 
 		sender.income += spellRes.income
-		sender.expenses += spellRes.expenses + spellRes.wartax
+		sender.expenses += spellRes.expenses + spellRes.wartax + spellRes.corruption
 
 		sender.loan -= spellRes.loanpayed + spellRes.loanInterest
 		sender.trpArm += spellRes.trpArm
