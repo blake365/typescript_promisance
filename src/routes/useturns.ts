@@ -898,7 +898,7 @@ export const useTurnInternal = (
 			empire.trpSea * 0.01 +
 			empire.peasants * 0.01 +
 			empire.trpWiz * 0.25
-		consumption *= (100 + raceArray[empire.race].mod_foodcon) / 100
+		consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
 		let foodcon = Math.round(consumption)
 
 		if (type === 'farm') {

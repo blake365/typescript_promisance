@@ -34,6 +34,8 @@ import session from './routes/sessions'
 import admin from './routes/admin'
 import aid from './routes/aid'
 import clans from './routes/clan'
+import https from 'https'
+import http from 'http'
 
 import {
 	aidCredits,
@@ -89,6 +91,8 @@ app.use(express.static('public'))
 app.get('/', (_, res) => res.send('hello world'))
 app.get('/api/', (_, res) => res.send('hello api'))
 
+app.get('/api/time', (_, res) => res.send({ time: new Date().getTime() }))
+
 app.use('/api/auth', authRoutes)
 app.use('/api/empire', empireRoutes)
 app.use('/api/useturns', useTurns)
@@ -141,31 +145,36 @@ let gameOn = false
 
 function checkTime() {
 	let now = new Date()
-	if (now > ROUND_START && now < ROUND_END) {
+	if (now) {
 		gameOn = true
 	}
 }
 
-const checkTimeTask = new Task('check time', () => {
+const checkTimeTask = new AsyncTask('check time', async () => {
 	// console.log(gameOn)
-	let now = new Date()
+	let now = new Date().getTime()
 	// console.log('checking time')
-	if (now > ROUND_START && now < ROUND_END) {
+	// console.log(now)
+	if (
+		now > new Date(ROUND_START).getTime() &&
+		now < new Date(ROUND_END).getTime()
+	) {
 		gameOn = true
+	} else {
+		gameOn = false
 	}
 	// console.log(gameOn)
-	return gameOn
 })
 
 checkTime()
 
 // console.log(ROUND_START)
-// console.log(gameOn)
+console.log(gameOn)
 
 const scheduler = new ToadScheduler()
 
 const gameActive = new SimpleIntervalJob(
-	{ minutes: 10, runImmediately: true },
+	{ minutes: 5, runImmediately: true },
 	checkTimeTask,
 	'id_0'
 )
