@@ -251,12 +251,6 @@ const markRead = async (req: Request, res: Response) => {
 	// console.log('marking mail as read')
 	const { id } = req.params
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== parseInt(id)) {
-		return res.status(401).json({ message: 'Unauthorized' })
-	}
-
 	await getConnection()
 		.createQueryBuilder()
 		.update(EmpireMessage)

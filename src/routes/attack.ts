@@ -67,12 +67,12 @@ const calcUnitLosses = (
 	omod: number,
 	dmod: number
 ) => {
-	console.log('attackUnits: ', attackUnits)
-	console.log('defendUnits: ', defendUnits)
-	console.log('oper: ', oper)
-	console.log('dper: ', dper)
-	console.log('omod: ', omod)
-	console.log('dmod: ', dmod)
+	// console.log('attackUnits: ', attackUnits)
+	// console.log('defendUnits: ', defendUnits)
+	// console.log('oper: ', oper)
+	// console.log('dper: ', dper)
+	// console.log('omod: ', omod)
+	// console.log('dmod: ', dmod)
 
 	let attackLosses = Math.min(
 		getRandomInt(0, Math.ceil(attackUnits * oper * omod) + 1),
@@ -169,6 +169,7 @@ export const destroyBuildings = async (
 			// while land/sea attacks simply have a higher chance of destroying the buildings stolen
 			pcgain *= 0.9
 		}
+	} else if (attackType === 'pillage') {
 	}
 
 	let loss = Math.min(
@@ -216,6 +217,18 @@ export const destroyBuildings = async (
 			attacker.freeLand += loss - gain
 			buildGain['freeLand'] += loss - gain
 			break
+		case 'pillage':
+			// attacks don't steal buildings, they just destroy them
+			loss = Math.round(loss * 0.15)
+			defender.land -= loss
+			defender.attackLosses += loss
+			defender[type] -= loss
+			buildLoss[type] += loss
+			attacker.land += loss
+			attacker.attackGains += loss
+			attacker.freeLand += loss
+			buildGain['freeLand'] += loss
+			break
 		case 'surprise':
 		case 'trparm':
 			// attacks don't steal buildings, they just destroy them
@@ -238,7 +251,6 @@ export const destroyBuildings = async (
 				gain = loss
 				// so we need to use the 'loss' value instead
 			}
-
 			defender.land -= gain
 			defender.attackLosses += gain
 			defender[type] -= loss
@@ -442,7 +454,11 @@ const attack = async (req: Request, res: Response) => {
 		}
 
 		// calculate power levels
-		if (attackType === 'standard' || attackType === 'surprise') {
+		if (
+			attackType === 'standard' ||
+			attackType === 'surprise' ||
+			attackType === 'pillage'
+		) {
 			console.log(troopTypes)
 			troopTypes.forEach((type) => {
 				offPower += calcUnitPower(attacker, type, 'o')
@@ -732,6 +748,9 @@ const attack = async (req: Request, res: Response) => {
 				case 'surprise':
 					console.log('surprise attack')
 					omod *= 1.2
+				case 'pillage':
+					console.log('pillage attack')
+					omod *= 1.2
 				case 'standard':
 					console.log('standard attack')
 					result = calcUnitLosses(
@@ -792,8 +811,12 @@ const attack = async (req: Request, res: Response) => {
 			} else if (attackType === 'trpsea') {
 				attacker.trpSea -= attackLosses.trpsea
 				defender.trpSea -= defenseLosses.trpsea
-			} else if (attackType === 'surprise' || attackType === 'standard') {
-				console.log('surprise or standard attack')
+			} else if (
+				attackType === 'surprise' ||
+				attackType === 'standard' ||
+				attackType === 'pillage'
+			) {
+				console.log('surprise, standard, pillage attack')
 				console.log(attackLosses)
 				console.log(defenseLosses)
 				attacker.trpArm -= attackLosses.trparm
@@ -909,9 +932,39 @@ const attack = async (req: Request, res: Response) => {
 				// console.log('buildLoss', buildLoss)
 				// create return text for captured buildings
 
+				let food = 0
+				let cash = 0
+				if (attackType === 'pillage') {
+					// steal food and cash
+					food = Math.ceil(defender.food * 0.0912 * 0.63)
+					cash = Math.ceil(defender.cash * 0.1266 * 0.63)
+					defender.food -= food
+					attacker.food += food
+					defender.cash -= cash
+					attacker.cash += cash
+				}
+
 				// take enemy land
 				// attacker.land += buildGain.freeLand
-				if (attackType !== 'surprise' && attackType !== 'standard') {
+				if (attackType === 'pillage') {
+					returnText +=
+						'' +
+						totalBuildGain.toLocaleString() +
+						` acres of land, ${food.toLocaleString()} ${
+							eraArray[attacker.era].food
+						}, and $${cash.toLocaleString()} were captured from ` +
+						defender.name
+
+					attackDescription = {
+						result: 'success',
+						attackType: attackType,
+						era: attacker.era,
+						message: returnText,
+						troopLoss: attackLosses,
+						troopKilled: defenseLosses,
+						buildingGain: buildGain,
+					}
+				} else if (attackType !== 'surprise' && attackType !== 'standard') {
 					returnText +=
 						'' +
 						buildGain.freeLand.toLocaleString() +
@@ -955,7 +1008,44 @@ const attack = async (req: Request, res: Response) => {
 				let content = ''
 				let pubContent = ''
 
-				if (attackType !== 'surprise' && attackType !== 'standard') {
+				if (attackType === 'pillage') {
+					content = `${
+						attacker.name
+					} attacked you with a ${attackType} attack and captured ${totalBuildGain.toLocaleString()} acres of land, ${food.toLocaleString()} ${
+						eraArray[defender.era].food
+					}, and $${cash.toLocaleString()}. /n 
+					In the battle you lost: /n
+					${defenseLosses.trparm.toLocaleString()} ${
+						eraArray[defender.era].trparm
+					} /n ${defenseLosses.trplnd.toLocaleString()} ${
+						eraArray[defender.era].trplnd
+					} /n ${defenseLosses.trpfly.toLocaleString()} ${
+						eraArray[defender.era].trpfly
+					} /n ${defenseLosses.trpsea.toLocaleString()} ${
+						eraArray[defender.era].trpsea
+					} /n 
+					You killed: /n
+					${attackLosses.trparm.toLocaleString()} ${eraArray[attacker.era].trparm} /n 
+					${attackLosses.trplnd.toLocaleString()} ${eraArray[attacker.era].trplnd} /n 
+					${attackLosses.trpfly.toLocaleString()} ${eraArray[attacker.era].trpfly} /n 
+					${attackLosses.trpsea.toLocaleString()} ${eraArray[attacker.era].trpsea}.`
+
+					pubContent = `${attacker.name} attacked ${
+						defender.name
+					} with a ${attackType} attack and captured ${totalBuildGain.toLocaleString()} acres of land, as well as ${
+						eraArray[defender.era].food
+					} and money. /n 
+					In the battle ${defender.name} lost: /n
+					${defenseLosses.trparm.toLocaleString()} ${eraArray[defender.era].trparm} /n
+					${defenseLosses.trplnd.toLocaleString()} ${eraArray[defender.era].trplnd} /n
+					${defenseLosses.trpfly.toLocaleString()} ${eraArray[defender.era].trpfly} /n
+					${defenseLosses.trpsea.toLocaleString()} ${eraArray[defender.era].trpsea} /n
+					${attacker.name} lost: /n
+					${attackLosses.trparm.toLocaleString()} ${eraArray[attacker.era].trparm} /n
+					${attackLosses.trplnd.toLocaleString()} ${eraArray[attacker.era].trplnd} /n
+					${attackLosses.trpfly.toLocaleString()} ${eraArray[attacker.era].trpfly} /n
+					${attackLosses.trpsea.toLocaleString()} ${eraArray[attacker.era].trpsea}.`
+				} else if (attackType !== 'surprise' && attackType !== 'standard') {
 					content = `${attacker.name} attacked you with ${
 						eraArray[attacker.era][attackType]
 					} and captured ${buildGain.freeLand.toLocaleString()} acres of land. /n In the battle you lost: ${defenseLosses[
@@ -1025,7 +1115,11 @@ const attack = async (req: Request, res: Response) => {
 			} else {
 				let landLoss = 0
 
-				if (attackType !== 'surprise' && attackType !== 'standard') {
+				if (
+					attackType !== 'surprise' &&
+					attackType !== 'standard' &&
+					attackType !== 'pillage'
+				) {
 					attackDescription = {
 						result: 'fail',
 						attackType: attackType,
@@ -1052,7 +1146,11 @@ const attack = async (req: Request, res: Response) => {
 				let content = ''
 				let pubContent = ''
 
-				if (attackType !== 'surprise' && attackType !== 'standard') {
+				if (
+					attackType !== 'surprise' &&
+					attackType !== 'standard' &&
+					attackType !== 'pillage'
+				) {
 					content = `You successfully defended your empire. /n ${
 						attacker.name
 					} attacked you with ${
