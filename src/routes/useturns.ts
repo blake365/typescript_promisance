@@ -182,8 +182,9 @@ export const useTurn = async (
 
 		let corruption = 0
 		if (empire.cash > empire.networth * 110) {
-			corruption = Math.round(expenses * size * size)
-			console.log(corruption)
+			let multiples = Math.floor(empire.cash / empire.networth) - 1
+			corruption = Math.round(multiples * empire.networth * 0.001 * size)
+			// console.log(corruption)
 		}
 
 		// net income
@@ -754,8 +755,9 @@ export const useTurnInternal = (
 
 		let corruption = 0
 		if (empire.cash > empire.networth * 110) {
-			corruption = Math.round(expenses * size * size)
-			console.log(corruption)
+			let multiples = Math.floor(empire.cash / empire.networth) - 1
+			corruption = Math.round(multiples * empire.networth * 0.001 * size)
+			// console.log(corruption)
 		}
 
 		// net income
