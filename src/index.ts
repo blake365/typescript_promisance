@@ -8,12 +8,7 @@ import express from 'express'
 import morgan from 'morgan'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import {
-	ToadScheduler,
-	SimpleIntervalJob,
-	Task,
-	AsyncTask,
-} from 'toad-scheduler'
+import { ToadScheduler, SimpleIntervalJob, AsyncTask } from 'toad-scheduler'
 
 import authRoutes from './routes/auth'
 import empireRoutes from './routes/empire'
@@ -34,8 +29,6 @@ import session from './routes/sessions'
 import admin from './routes/admin'
 import aid from './routes/aid'
 import clans from './routes/clan'
-import https from 'https'
-import http from 'http'
 
 import {
 	aidCredits,
