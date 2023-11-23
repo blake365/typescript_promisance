@@ -576,7 +576,7 @@ const getEmpireEffects = async (req: Request, res: Response) => {
 
 	const user: User = res.locals.user
 
-	if (user.empires[0].id !== empireId) {
+	if (user?.empires[0]?.id !== empireId) {
 		return res.status(403).json({ error: 'unauthorized' })
 	}
 

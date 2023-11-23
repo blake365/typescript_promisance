@@ -506,7 +506,7 @@ const resetGame = async (req: Request, res: Response) => {
 		let users = await User.find()
 		users.forEach(async (user) => {
 			let empire = await Empire.findOne({
-				where: { userId: user.id },
+				where: { username: user.username },
 			})
 
 			if (empire.rank > user.bestRank) {
