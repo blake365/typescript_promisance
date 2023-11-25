@@ -32,7 +32,7 @@ export const TURNS_MAXIMUM = 400 // Max accumulated turns
 export const TURNS_STORED = 200 // Max stored turns
 export const TURNS_VALIDATE = 150 // How long before validation is necessary
 export const TURNS_ERA = 500 // Minimum number of turns that must be spent in an era before one can advance or regress
-export const TURNS_DEMO = 900 // How many turns to give to demo accounts
+export const TURNS_DEMO = 600 // How many turns to give to demo accounts
 
 export const VACATION_START = 12 // Delay before empire is protected
 export const VACATION_LIMIT = 72 // Minimum vacation length (not including start delay)

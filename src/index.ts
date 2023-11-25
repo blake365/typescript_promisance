@@ -137,42 +137,89 @@ app.listen(PORT, async () => {
 let gameOn = false
 
 function checkTime() {
-	let now = new Date()
-	if (now) {
-		gameOn = true
-	}
-}
-
-const checkTimeTask = new AsyncTask('check time', async () => {
-	// console.log(gameOn)
 	let now = new Date().getTime()
-	// console.log('checking time')
-	// console.log(now)
 	if (
 		now > new Date(ROUND_START).getTime() &&
 		now < new Date(ROUND_END).getTime()
 	) {
 		gameOn = true
-	} else {
-		gameOn = false
 	}
-	// console.log(gameOn)
-})
+}
 
 checkTime()
 
 // console.log(ROUND_START)
 console.log(gameOn)
 
-const scheduler = new ToadScheduler()
+const checkTimeTask = new AsyncTask('check time', async () => {
+	// console.log(gameOn)
+	let now = new Date().getTime()
+	// console.log('checking time')
+	// console.log(now)
+	// console.log('start', new Date(ROUND_START).getTime())
+	// console.log('end', new Date(ROUND_END).getTime())
+	// console.log('check time', gameActive.getStatus())
+	// console.log('turns', turns.getStatus())
+	if (
+		now >= new Date(ROUND_START).getTime() &&
+		now <= new Date(ROUND_END).getTime()
+	) {
+		// console.log('game is on')
+		gameOn = true
+		if (turns.getStatus() !== 'running') {
+			scheduler.startById('id_10')
+		}
+		if (thirtyMin.getStatus() !== 'running') {
+			scheduler.startById('id_5')
+		}
+		if (ranks.getStatus() !== 'running') {
+			scheduler.startById('id_3')
+		}
+		if (hourly.getStatus() !== 'running') {
+			scheduler.startById('id_2')
+		}
+		if (daily.getStatus() !== 'running') {
+			scheduler.startById('id_4')
+		}
+		if (cleanMarketJob.getStatus() !== 'running') {
+			scheduler.startById('id_6')
+		}
+		if (aidJob.getStatus() !== 'running') {
+			scheduler.startById('id_7')
+		}
+	} else {
+		// console.log('game is off')
+		gameOn = false
+		if (turns.getStatus() === 'running') {
+			scheduler.stopById('id_10')
+		}
+		if (thirtyMin.getStatus() === 'running') {
+			scheduler.stopById('id_5')
+		}
+		if (ranks.getStatus() === 'running') {
+			scheduler.stopById('id_3')
+		}
+		if (hourly.getStatus() === 'running') {
+			scheduler.stopById('id_2')
+		}
+		if (daily.getStatus() === 'running') {
+			scheduler.stopById('id_4')
+		}
+		if (cleanMarketJob.getStatus() === 'running') {
+			scheduler.stopById('id_6')
+		}
+		if (aidJob.getStatus() === 'running') {
+			scheduler.stopById('id_7')
+		}
+	}
+	// console.log(gameOn)
+})
 
 const gameActive = new SimpleIntervalJob(
-	{ minutes: 5, runImmediately: true },
+	{ minutes: 1, runImmediately: true },
 	checkTimeTask,
 	'id_0'
 )
-
-scheduler.addSimpleIntervalJob(gameActive)
 
 const turns = new SimpleIntervalJob(
 	{ minutes: TURNS_FREQ, runImmediately: false },
@@ -219,16 +266,35 @@ const aidJob = new SimpleIntervalJob(
 	'id_7'
 )
 
-// console.log('gameOn', gameOn)
-scheduler.addSimpleIntervalJob(turns)
+const scheduler = new ToadScheduler()
+
 scheduler.addSimpleIntervalJob(ranks)
 scheduler.addSimpleIntervalJob(thirtyMin)
 scheduler.addSimpleIntervalJob(hourly)
 scheduler.addSimpleIntervalJob(daily)
 scheduler.addSimpleIntervalJob(cleanMarketJob)
 scheduler.addSimpleIntervalJob(aidJob)
+scheduler.addSimpleIntervalJob(turns)
+scheduler.addSimpleIntervalJob(gameActive)
 
-if (!gameOn) {
-	scheduler.stop()
-}
+// console.log('gameOn', gameOn)
+// if (!gameOn) {
+// 	console.log('game is off')
+// 	scheduler.stopById('id_10')
+// 	scheduler.stopById('id_6')
+// 	scheduler.stopById('id_5')
+// 	scheduler.stopById('id_3')
+// 	scheduler.stopById('id_2')
+// 	scheduler.stopById('id_4')
+// 	scheduler.stopById('id_7')
+// } else {
+// 	console.log('game is on')
+// 	scheduler.startById('id_10')
+// 	scheduler.startById('id_6')
+// 	scheduler.startById('id_5')
+// 	scheduler.startById('id_3')
+// 	scheduler.startById('id_2')
+// 	scheduler.startById('id_4')
+// 	scheduler.startById('id_7')
+// }
 // console.log(scheduler.getById('id_1').getStatus());

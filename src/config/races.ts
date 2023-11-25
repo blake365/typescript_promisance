@@ -94,10 +94,10 @@ const RACE_GREMLIN = {
 	mod_magic: -10,
 	mod_industry: -14,
 	mod_income: -20,
-	mod_explore: 0,
+	mod_explore: -6,
 	mod_market: 8,
 	mod_foodcon: 14,
-	mod_runepro: 0,
+	mod_runepro: -6,
 	mod_foodpro: 18,
 }
 const RACE_ORC = {
