@@ -53,7 +53,7 @@ export const IDLE_TIMEOUT_KILLED = 2 // Remove dead empire after this many days 
 export const IDLE_TIMEOUT_DELETE = 3 // Remove deleted empire after this many days (unless still under protection, in which case it is immediate)
 
 export const LOTTERY_MAXTICKETS = 3 // Maximum number of lottery tickets per empire
-export const LOTTERY_JACKPOT = 1000000000 // Base jackpot
+export const LOTTERY_JACKPOT: number = 1000000000 // Base jackpot
 
 export const BUILD_COST = 10000 // Base building cost
 export const DROP_DELAY = 60 * 60 * 12 // Minimum delay (in seconds) between gaining land and dropping it

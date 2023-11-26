@@ -14,6 +14,7 @@ import {
 	PUBMKT_MAXTIME,
 	PUBMKT_START,
 	AID_MAXCREDITS,
+	LOTTERY_JACKPOT,
 } from '../config/conifg'
 import EmpireEffect from '../entity/EmpireEffect'
 import User from '../entity/User'
@@ -21,6 +22,7 @@ import { getNetworth } from '../routes/actions/actions'
 import Session from '../entity/Session'
 import { eraArray } from '../config/eras'
 import { createNewsEvent } from '../util/helpers'
+import Lottery from '../entity/Lottery'
 
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
@@ -395,3 +397,115 @@ export const cleanDemoAccounts = new AsyncTask(
 			.execute()
 	}
 )
+
+// lottery
+export const lotteryCheck = new AsyncTask('lottery', async () => {
+	// determine how to pick a winner
+	// get total number of tickets, multiply by 1.25, round up, that is the number of tickets to draw
+	// pick a random number between 1 and the total number of tickets
+	// find the ticket with that number
+	// that empire wins the prize
+
+	const allTickets = await Lottery.find()
+
+	let jackpot = 0
+	const jackpotTracker = await Lottery.findOne({ ticket: 0 })
+	// console.log(jackpotTracker)
+	if (!jackpotTracker) {
+		jackpot += LOTTERY_JACKPOT
+
+		for (let i = 0; i < allTickets.length; i++) {
+			jackpot += Number(allTickets[i].cash)
+		}
+	} else {
+		for (let i = 0; i < allTickets.length; i++) {
+			jackpot += Number(allTickets[i].cash)
+		}
+	}
+
+	// console.log('jackpot', jackpot)
+
+	const totalTickets = allTickets.length
+	if (totalTickets < 1) return
+	// console.log('total tickets', totalTickets)
+	const ticketsToDraw = Math.ceil(totalTickets * 1.2)
+	// console.log('tickets to draw', ticketsToDraw)
+	const winningTicket = Math.ceil(Math.random() * ticketsToDraw)
+	// console.log('winning ticket', winningTicket)
+
+	// check if all tickets contains a ticket with the winning number
+	// console.log(allTickets)
+	const winner = allTickets.find(({ ticket }) => ticket == winningTicket)
+	// console.log('winner', winner)
+
+	if (!winner || totalTickets < 1 || winningTicket < 1) {
+		console.log('no winner')
+		// remove old tickets
+		await getConnection().createQueryBuilder().delete().from(Lottery).execute()
+
+		// create jackpot entry as ticket 0
+		const ticket = new Lottery()
+		ticket.empire_id = 0
+		ticket.cash = jackpot
+		ticket.ticket = 0
+		await ticket.save()
+
+		// news event for no lottery winner
+		// create news entry
+		let sourceId = 0
+		let sourceName = ''
+		let destinationId = 0
+		let destinationName = ''
+		let content: string = ''
+		let pubContent: string = `No one won the lottery. The base jackpot has increased to $${jackpot.toLocaleString()}.`
+
+		// create news event
+		await createNewsEvent(
+			content,
+			pubContent,
+			sourceId,
+			sourceName,
+			destinationId,
+			destinationName,
+			'lottery',
+			'fail'
+		)
+
+		return
+	} else {
+		// console.log('winner', winner)
+		// console.log(jackpot)
+		const empire = await Empire.findOne({ id: winner.empire_id })
+		// console.log(empire)
+		empire.cash += jackpot
+		await empire.save()
+
+		// news event for lottery winner
+		// create news entry
+		let sourceId = empire.id
+		let sourceName = empire.name
+		let destinationId = empire.id
+		let destinationName = empire.name
+		let content: string = `You won $${jackpot.toLocaleString()} in the lottery!`
+		let pubContent: string = `${
+			empire.name
+		} won $${jackpot.toLocaleString()} in the lottery!`
+
+		// create news event
+		await createNewsEvent(
+			content,
+			pubContent,
+			sourceId,
+			sourceName,
+			destinationId,
+			destinationName,
+			'lottery',
+			'success'
+		)
+
+		// remove all tickets
+		await getConnection().createQueryBuilder().delete().from(Lottery).execute()
+
+		return
+	}
+})
