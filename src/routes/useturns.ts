@@ -137,12 +137,12 @@ export const useTurn = async (
 		let loan = Math.round(empire.loan / 200)
 
 		let expenses = Math.round(
-			empire.trpArm * 0.5 +
-				empire.trpLnd * 1.25 +
-				empire.trpFly * 2 +
-				empire.trpSea * 3.5 +
-				empire.land * 4 +
-				empire.trpWiz * 0.5
+			empire.trpArm * 0.5 * 0.8 +
+				empire.trpLnd * 1.25 * 0.8 +
+				empire.trpFly * 2 * 0.8 +
+				empire.trpSea * 3.5 * 0.8 +
+				empire.land * 4 * 0.8 +
+				empire.trpWiz * 0.5 * 0.8
 		)
 
 		//set up race/era modifier
@@ -707,12 +707,12 @@ export const useTurnInternal = (
 		let loan = Math.round(empire.loan / 200)
 
 		let expenses = Math.round(
-			empire.trpArm * 0.5 +
-				empire.trpLnd * 1.25 +
-				empire.trpFly * 2 +
-				empire.trpSea * 3.5 +
-				empire.land * 4 +
-				empire.trpWiz * 0.25
+			empire.trpArm * 0.5 * 0.8 +
+				empire.trpLnd * 1.25 * 0.8 +
+				empire.trpFly * 2 * 0.8 +
+				empire.trpSea * 3.5 * 0.8 +
+				empire.land * 4 * 0.8 +
+				empire.trpWiz * 0.25 * 0.8
 		)
 
 		// set up race/era modifier

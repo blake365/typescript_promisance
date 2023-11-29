@@ -86,7 +86,7 @@ export const gate_cast = async (empire: Empire) => {
 			} else {
 				console.log('extend')
 				// extend effect
-				effect.empireEffectValue += 3 * 60
+				effect.empireEffectValue += Math.round(timeLeft + 3 * 60)
 
 				// console.log(effect)
 				await effect.save()
