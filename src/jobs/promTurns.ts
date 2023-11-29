@@ -149,9 +149,9 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktFood: () => 'mkt_food + (50 * (land + bld_cost) * 0.75)',
+			mktFood: () => 'mkt_food + (50 * (land + bld_cost) * 0.8)',
 		})
-		.where('mkt_food / 2000 < land + 2 * bld_cost AND id != 0')
+		.where('mkt_food / 3500 < land + 2 * bld_cost AND id != 0')
 		.execute()
 
 	await getConnection()
@@ -159,9 +159,9 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 		.update(Empire)
 		.set({
 			// update available quantity on market
-			mktRunes: () => 'mkt_runes + (5 * (land + bld_cost)*0.75)',
+			mktRunes: () => 'mkt_runes + (8 * (land + bld_cost)*0.9)',
 		})
-		.where('mkt_runes / 250 < land + 2 * bld_cost AND id != 0')
+		.where('mkt_runes / 200 < land + 2 * bld_cost AND id != 0')
 		.execute()
 
 	// clan troop sharing
