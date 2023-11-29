@@ -60,13 +60,24 @@ export const shield_cast = async (empire: Empire) => {
 					descriptor: eraArray[empire.era].trpwiz,
 				}
 				return result
-			}
-			if (timeLeft < 9 * 60) {
+			} else if (timeLeft < 9 * 60) {
 				console.log('renew')
 				// renew effect
-				effect.empireEffectValue = 24 * 60
 				// console.log(effect)
-				await effect.save()
+				await effect.remove()
+
+				let empireEffectName = 'spell shield'
+				let empireEffectValue = 24 * 60
+				let effectOwnerId = empire.id
+
+				let newEffect: EmpireEffect
+				newEffect = new EmpireEffect({
+					effectOwnerId,
+					empireEffectName,
+					empireEffectValue,
+				})
+				// console.log(effect)
+				await newEffect.save()
 
 				let result = {
 					result: 'success',

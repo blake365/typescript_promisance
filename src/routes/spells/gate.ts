@@ -60,10 +60,21 @@ export const gate_cast = async (empire: Empire) => {
 			} else if (timeLeft < 9 * 60) {
 				console.log('renew')
 				// renew effect
-				effect.empireEffectValue = 12 * 60
-
 				// console.log(effect)
-				await effect.save()
+				await effect.remove()
+
+				let empireEffectName = 'time gate'
+				let empireEffectValue = 12 * 60
+				let effectOwnerId = empire.id
+
+				let newEffect: EmpireEffect
+				newEffect = new EmpireEffect({
+					effectOwnerId,
+					empireEffectName,
+					empireEffectValue,
+				})
+				// console.log(effect)
+				await newEffect.save()
 
 				let result = {
 					result: 'success',
