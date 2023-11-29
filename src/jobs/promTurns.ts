@@ -284,15 +284,18 @@ export const cleanMarket = new AsyncTask('clean market', async () => {
 		.where('market.createdAt <= :oldestDate', { oldestDate })
 		.getMany()
 
-	// console.log(items)
+	console.log(items)
 
 	let itemsArray = ['trpArm', 'trpLnd', 'trpFly', 'trpSea', 'food', 'runes']
 
 	for (let i = 0; i < items.length; i++) {
 		//return unsold goods
 		let item = items[i]
-		let empire = await Empire.findOne({ id: items[i].empire_id })
-		empire[itemsArray[item.type]] += Math.round(item.amount * 0.75)
+		console.log(item)
+		const itemName = itemsArray[item.type]
+		console.log(itemName)
+		const empire = await Empire.findOne({ id: item.empire_id })
+		empire[itemName] += Math.round(item.amount * 0.75)
 		empire.networth = getNetworth(empire)
 
 		// news event for expired market item
@@ -302,9 +305,9 @@ export const cleanMarket = new AsyncTask('clean market', async () => {
 		let destinationId = empire.id
 		let destinationName = empire.name
 		let content: string = `You're ${
-			eraArray[empire.era][item.type]
-		} on the public market has expired and 75% has been returned to you.`
-		let pubContent: string = `${empire.name} failed to sell their item on the public market.`
+			eraArray[empire.era][itemName.toLowerCase()]
+		} on the public market have expired and 75% have been returned to you.`
+		let pubContent: string = `${empire.name} failed to sell their items on the public market.`
 
 		// create news event for seller that goods have been purchased
 		await createNewsEvent(
