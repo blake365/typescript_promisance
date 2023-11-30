@@ -348,12 +348,12 @@ export const useTurn = async (
 		let foodpro = Math.round(production)
 
 		let consumption =
-			empire.trpArm * 0.05 +
-			empire.trpLnd * 0.03 +
-			empire.trpFly * 0.02 +
-			empire.trpSea * 0.01 +
-			empire.peasants * 0.01 +
-			empire.trpWiz * 0.25
+			empire.trpArm * 0.05 * 0.7 +
+			empire.trpLnd * 0.03 * 0.7 +
+			empire.trpFly * 0.02 * 0.7 +
+			empire.trpSea * 0.01 * 0.7 +
+			empire.peasants * 0.01 * 0.7 +
+			empire.trpWiz * 0.25 * 0.7
 		consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
 		let foodcon = Math.round(consumption)
 
@@ -460,8 +460,8 @@ export const useTurn = async (
 		if (empire.bldWiz / empire.land > 0.15) {
 			runes = Math.round(
 				getRandomInt(
-					Math.round(empire.bldWiz * 1.05),
-					Math.round(empire.bldWiz * 1.35)
+					Math.round(empire.bldWiz * 1.15),
+					Math.round(empire.bldWiz * 1.55)
 				) * runeMultiplier
 			)
 		} else {
@@ -894,12 +894,12 @@ export const useTurnInternal = (
 		let foodpro = Math.round(production)
 
 		let consumption =
-			empire.trpArm * 0.05 +
-			empire.trpLnd * 0.03 +
-			empire.trpFly * 0.02 +
-			empire.trpSea * 0.01 +
-			empire.peasants * 0.01 +
-			empire.trpWiz * 0.25
+			empire.trpArm * 0.05 * 0.7 +
+			empire.trpLnd * 0.03 * 0.7 +
+			empire.trpFly * 0.02 * 0.7 +
+			empire.trpSea * 0.01 * 0.7 +
+			empire.peasants * 0.01 * 0.7 +
+			empire.trpWiz * 0.25 * 0.7
 		consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
 		let foodcon = Math.round(consumption)
 
@@ -976,12 +976,12 @@ export const useTurnInternal = (
 		if (empire.bldWiz / empire.land > 0.15) {
 			runes = Math.round(
 				getRandomInt(
-					Math.round(empire.bldWiz * 1.01),
-					Math.round(empire.bldWiz * 1.3)
+					Math.round(empire.bldWiz * 1.15),
+					Math.round(empire.bldWiz * 1.55)
 				) * runeMultiplier
 			)
 		} else {
-			runes = Math.round(empire.bldWiz * 1.01 * runeMultiplier)
+			runes = Math.round(empire.bldWiz * 1.1 * runeMultiplier)
 		}
 
 		runes = Math.round(
