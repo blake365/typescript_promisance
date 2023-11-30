@@ -512,7 +512,7 @@ const resetGame = async (req: Request, res: Response) => {
 		})
 
 		users.forEach(async (user) => {
-			console.log(user)
+			// console.log(user)
 			let empire = await Empire.findOne({
 				where: { id: user.empires[0].id },
 			})
@@ -545,6 +545,8 @@ const resetGame = async (req: Request, res: Response) => {
 			await user.save()
 		})
 
+		console.log('user stats updated')
+
 		// get clans
 		let clans = await Clan.find()
 		clans.forEach(async (clan) => {
@@ -572,12 +574,14 @@ const resetGame = async (req: Request, res: Response) => {
 			await clan.remove()
 		})
 
+		console.log('clan history added and clans removed')
+
 		// get empires
 		let empires = await Empire.find({
 			relations: ['user'],
 		})
 		empires.forEach(async (empire) => {
-			console.log(empire.user)
+			// console.log(empire.user)
 			let roundHistory_id = round_h_id
 			let u_id = empire.user.id
 			let empireHistoryName = empire.name
@@ -611,6 +615,8 @@ const resetGame = async (req: Request, res: Response) => {
 			await empire.remove()
 		})
 
+		console.log('empire history added and empires removed')
+
 		let allClans = clans.length
 		let allEmpires = empires.length
 		const countUnclanned = empires.filter((empire) => {
@@ -629,30 +635,55 @@ const resetGame = async (req: Request, res: Response) => {
 			nonClanEmpires,
 		}).save()
 
+		console.log('round history added')
+
 		let clanMessages = await EmpireMessage.find()
-		clanMessages.forEach(async (message) => {
-			await message.remove()
-		})
+		if (clanMessages.length > 0) {
+			clanMessages.forEach(async (message) => {
+				await message.remove()
+			})
+			console.log('clan messages removed')
+		}
+
 		let messages = await EmpireMessage.find()
-		messages.forEach(async (message) => {
-			await message.remove()
-		})
+		if (messages.length > 0) {
+			messages.forEach(async (message) => {
+				await message.remove()
+			})
+			console.log('messages removed')
+		}
+
 		let markets = await Market.find()
-		markets.forEach(async (market) => {
-			await market.remove()
-		})
+		if (markets.length > 0) {
+			markets.forEach(async (market) => {
+				await market.remove()
+			})
+			console.log('market items removed')
+		}
+
 		let news = await EmpireNews.find()
-		news.forEach(async (news) => {
-			await news.remove()
-		})
+		if (news.length > 0) {
+			news.forEach(async (news) => {
+				await news.remove()
+			})
+			console.log('news removed')
+		}
+
 		let clanRelation = await ClanRelation.find()
-		clanRelation.forEach(async (relation) => {
-			await relation.remove()
-		})
+		if (clanRelation.length > 0) {
+			clanRelation.forEach(async (relation) => {
+				await relation.remove()
+			})
+			console.log('clan relations removed')
+		}
+
 		let sessions = await Session.find()
-		sessions.forEach(async (session) => {
-			await session.remove()
-		})
+		if (sessions.length > 0) {
+			sessions.forEach(async (session) => {
+				await session.remove()
+			})
+			console.log('sessions removed')
+		}
 
 		return res.json({ message: 'Game reset' })
 	} catch (error) {
