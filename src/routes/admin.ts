@@ -7,6 +7,7 @@ import EmpireMessage from '../entity/EmpireMessage'
 import Clan from '../entity/Clan'
 import ClanHistory from '../entity/ClanHistory'
 import EmpireHistory from '../entity/EmpireHistory'
+import { Not } from 'typeorm'
 
 import auth from '../middleware/auth'
 import user from '../middleware/user'
@@ -504,9 +505,16 @@ const resetGame = async (req: Request, res: Response) => {
 		// delete empires, intel, clans, clan relations, messages, clan messages, news, market, sessions, lottery, etc...
 		// update user stats
 		let users = await User.find()
+
+		// filter out users with no empires
+		users = users.filter((user) => {
+			return user?.empires?.length > 0
+		})
+
 		users.forEach(async (user) => {
+			console.log(user)
 			let empire = await Empire.findOne({
-				where: { username: user.username },
+				where: { id: user.empires[0].id },
 			})
 
 			if (empire.rank > user.bestRank) {
@@ -561,7 +569,7 @@ const resetGame = async (req: Request, res: Response) => {
 				clanHistoryMembers,
 				clanHistoryTotalNet,
 			}).save()
-			clan.remove()
+			await clan.remove()
 		})
 
 		// get empires
@@ -569,6 +577,7 @@ const resetGame = async (req: Request, res: Response) => {
 			relations: ['user'],
 		})
 		empires.forEach(async (empire) => {
+			console.log(empire.user)
 			let roundHistory_id = round_h_id
 			let u_id = empire.user.id
 			let empireHistoryName = empire.name
@@ -599,7 +608,7 @@ const resetGame = async (req: Request, res: Response) => {
 				empireHistoryLand,
 				empireHistoryRank,
 			}).save()
-			empire.remove()
+			await empire.remove()
 		})
 
 		let allClans = clans.length
@@ -621,28 +630,28 @@ const resetGame = async (req: Request, res: Response) => {
 		}).save()
 
 		let clanMessages = await EmpireMessage.find()
-		clanMessages.forEach((message) => {
-			message.remove()
+		clanMessages.forEach(async (message) => {
+			await message.remove()
 		})
 		let messages = await EmpireMessage.find()
-		messages.forEach((message) => {
-			message.remove()
+		messages.forEach(async (message) => {
+			await message.remove()
 		})
 		let markets = await Market.find()
-		markets.forEach((market) => {
-			market.remove()
+		markets.forEach(async (market) => {
+			await market.remove()
 		})
 		let news = await EmpireNews.find()
-		news.forEach((news) => {
-			news.remove()
+		news.forEach(async (news) => {
+			await news.remove()
 		})
 		let clanRelation = await ClanRelation.find()
-		clanRelation.forEach((relation) => {
-			relation.remove()
+		clanRelation.forEach(async (relation) => {
+			await relation.remove()
 		})
 		let sessions = await Session.find()
-		sessions.forEach((session) => {
-			session.remove()
+		sessions.forEach(async (session) => {
+			await session.remove()
 		})
 
 		return res.json({ message: 'Game reset' })
