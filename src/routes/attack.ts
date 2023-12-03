@@ -31,7 +31,7 @@ function getRandomInt(min, max) {
 
 const calcUnitPower = (empire: Empire, unit: string, mode: string) => {
 	// convert unit from trparm to trpArm
-	console.log('unit: ', unit)
+	// console.log('unit: ', unit)
 
 	let unitM =
 		unit.substring(0, 3) + unit.charAt(3).toUpperCase() + unit.substring(4)
@@ -44,16 +44,16 @@ const calcUnitPower = (empire: Empire, unit: string, mode: string) => {
 	}
 
 	// console.log(empire)
-	console.log(lookup)
+	// console.log(lookup)
 
 	let quantity = empire[unitM]
 	if (!quantity) {
 		quantity = 0
 	}
-	console.log('quantity: ', quantity)
-	console.log('era: ', eraArray[empire.era][lookup])
+	// console.log('quantity: ', quantity)
+	// console.log('era: ', eraArray[empire.era][lookup])
 	let power = eraArray[empire.era][lookup] * quantity
-	console.log('power: ', power)
+	// console.log('power: ', power)
 
 	return power
 }
@@ -67,12 +67,12 @@ const calcUnitLosses = (
 	omod: number,
 	dmod: number
 ) => {
-	console.log('attackUnits: ', attackUnits)
-	console.log('defendUnits: ', defendUnits)
-	console.log('oper: ', oper)
-	console.log('dper: ', dper)
-	console.log('omod: ', omod)
-	console.log('dmod: ', dmod)
+	// console.log('attackUnits: ', attackUnits)
+	// console.log('defendUnits: ', defendUnits)
+	// console.log('oper: ', oper)
+	// console.log('dper: ', dper)
+	// console.log('omod: ', omod)
+	// console.log('dmod: ', dmod)
 
 	let attackLosses = Math.round(
 		Math.min(
@@ -99,8 +99,8 @@ const calcUnitLosses = (
 	// 	Math.ceil(defendUnits * dper * dmod) + 1
 	// )
 
-	console.log('attackLosses: ', attackLosses)
-	console.log('defendLosses: ', defendLosses)
+	// console.log('attackLosses: ', attackLosses)
+	// console.log('defendLosses: ', defendLosses)
 
 	return { attackLosses: attackLosses, defendLosses: defendLosses }
 }
