@@ -328,7 +328,7 @@ export default class Empire extends Model {
 			to: (value) => value,
 			from: (value) => parseInt(value),
 		},
-		default: 0,
+		default: 655360,
 	})
 	networth: number
 

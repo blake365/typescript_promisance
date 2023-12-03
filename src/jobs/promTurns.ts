@@ -15,6 +15,7 @@ import {
 	PUBMKT_START,
 	AID_MAXCREDITS,
 	LOTTERY_JACKPOT,
+	TURNS_PROTECTION,
 } from '../config/conifg'
 import EmpireEffect from '../entity/EmpireEffect'
 import User from '../entity/User'
@@ -175,7 +176,7 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 	// 	.where('sharing > 0 AND id != 0')
 	// 	.execute()
 
-	//TODO: clean up expired clan invites
+	// clean up expired clan invites
 
 	console.log('Turns update', new Date())
 })
@@ -354,7 +355,10 @@ export const cleanDemoAccounts = new AsyncTask(
 			.createQueryBuilder()
 			.delete()
 			.from(Empire)
-			.where('mode = :gamemode AND turnsUsed < 1', { gamemode: 'demo' })
+			.where('mode = :gamemode AND turnsUsed < :protection', {
+				gamemode: 'demo',
+				protection: TURNS_PROTECTION,
+			})
 			.execute()
 
 		// let emptyUsers = await User.find({

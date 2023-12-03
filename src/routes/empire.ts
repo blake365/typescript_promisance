@@ -10,7 +10,10 @@ import {
 	EMPIRES_PER_USER,
 	MAX_ATTACKS,
 	MAX_SPELLS,
+	ROUND_START,
+	TURNS_COUNT,
 	TURNS_DEMO,
+	TURNS_FREQ,
 	TURNS_INITIAL,
 	TURNS_MAXIMUM,
 	TURNS_PROTECTION,
@@ -40,6 +43,7 @@ const createEmpire = async (req: Request, res: Response) => {
 
 	let mode = 'normal'
 	let turns: number = TURNS_INITIAL
+	let storedturns: number = 0
 	let mktArm: number = 999999999999
 	let mktLnd: number = 999999999999
 	let mktFly: number = 999999999999
@@ -47,6 +51,27 @@ const createEmpire = async (req: Request, res: Response) => {
 	let mktFood: number = 999999999999
 	let attacks: number = 0
 	let spells: number = 0
+
+	// see how many days have passed since round started
+	// if more than 1 day, add turns that would have been gained to initial turns
+	// if greater than max turns, add to stored turns up to 100 stored turns
+	let now = new Date()
+	let roundStart = new Date(ROUND_START)
+	let diff = now.getTime() - roundStart.getTime()
+	let days = Math.floor(diff / (1000 * 3600 * 24))
+	console.log(days)
+	let turnsElapsed = ((days * 24 * 60) / TURNS_FREQ) * TURNS_COUNT
+	console.log(turnsElapsed)
+	let turnsToAdd = turnsElapsed
+	if (turnsToAdd > TURNS_MAXIMUM) {
+		turns = TURNS_MAXIMUM
+		storedturns += turnsToAdd - TURNS_MAXIMUM
+		if (storedturns > 100) {
+			storedturns = 100
+		}
+	} else {
+		turns += turnsToAdd
+	}
 
 	if (user.empires.length > EMPIRES_PER_USER) {
 		return res.status(400).json({ error: 'Max empires per user reached' })
@@ -81,8 +106,9 @@ const createEmpire = async (req: Request, res: Response) => {
 				spells,
 			})
 		} else {
-			empire = new Empire({ name, race, user, mode, turns })
+			empire = new Empire({ name, race, user, mode, turns, storedturns })
 		}
+
 		await empire.save()
 
 		let effect: EmpireEffect = null

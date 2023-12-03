@@ -17,7 +17,7 @@ import {
 	PVTM_TRPFLY,
 	PVTM_TRPSEA,
 } from '../config/conifg'
-import { getNetworth } from './actions/actions'
+import { cauchyRandom, gaussianRandom, getNetworth } from './actions/actions'
 import Clan from '../entity/Clan'
 import User from '../entity/User'
 
@@ -67,30 +67,40 @@ const calcUnitLosses = (
 	omod: number,
 	dmod: number
 ) => {
-	// console.log('attackUnits: ', attackUnits)
-	// console.log('defendUnits: ', defendUnits)
-	// console.log('oper: ', oper)
-	// console.log('dper: ', dper)
-	// console.log('omod: ', omod)
-	// console.log('dmod: ', dmod)
+	console.log('attackUnits: ', attackUnits)
+	console.log('defendUnits: ', defendUnits)
+	console.log('oper: ', oper)
+	console.log('dper: ', dper)
+	console.log('omod: ', omod)
+	console.log('dmod: ', dmod)
 
-	let attackLosses = Math.min(
-		getRandomInt(0, Math.ceil(attackUnits * oper * omod) + 1),
-		attackUnits
+	let attackLosses = Math.round(
+		Math.min(
+			cauchyRandom(Math.ceil((attackUnits * oper * omod + 1) / 2)),
+			attackUnits
+		)
 	)
+	// console.log('max attacker loss:', Math.ceil(attackUnits * oper * omod) + 1)
 
 	let maxKill =
 		Math.round(0.9 * attackUnits) +
 		getRandomInt(0, Math.round(0.2 * attackUnits) + 1)
 
-	let defendLosses = Math.min(
-		getRandomInt(0, Math.ceil(defendUnits * dper * dmod) + 1),
-		defendUnits,
-		maxKill
+	let defendLosses = Math.round(
+		Math.min(
+			cauchyRandom(Math.ceil(defendUnits * dper * dmod + 1) / 2),
+			defendUnits,
+			maxKill
+		)
 	)
 
-	// console.log('attackLosses: ', attackLosses)
-	// console.log('defendLosses: ', defendLosses)
+	// console.log(
+	// 	'intermediate defender loss:',
+	// 	Math.ceil(defendUnits * dper * dmod) + 1
+	// )
+
+	console.log('attackLosses: ', attackLosses)
+	console.log('defendLosses: ', defendLosses)
 
 	return { attackLosses: attackLosses, defendLosses: defendLosses }
 }
