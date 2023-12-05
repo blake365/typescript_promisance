@@ -3,7 +3,7 @@ import Empire from '../entity/Empire'
 import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
-import { getNetworth } from './actions/actions'
+import { containsOnlySymbols, getNetworth } from './actions/actions'
 import { Not } from 'typeorm'
 import EmpireEffect from '../entity/EmpireEffect'
 import {
@@ -24,6 +24,7 @@ import ClanRelation from '../entity/ClanRelation'
 import ClanMessage from '../entity/ClanMessage'
 
 const Filter = require('bad-words')
+const filter = new Filter()
 
 // interface resultObject {
 // 	name: string
@@ -35,7 +36,6 @@ const Filter = require('bad-words')
 
 //CREATE
 const createEmpire = async (req: Request, res: Response) => {
-	const filer = new Filter()
 	let { name, race } = req.body
 
 	console.log(req.body)
@@ -69,7 +69,7 @@ const createEmpire = async (req: Request, res: Response) => {
 		if (storedturns > 100) {
 			storedturns = 100
 		}
-	} else {
+	} else if (turnsToAdd > 0) {
 		turns += turnsToAdd
 	}
 
@@ -84,7 +84,9 @@ const createEmpire = async (req: Request, res: Response) => {
 	try {
 		let empire: Empire = null
 
-		name = filer.clean(name)
+		if (!containsOnlySymbols(name)) {
+			name = filter.clean(name)
+		}
 
 		if (user.role === 'demo') {
 			mode = 'demo'
@@ -111,12 +113,23 @@ const createEmpire = async (req: Request, res: Response) => {
 
 		await empire.save()
 
+		let createdAt = null
+		if (now.getTime() - roundStart.getTime() < 0) {
+			// round hasn't started yet
+			createdAt = roundStart
+		} else {
+			createdAt = now
+		}
+
 		let effect: EmpireEffect = null
 		effect = new EmpireEffect({
 			effectOwnerId: empire.id,
 			empireEffectName: 'era delay',
 			empireEffectValue: 5760,
+			createdAt: createdAt,
+			updatedAt: createdAt,
 		})
+
 		effect.save()
 
 		return res.status(201).json(empire)
@@ -274,7 +287,6 @@ const updateProfile = async (req: Request, res: Response) => {
 	const { empireId, type, profile } = req.body
 
 	console.log(req.body)
-	const filter = new Filter()
 
 	const user: User = res.locals.user
 
@@ -286,7 +298,11 @@ const updateProfile = async (req: Request, res: Response) => {
 		const empire = await Empire.findOneOrFail({ id: empireId })
 
 		if (type === 'profile') {
-			empire.profile = filter.clean(profile)
+			if (!containsOnlySymbols(profile)) {
+				empire.profile = filter.clean(profile)
+			} else {
+				empire.profile = profile
+			}
 			await empire.save()
 			return res.json(empire)
 		}

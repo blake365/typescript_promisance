@@ -5,8 +5,10 @@ import user from '../middleware/user'
 import auth from '../middleware/auth'
 import { Not, Any, getConnection } from 'typeorm'
 import User from '../entity/User'
+import { containsOnlySymbols } from './actions/actions'
 
 const Filter = require('bad-words')
+const filter = new Filter()
 
 const concatenateIntegers = (a, b) => {
 	const strA = a.toString()
@@ -98,6 +100,8 @@ const postMessage = async (req: Request, res: Response) => {
 	let { sourceId, sourceName, destinationId, destinationName, message } =
 		req.body
 
+	console.log(message)
+
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== sourceId) {
@@ -114,9 +118,10 @@ const postMessage = async (req: Request, res: Response) => {
 		return res.status(401).json({ message: 'Unauthorized' })
 	}
 
-	const filter = new Filter()
-
-	message = filter.clean(message)
+	// if message only contains symbols, return message
+	if (!containsOnlySymbols(message)) {
+		message = filter.clean(message)
+	}
 
 	// check for existing conversation
 	const conversationId1 = concatenateIntegers(sourceId, destinationId)
@@ -234,13 +239,12 @@ const countNew = async (req: Request, res: Response) => {
 	}
 
 	try {
-		const news = await EmpireMessage.findAndCount({
+		const mail = await EmpireMessage.findAndCount({
 			where: { empireIdDestination: id, seen: false },
 			// cache: 30000,
 		})
-
-		// console.log(news[news.length - 1])
-		return res.json({ count: news[news.length - 1] })
+		// console.log(mail)
+		return res.json({ count: mail[1] })
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json(error)
@@ -285,8 +289,11 @@ const postClanMessage = async (req: Request, res: Response) => {
 		return res.status(401).json({ message: 'Unauthorized' })
 	}
 	// console.log(req.body)
-	const filter = new Filter()
-	const message = filter.clean(clanMessageBody)
+	let message = clanMessageBody
+	// if message only contains symbols, return message
+	if (!containsOnlySymbols(clanMessageBody)) {
+		message = filter.clean(clanMessageBody)
+	}
 
 	try {
 		const newMessage = ClanMessage.create({

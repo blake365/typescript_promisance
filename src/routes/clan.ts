@@ -10,12 +10,13 @@ import bcrypt from 'bcrypt'
 import { createNewsEvent } from '../util/helpers'
 import ClanRelation from '../entity/ClanRelation'
 import User from '../entity/User'
+import { containsOnlySymbols } from './actions/actions'
 
 const Filter = require('bad-words')
+const filter = new Filter()
 
 const createClan = async (req: Request, res: Response) => {
 	let { clanName, clanPassword, empireId } = req.body
-	const filter = new Filter()
 
 	const user: User = res.locals.user
 
@@ -24,7 +25,9 @@ const createClan = async (req: Request, res: Response) => {
 	}
 
 	// console.log(clanName, clanPassword, empireId)
-	clanName = filter.clean(clanName)
+	if (!containsOnlySymbols(clanName)) {
+		clanName = filter.clean(clanName)
+	}
 
 	try {
 		const empire = await Empire.findOneOrFail({

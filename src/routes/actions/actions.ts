@@ -93,3 +93,8 @@ export function cauchyRandom(location: number) {
 		location + location * 0.15 * Math.tan(Math.PI * (Math.random() - 0.5))
 	)
 }
+
+export function containsOnlySymbols(str: string) {
+	const regex = /^[^\w\s]+$/
+	return regex.test(str)
+}
