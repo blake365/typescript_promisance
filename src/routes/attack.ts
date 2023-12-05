@@ -29,6 +29,13 @@ function getRandomInt(min, max) {
 	return Math.floor(Math.random() * (max - min) + min) //The maximum is exclusive and the minimum is inclusive
 }
 
+/**
+ * Calculates the power of a unit in an empire based on the given mode.
+ * @param empire - The empire object containing unit quantities.
+ * @param unit - The unit to calculate the power for.
+ * @param mode - The mode ('o' for offensive, 'd' for defensive).
+ * @returns The calculated power of the unit.
+ */
 const calcUnitPower = (empire: Empire, unit: string, mode: string) => {
 	// convert unit from trparm to trpArm
 	// console.log('unit: ', unit)
@@ -59,6 +66,17 @@ const calcUnitPower = (empire: Empire, unit: string, mode: string) => {
 }
 
 // calculate number of units lost for attacker and defender
+/**
+ * Calculates the unit losses for an attack.
+ *
+ * @param attackUnits The number of attacking units.
+ * @param defendUnits The number of defending units.
+ * @param oper The offensive power of the attacker.
+ * @param dper The defensive power of the defender.
+ * @param omod The offensive modifier.
+ * @param dmod The defensive modifier.
+ * @returns An object containing the number of attack losses and defend losses.
+ */
 const calcUnitLosses = (
 	attackUnits: number,
 	defendUnits: number,
@@ -88,7 +106,7 @@ const calcUnitLosses = (
 
 	let defendLosses = Math.round(
 		Math.min(
-			cauchyRandom(Math.ceil(defendUnits * dper * dmod + 1) / 2),
+			cauchyRandom(Math.ceil((defendUnits * dper * dmod + 1) / 2)),
 			defendUnits,
 			maxKill
 		)
@@ -152,6 +170,18 @@ interface defendLosses {
 // 	} else true
 // }
 
+/**
+ * Destroys buildings during an attack.
+ * @param attackType - The type of attack.
+ * @param pcloss - The percentage of buildings lost during the attack.
+ * @param pcgain - The percentage of buildings gained during the attack.
+ * @param type - The type of building being attacked.
+ * @param defender - The defending empire.
+ * @param attacker - The attacking empire.
+ * @param buildLoss - The object to track the loss of buildings.
+ * @param buildGain - The object to track the gain of buildings.
+ * @returns An object containing the updated buildGain and buildLoss.
+ */
 export const destroyBuildings = async (
 	attackType: string,
 	pcloss: number,
@@ -614,7 +644,7 @@ const attack = async (req: Request, res: Response) => {
 				attacker.trpWiz = Math.round(0.97 * attacker.trpWiz)
 			}
 
-			if (attacker.networth < defender.networth * 0.33 && type !== 'war') {
+			if (attacker.networth < defender.networth * 0.25 && type !== 'war') {
 				// the attacker is fearful, troops desert
 				returnText +=
 					'Your troops are fearful of fighting such a strong opponent, many desert...'
@@ -754,20 +784,23 @@ const attack = async (req: Request, res: Response) => {
 					attackLosses['trpsea'] = result.attackLosses
 					defenseLosses['trpsea'] = result.defendLosses
 					break
-				//FIXME: surprise attack and standard attack losses
+				//surprise attack and standard attack losses
 				case 'surprise':
 					console.log('surprise attack')
 					omod *= 1.2
+					console.log('omod', omod)
 				case 'pillage':
 					console.log('pillage attack')
 					omod *= 1.2
+					console.log('omod', omod)
 				case 'standard':
+					console.log('omod', omod)
 					console.log('standard attack')
 					result = calcUnitLosses(
 						attacker.trpArm,
 						defender.trpArm,
 						0.1455,
-						0.0805,
+						0.0695,
 						omod,
 						dmod
 					)
@@ -778,7 +811,7 @@ const attack = async (req: Request, res: Response) => {
 						attacker.trpLnd,
 						defender.trpLnd,
 						0.1285,
-						0.073,
+						0.052,
 						omod,
 						dmod
 					)
@@ -789,7 +822,7 @@ const attack = async (req: Request, res: Response) => {
 						attacker.trpFly,
 						defender.trpFly,
 						0.0788,
-						0.0675,
+						0.0435,
 						omod,
 						dmod
 					)
@@ -800,7 +833,7 @@ const attack = async (req: Request, res: Response) => {
 						attacker.trpSea,
 						defender.trpSea,
 						0.065,
-						0.0555,
+						0.0345,
 						omod,
 						dmod
 					)

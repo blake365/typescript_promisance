@@ -89,9 +89,18 @@ export function gaussianRandom(mean: number, stdev: number) {
 // cauchyRandom returns a random number from a Cauchy distribution
 // with the given location and scale parameters.
 export function cauchyRandom(location: number) {
-	return Math.abs(
-		location + location * 0.15 * Math.tan(Math.PI * (Math.random() - 0.5))
+	let result = Math.abs(
+		location + location * 0.05 * Math.tan(Math.PI * (Math.random() - 0.5))
 	)
+	if (result < location * 0.98) {
+		console.log('less than min')
+		return cauchyRandom(location)
+	} else if (result > location * 2 * 0.98) {
+		console.log('more than max')
+		return cauchyRandom(location)
+	} else {
+		return result
+	}
 }
 
 export function containsOnlySymbols(str: string) {
