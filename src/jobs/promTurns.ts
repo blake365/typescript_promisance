@@ -1,6 +1,6 @@
 import { AsyncTask, Task } from 'toad-scheduler'
 import { getConnection, getRepository } from 'typeorm'
-import ClanInvite from '../entity/ClanInvite'
+// import ClanInvite from '../entity/ClanInvite'
 import Empire from '../entity/Empire'
 import Market from '../entity/Market'
 import {
@@ -18,7 +18,7 @@ import {
 	TURNS_PROTECTION,
 } from '../config/conifg'
 import EmpireEffect from '../entity/EmpireEffect'
-import User from '../entity/User'
+// import User from '../entity/User'
 import { getNetworth } from '../routes/actions/actions'
 import Session from '../entity/Session'
 import { eraArray } from '../config/eras'
@@ -177,6 +177,23 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 	// 	.execute()
 
 	// clean up expired clan invites
+	console.log('updating ranks')
+	const empires = await Empire.find({ order: { networth: 'DESC' } })
+	let uRank = 0
+
+	for (let i = 0; i < empires.length; i++) {
+		uRank++
+		let id = empires[i].id
+		await getConnection()
+			.createQueryBuilder()
+			.update(Empire)
+			.set({
+				// update rank
+				rank: uRank,
+			})
+			.where('id = :id', { id: id })
+			.execute()
+	}
 
 	console.log('Turns update', new Date())
 })
@@ -225,54 +242,6 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 			.where('diminishing_returns < 0 AND id != 0')
 			.execute()
 	}
-	console.log('30 minute update')
-})
-
-export const hourlyUpdate = new AsyncTask('hourly update', async () => {
-	console.log('performing hourly update')
-
-	if (MAX_ATTACKS > 0) {
-		await getConnection()
-			.createQueryBuilder()
-			.update(Empire)
-			.set({
-				// update number of attacks
-				attacks: () => 'attacks + 1',
-			})
-			.where('attacks < 0 AND id != 0')
-			.execute()
-	}
-
-	if (MAX_SPELLS > 0) {
-		await getConnection()
-			.createQueryBuilder()
-			.update(Empire)
-			.set({
-				// update number of spells
-				spells: () => 'spells + 1',
-			})
-			.where('spells < 0 AND id != 0')
-			.execute()
-	}
-})
-
-export const aidCredits = new AsyncTask('aid credits', async () => {
-	// add aid credits
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update number of credits
-			aidCredits: () => 'aid_credits + 1',
-		})
-		.where('id != 0 AND aid_credits < :max AND mode != :mode', {
-			mode: 'demo',
-			max: AID_MAXCREDITS,
-		})
-		.execute()
-})
-
-export const cleanMarket = new AsyncTask('clean market', async () => {
 	// max time on market 72 hours
 	console.log('cleaning market')
 	// take unsold market items and return them to the empire
@@ -325,26 +294,58 @@ export const cleanMarket = new AsyncTask('clean market', async () => {
 		await empire.save()
 		await item.remove()
 	}
+	console.log('30 minute update')
 })
 
-export const updateRanks = new AsyncTask('update ranks', async () => {
-	const empires = await Empire.find({ order: { networth: 'DESC' } })
-	let uRank = 0
-
-	for (let i = 0; i < empires.length; i++) {
-		uRank++
-		let id = empires[i].id
+export const hourlyUpdate = new AsyncTask('hourly update', async () => {
+	console.log('performing hourly update')
+	if (MAX_ATTACKS > 0) {
 		await getConnection()
 			.createQueryBuilder()
 			.update(Empire)
 			.set({
-				// update rank
-				rank: uRank,
+				// update number of attacks
+				attacks: () => 'attacks + 1',
 			})
-			.where('id = :id', { id: id })
+			.where('attacks < 0 AND id != 0')
+			.execute()
+	}
+
+	if (MAX_SPELLS > 0) {
+		await getConnection()
+			.createQueryBuilder()
+			.update(Empire)
+			.set({
+				// update number of spells
+				spells: () => 'spells + 1',
+			})
+			.where('spells < 0 AND id != 0')
 			.execute()
 	}
 })
+
+export const aidCredits = new AsyncTask('aid credits', async () => {
+	// add aid credits
+	console.log('adding aid credits')
+	await getConnection()
+		.createQueryBuilder()
+		.update(Empire)
+		.set({
+			// update number of credits
+			aidCredits: () => 'aid_credits + 1',
+		})
+		.where('id != 0 AND aid_credits < :max AND mode != :mode', {
+			mode: 'demo',
+			max: AID_MAXCREDITS,
+		})
+		.execute()
+})
+
+// export const cleanMarket = new AsyncTask('clean market', async () => {})
+
+// export const updateRanks = new AsyncTask('update ranks', async () => {
+
+// })
 
 export const cleanDemoAccounts = new AsyncTask(
 	'clean demo accounts and effects',
@@ -402,117 +403,128 @@ export const cleanDemoAccounts = new AsyncTask(
 			.from(Session)
 			.where('createdAt < :date', { date: new Date(Date.now() - 86400000) })
 			.execute()
+
+		// determine how to pick a winner
+		// get total number of tickets, multiply by 1.25, round up, that is the number of tickets to draw
+		// pick a random number between 1 and the total number of tickets
+		// find the ticket with that number
+		// that empire wins the prize
+		console.log('checking lottery')
+
+		const allTickets = await Lottery.find()
+
+		let jackpot = 0
+		const jackpotTracker = await Lottery.findOne({ ticket: 0 })
+		// console.log(jackpotTracker)
+		if (!jackpotTracker) {
+			jackpot += LOTTERY_JACKPOT
+
+			for (let i = 0; i < allTickets.length; i++) {
+				jackpot += Number(allTickets[i].cash)
+			}
+		} else {
+			for (let i = 0; i < allTickets.length; i++) {
+				jackpot += Number(allTickets[i].cash)
+			}
+		}
+
+		// console.log('jackpot', jackpot)
+
+		const totalTickets = allTickets.length
+		if (totalTickets < 1) return
+		// console.log('total tickets', totalTickets)
+		const ticketsToDraw = Math.ceil(totalTickets * 1.2)
+		// console.log('tickets to draw', ticketsToDraw)
+		const winningTicket = Math.ceil(Math.random() * ticketsToDraw)
+		// console.log('winning ticket', winningTicket)
+
+		// check if all tickets contains a ticket with the winning number
+		// console.log(allTickets)
+		const winner = allTickets.find(({ ticket }) => ticket == winningTicket)
+		// console.log('winner', winner)
+
+		if (!winner || totalTickets < 1 || winningTicket < 1) {
+			console.log('no winner')
+			// remove old tickets
+			await getConnection()
+				.createQueryBuilder()
+				.delete()
+				.from(Lottery)
+				.execute()
+
+			// create jackpot entry as ticket 0
+			const ticket = new Lottery()
+			ticket.empire_id = 0
+			ticket.cash = jackpot
+			ticket.ticket = 0
+			await ticket.save()
+
+			// news event for no lottery winner
+			// create news entry
+			let sourceId = 0
+			let sourceName = ''
+			let destinationId = 0
+			let destinationName = ''
+			let content: string = ''
+			let pubContent: string = `No one won the lottery. The base jackpot has increased to $${jackpot.toLocaleString()}.`
+
+			// create news event
+			await createNewsEvent(
+				content,
+				pubContent,
+				sourceId,
+				sourceName,
+				destinationId,
+				destinationName,
+				'lottery',
+				'fail'
+			)
+
+			return
+		} else {
+			// console.log('winner', winner)
+			// console.log(jackpot)
+			const empire = await Empire.findOne({ id: winner.empire_id })
+			// console.log(empire)
+			empire.cash += jackpot
+			await empire.save()
+
+			// news event for lottery winner
+			// create news entry
+			let sourceId = empire.id
+			let sourceName = empire.name
+			let destinationId = empire.id
+			let destinationName = empire.name
+			let content: string = `You won $${jackpot.toLocaleString()} in the lottery!`
+			let pubContent: string = `${
+				empire.name
+			} won $${jackpot.toLocaleString()} in the lottery!`
+
+			// create news event
+			await createNewsEvent(
+				content,
+				pubContent,
+				sourceId,
+				sourceName,
+				destinationId,
+				destinationName,
+				'lottery',
+				'success'
+			)
+
+			// remove all tickets
+			await getConnection()
+				.createQueryBuilder()
+				.delete()
+				.from(Lottery)
+				.execute()
+
+			return
+		}
 	}
 )
 
-// lottery
-export const lotteryCheck = new AsyncTask('lottery', async () => {
-	// determine how to pick a winner
-	// get total number of tickets, multiply by 1.25, round up, that is the number of tickets to draw
-	// pick a random number between 1 and the total number of tickets
-	// find the ticket with that number
-	// that empire wins the prize
+// // lottery
+// export const lotteryCheck = new AsyncTask('lottery', async () => {
 
-	const allTickets = await Lottery.find()
-
-	let jackpot = 0
-	const jackpotTracker = await Lottery.findOne({ ticket: 0 })
-	// console.log(jackpotTracker)
-	if (!jackpotTracker) {
-		jackpot += LOTTERY_JACKPOT
-
-		for (let i = 0; i < allTickets.length; i++) {
-			jackpot += Number(allTickets[i].cash)
-		}
-	} else {
-		for (let i = 0; i < allTickets.length; i++) {
-			jackpot += Number(allTickets[i].cash)
-		}
-	}
-
-	// console.log('jackpot', jackpot)
-
-	const totalTickets = allTickets.length
-	if (totalTickets < 1) return
-	// console.log('total tickets', totalTickets)
-	const ticketsToDraw = Math.ceil(totalTickets * 1.2)
-	// console.log('tickets to draw', ticketsToDraw)
-	const winningTicket = Math.ceil(Math.random() * ticketsToDraw)
-	// console.log('winning ticket', winningTicket)
-
-	// check if all tickets contains a ticket with the winning number
-	// console.log(allTickets)
-	const winner = allTickets.find(({ ticket }) => ticket == winningTicket)
-	// console.log('winner', winner)
-
-	if (!winner || totalTickets < 1 || winningTicket < 1) {
-		console.log('no winner')
-		// remove old tickets
-		await getConnection().createQueryBuilder().delete().from(Lottery).execute()
-
-		// create jackpot entry as ticket 0
-		const ticket = new Lottery()
-		ticket.empire_id = 0
-		ticket.cash = jackpot
-		ticket.ticket = 0
-		await ticket.save()
-
-		// news event for no lottery winner
-		// create news entry
-		let sourceId = 0
-		let sourceName = ''
-		let destinationId = 0
-		let destinationName = ''
-		let content: string = ''
-		let pubContent: string = `No one won the lottery. The base jackpot has increased to $${jackpot.toLocaleString()}.`
-
-		// create news event
-		await createNewsEvent(
-			content,
-			pubContent,
-			sourceId,
-			sourceName,
-			destinationId,
-			destinationName,
-			'lottery',
-			'fail'
-		)
-
-		return
-	} else {
-		// console.log('winner', winner)
-		// console.log(jackpot)
-		const empire = await Empire.findOne({ id: winner.empire_id })
-		// console.log(empire)
-		empire.cash += jackpot
-		await empire.save()
-
-		// news event for lottery winner
-		// create news entry
-		let sourceId = empire.id
-		let sourceName = empire.name
-		let destinationId = empire.id
-		let destinationName = empire.name
-		let content: string = `You won $${jackpot.toLocaleString()} in the lottery!`
-		let pubContent: string = `${
-			empire.name
-		} won $${jackpot.toLocaleString()} in the lottery!`
-
-		// create news event
-		await createNewsEvent(
-			content,
-			pubContent,
-			sourceId,
-			sourceName,
-			destinationId,
-			destinationName,
-			'lottery',
-			'success'
-		)
-
-		// remove all tickets
-		await getConnection().createQueryBuilder().delete().from(Lottery).execute()
-
-		return
-	}
-})
+// })

@@ -940,7 +940,7 @@ export const useTurnInternal = (
 		}
 
 		let popBase = Math.round(
-			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 60) /
+			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 65) /
 				(0.95 + taxrate + taxpenalty)
 		) // 14495
 

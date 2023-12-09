@@ -30,16 +30,17 @@ import admin from './routes/admin'
 import aid from './routes/aid'
 import clans from './routes/clan'
 import lottery from './routes/lottery'
+import cron from './routes/chron'
 
 import {
 	aidCredits,
 	cleanDemoAccounts,
-	cleanMarket,
+	// cleanMarket,
 	hourlyUpdate,
 	promTurns,
 	thirtyMinUpdate,
-	updateRanks,
-	lotteryCheck,
+	// updateRanks,
+	// lotteryCheck,
 } from './jobs/promTurns'
 
 import trim from './middleware/trim'
@@ -108,6 +109,7 @@ app.use('/api/admin', admin)
 app.use('/api/aid', aid)
 app.use('/api/clans', clans)
 app.use('/api/lottery', lottery)
+app.use('/api/cron', cron)
 // app.use('/api/empire', otherEmpires)
 
 app.get('/debug-sentry', function mainHandler(req, res) {
@@ -175,24 +177,24 @@ const checkTimeTask = new AsyncTask('check time', async () => {
 		if (thirtyMin.getStatus() !== 'running') {
 			scheduler.startById('id_5')
 		}
-		if (ranks.getStatus() !== 'running') {
-			scheduler.startById('id_3')
-		}
+		// if (ranks.getStatus() !== 'running') {
+		// 	scheduler.startById('id_3')
+		// }
 		if (hourly.getStatus() !== 'running') {
 			scheduler.startById('id_2')
 		}
 		if (daily.getStatus() !== 'running') {
 			scheduler.startById('id_4')
 		}
-		if (cleanMarketJob.getStatus() !== 'running') {
-			scheduler.startById('id_6')
-		}
+		// if (cleanMarketJob.getStatus() !== 'running') {
+		// 	scheduler.startById('id_6')
+		// }
 		if (aidJob.getStatus() !== 'running') {
 			scheduler.startById('id_7')
 		}
-		if (checkLottery.getStatus() !== 'running') {
-			scheduler.startById('id_8')
-		}
+		// if (checkLottery.getStatus() !== 'running') {
+		// 	scheduler.startById('id_8')
+		// }
 	} else {
 		// console.log('game is off')
 		gameOn = false
@@ -202,24 +204,24 @@ const checkTimeTask = new AsyncTask('check time', async () => {
 		if (thirtyMin.getStatus() === 'running') {
 			scheduler.stopById('id_5')
 		}
-		if (ranks.getStatus() === 'running') {
-			scheduler.stopById('id_3')
-		}
+		// if (ranks.getStatus() === 'running') {
+		// 	scheduler.stopById('id_3')
+		// }
 		if (hourly.getStatus() === 'running') {
 			scheduler.stopById('id_2')
 		}
 		if (daily.getStatus() === 'running') {
 			scheduler.stopById('id_4')
 		}
-		if (cleanMarketJob.getStatus() === 'running') {
-			scheduler.stopById('id_6')
-		}
+		// if (cleanMarketJob.getStatus() === 'running') {
+		// 	scheduler.stopById('id_6')
+		// }
 		if (aidJob.getStatus() === 'running') {
 			scheduler.stopById('id_7')
 		}
-		if (checkLottery.getStatus() === 'running') {
-			scheduler.stopById('id_8')
-		}
+		// if (checkLottery.getStatus() === 'running') {
+		// 	scheduler.stopById('id_8')
+		// }
 	}
 	// console.log(gameOn)
 })
@@ -236,11 +238,11 @@ const turns = new SimpleIntervalJob(
 	'id_10'
 )
 
-const cleanMarketJob = new SimpleIntervalJob(
-	{ minutes: 30, runImmediately: false },
-	cleanMarket,
-	'id_6'
-)
+// const cleanMarketJob = new SimpleIntervalJob(
+// 	{ minutes: 30, runImmediately: false },
+// 	cleanMarket,
+// 	'id_6'
+// )
 
 const thirtyMin = new SimpleIntervalJob(
 	{
@@ -251,11 +253,11 @@ const thirtyMin = new SimpleIntervalJob(
 	'id_5'
 )
 
-const ranks = new SimpleIntervalJob(
-	{ minutes: TURNS_FREQ, runImmediately: false },
-	updateRanks,
-	'id_3'
-)
+// const ranks = new SimpleIntervalJob(
+// 	{ minutes: TURNS_FREQ, runImmediately: false },
+// 	updateRanks,
+// 	'id_3'
+// )
 
 const hourly = new SimpleIntervalJob(
 	{ hours: 1, runImmediately: false },
@@ -275,22 +277,22 @@ const aidJob = new SimpleIntervalJob(
 	'id_7'
 )
 
-const checkLottery = new SimpleIntervalJob(
-	{ hours: 24, runImmediately: false },
-	lotteryCheck,
-	'id_8'
-)
+// const checkLottery = new SimpleIntervalJob(
+// 	{ hours: 24, runImmediately: false },
+// 	lotteryCheck,
+// 	'id_8'
+// )
 
 const scheduler = new ToadScheduler()
 
-scheduler.addSimpleIntervalJob(ranks)
+// scheduler.addSimpleIntervalJob(ranks)
 scheduler.addSimpleIntervalJob(thirtyMin)
 scheduler.addSimpleIntervalJob(hourly)
 scheduler.addSimpleIntervalJob(daily)
-scheduler.addSimpleIntervalJob(cleanMarketJob)
+// scheduler.addSimpleIntervalJob(cleanMarketJob)
 scheduler.addSimpleIntervalJob(aidJob)
 scheduler.addSimpleIntervalJob(turns)
-scheduler.addSimpleIntervalJob(checkLottery)
+// scheduler.addSimpleIntervalJob(checkLottery)
 scheduler.addSimpleIntervalJob(gameActive)
 
 // console.log('gameOn', gameOn)
