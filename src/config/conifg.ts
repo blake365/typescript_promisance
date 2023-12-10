@@ -72,6 +72,7 @@ export const PUBMKT_MINRUNES = 0 // Same as MINSELL, except for runes
 export const PUBMKT_MAXRUNES = 90 // Same as MAXSELL, except for runes
 
 export const CLAN_ENABLE = true // Master enable for clans
+export const CLAN_SIZE = 10 // Maximum number of members per clan
 export const CLAN_MINJOIN = 72 // Empires can't leave clans until they've been a member for this many hours
 export const CLAN_MINREJOIN = 24 // Empires can't create/join a new clan until this many hours after they left
 export const CLAN_MINSHARE = 2 // Unsharing clan forces takes this many hours to take effect

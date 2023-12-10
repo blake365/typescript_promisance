@@ -5,7 +5,7 @@ import user from '../middleware/user'
 import { Not } from 'typeorm'
 import EmpireEffect from '../entity/EmpireEffect'
 import Clan from '../entity/Clan'
-import { TURNS_PROTECTION } from '../config/conifg'
+import { CLAN_SIZE, TURNS_PROTECTION } from '../config/conifg'
 import bcrypt from 'bcrypt'
 import { createNewsEvent } from '../util/helpers'
 import ClanRelation from '../entity/ClanRelation'
@@ -148,7 +148,7 @@ const joinClan = async (req: Request, res: Response) => {
 			return res.status(401).json({ password: 'Password is incorrect' })
 		}
 
-		if (clan.clanMembers >= 5) {
+		if (clan.clanMembers >= CLAN_SIZE) {
 			return res.status(400).json({ error: 'Clan is full' })
 		}
 

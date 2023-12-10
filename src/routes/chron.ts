@@ -578,6 +578,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 }
 
 const test = async (req: Request, res: Response) => {
+	console.log(req.headers)
 	if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
 		return res.status(401).end('Unauthorized')
 	}
