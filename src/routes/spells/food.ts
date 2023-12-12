@@ -14,10 +14,10 @@ export const food_cast = (empire: Empire) => {
 		let food = Math.round(
 			(empire.trpWiz *
 				(empire.health / 100) *
-				55 *
+				(Math.max(0.8, calcSizeBonus(empire)) * 70) *
 				(1 + Math.sqrt(empire.bldWiz / empire.land) / 2) *
-				((100 + raceArray[empire.race].mod_magic) / 100)) /
-				(calcSizeBonus(empire) * calcSizeBonus(empire)) /
+				((100 + raceArray[empire.race].mod_magic) / 100) *
+				Math.max(0.8, calcSizeBonus(empire))) /
 				PVTM_FOOD
 		)
 

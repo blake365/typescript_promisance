@@ -11,12 +11,12 @@ export const cash_cost = (baseCost: number) => {
 export const cash_cast = (empire: Empire) => {
 	if (getPower_self(empire) >= 30) {
 		let cash = Math.round(
-			(empire.trpWiz *
+			empire.trpWiz *
 				(empire.health / 100) *
-				54 *
+				(Math.max(0.8, calcSizeBonus(empire)) * 70) *
 				(1 + Math.sqrt(empire.bldWiz / empire.land) / 2) *
-				((100 + raceArray[empire.race].mod_magic) / 100)) /
-				(calcSizeBonus(empire) * calcSizeBonus(empire))
+				((100 + raceArray[empire.race].mod_magic) / 100) *
+				Math.max(0.8, calcSizeBonus(empire))
 		)
 
 		let result = {

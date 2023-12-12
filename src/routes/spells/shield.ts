@@ -60,7 +60,7 @@ export const shield_cast = async (empire: Empire) => {
 					descriptor: eraArray[empire.era].trpwiz,
 				}
 				return result
-			} else if (timeLeft < 9 * 60) {
+			} else if (timeLeft < 14 * 60) {
 				console.log('renew')
 				// renew effect
 				// console.log(effect)

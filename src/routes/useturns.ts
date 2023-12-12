@@ -338,7 +338,7 @@ export const useTurn = async (
 		let production =
 			10 * empire.freeLand +
 			empire.bldFood *
-				95 *
+				85 *
 				Math.sqrt(1 - (0.75 * empire.bldFood) / Math.max(empire.land, 1))
 		production *=
 			(100 +
@@ -353,7 +353,7 @@ export const useTurn = async (
 			empire.trpFly * 0.02 * 0.7 +
 			empire.trpSea * 0.01 * 0.7 +
 			empire.peasants * 0.01 * 0.7 +
-			empire.trpWiz * 0.25 * 0.7
+			empire.trpWiz * 0.15 * 0.7
 		consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
 		let foodcon = Math.round(consumption)
 
@@ -489,13 +489,13 @@ export const useTurn = async (
 		let trpWiz = 0
 
 		if (empire.trpWiz < empire.bldWiz * 25) {
-			trpWiz = empire.bldWiz * 0.45 * 0.9
+			trpWiz = empire.bldWiz * 0.45
 		} else if (empire.trpWiz < empire.bldWiz * 50) {
-			trpWiz = empire.bldWiz * 0.3 * 0.9
+			trpWiz = empire.bldWiz * 0.3
 		} else if (empire.trpWiz < empire.bldWiz * 90) {
-			trpWiz = empire.bldWiz * 0.15 * 0.9
+			trpWiz = empire.bldWiz * 0.15
 		} else if (empire.trpWiz < empire.bldWiz * 100) {
-			trpWiz = empire.bldWiz * 0.1 * 0.9
+			trpWiz = empire.bldWiz * 0.1
 		} else if (empire.trpWiz > empire.bldWiz * 175) {
 			trpWiz = empire.trpWiz * -0.05
 		}
@@ -899,7 +899,7 @@ export const useTurnInternal = (
 			empire.trpFly * 0.02 * 0.7 +
 			empire.trpSea * 0.01 * 0.7 +
 			empire.peasants * 0.01 * 0.7 +
-			empire.trpWiz * 0.25 * 0.7
+			empire.trpWiz * 0.15 * 0.7
 		consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
 		let foodcon = Math.round(consumption)
 
@@ -998,15 +998,15 @@ export const useTurnInternal = (
 		let trpWiz = 0
 
 		if (empire.trpWiz < empire.bldWiz * 25) {
-			trpWiz = empire.bldWiz * 0.45 * 1.25
+			trpWiz = empire.bldWiz * 0.45
 		} else if (empire.trpWiz < empire.bldWiz * 50) {
-			trpWiz = empire.bldWiz * 0.3 * 1.25
+			trpWiz = empire.bldWiz * 0.3
 		} else if (empire.trpWiz < empire.bldWiz * 90) {
-			trpWiz = empire.bldWiz * 0.15 * 1.25
+			trpWiz = empire.bldWiz * 0.15
 		} else if (empire.trpWiz < empire.bldWiz * 100) {
-			trpWiz = empire.bldWiz * 0.1 * 1.25
+			trpWiz = empire.bldWiz * 0.1
 		} else if (empire.trpWiz > empire.bldWiz * 175) {
-			trpWiz = empire.trpWiz * -0.05 * 1.25
+			trpWiz = empire.trpWiz * -0.05
 		}
 		// console.log(trpWiz)
 		trpWiz = Math.round(

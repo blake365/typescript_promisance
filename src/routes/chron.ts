@@ -31,6 +31,7 @@ const promTurns = async (req: Request, res: Response) => {
 	if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
 		return res.status(401).end('Unauthorized')
 	}
+
 	try {
 		await getConnection()
 			.createQueryBuilder()
