@@ -120,8 +120,8 @@ export const useTurn = async (
 				(empire.tax / 100) *
 				(empire.health / 100) *
 				empire.peasants +
-				empire.bldCash * 500) /
-				size
+				empire.bldCash * 500) *
+				Math.max(0.8, size)
 		)
 
 		if (type === 'cash') {
@@ -353,7 +353,7 @@ export const useTurn = async (
 			empire.trpFly * 0.02 * 0.7 +
 			empire.trpSea * 0.01 * 0.7 +
 			empire.peasants * 0.01 * 0.7 +
-			empire.trpWiz * 0.15 * 0.7
+			empire.trpWiz * 0.2 * 0.7
 		consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
 		let foodcon = Math.round(consumption)
 
@@ -700,8 +700,8 @@ export const useTurnInternal = (
 				(empire.tax / 100) *
 				(empire.health / 100) *
 				empire.peasants +
-				empire.bldCash * 500) /
-				size
+				empire.bldCash * 500) *
+				Math.max(0.8, size)
 		)
 
 		let loan = Math.round(empire.loan / 200)
@@ -899,7 +899,7 @@ export const useTurnInternal = (
 			empire.trpFly * 0.02 * 0.7 +
 			empire.trpSea * 0.01 * 0.7 +
 			empire.peasants * 0.01 * 0.7 +
-			empire.trpWiz * 0.15 * 0.7
+			empire.trpWiz * 0.2 * 0.7
 		consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
 		let foodcon = Math.round(consumption)
 

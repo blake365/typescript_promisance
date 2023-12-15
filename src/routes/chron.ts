@@ -474,6 +474,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 			for (let i = 0; i < allTickets.length; i++) {
 				jackpot += Number(allTickets[i].cash)
 			}
+			jackpot += LOTTERY_JACKPOT
 		}
 
 		// console.log('jackpot', jackpot)
@@ -481,7 +482,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 		const totalTickets = allTickets.length
 		if (totalTickets < 1) return
 		// console.log('total tickets', totalTickets)
-		const ticketsToDraw = Math.ceil(totalTickets * 1.2)
+		const ticketsToDraw = Math.ceil(totalTickets * 1.3)
 		// console.log('tickets to draw', ticketsToDraw)
 		const winningTicket = Math.ceil(Math.random() * ticketsToDraw)
 		// console.log('winning ticket', winningTicket)
@@ -527,8 +528,6 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 				'lottery',
 				'fail'
 			)
-
-			return
 		} else {
 			// console.log('winner', winner)
 			// console.log(jackpot)
@@ -566,8 +565,6 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 				.delete()
 				.from(Lottery)
 				.execute()
-
-			return
 		}
 		return res.status(200).json({ message: 'Demo accounts cleaned, Lottery' })
 	} catch (err) {
