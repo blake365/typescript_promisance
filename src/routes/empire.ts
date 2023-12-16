@@ -181,6 +181,7 @@ const getOtherEmpires = async (req: Request, res: Response) => {
 			'rank',
 			'mode',
 			'turnsUsed',
+			'diminishingReturns',
 		],
 		where: { empireId: Not(empire_id) },
 		order: {
