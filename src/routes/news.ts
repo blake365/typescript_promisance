@@ -118,7 +118,7 @@ const countNew = async (req: Request, res: Response) => {
 		})
 
 		// console.log(news[news.length - 1])
-		return res.json({ count: news[news.length - 1] })
+		return res.json({ count: news[1] })
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json(error)

@@ -11,3 +11,7 @@ temp/
 
 # Sentry Config File
 .sentryclirc
+
+# profiles
+*.heapprofile
+*.heapsnapshot

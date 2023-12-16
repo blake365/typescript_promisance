@@ -137,19 +137,20 @@ app.listen(PORT, async () => {
 	}
 })
 
-let gameOn = false
 function checkTime() {
 	let now = new Date().getTime()
 	if (
 		now > new Date(ROUND_START).getTime() &&
 		now < new Date(ROUND_END).getTime()
 	) {
-		gameOn = true
-	}
+		return true
+	} else return false
 }
 
 if (process.env.NODE_ENV === 'development') {
-	checkTime()
+	let gameOn = false
+
+	gameOn = checkTime()
 
 	// console.log(ROUND_START)
 	console.log(gameOn)
