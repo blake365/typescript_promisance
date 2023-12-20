@@ -394,6 +394,14 @@ const attack = async (req: Request, res: Response) => {
 				error: returnText,
 			})
 		}
+
+		if (attacker.health < 10) {
+			canAttack = false
+			returnText = 'Your health is too low to send an attack.'
+			return res.json({
+				error: returnText,
+			})
+		}
 		// check eras and time gates
 		let defenderTimegate = false
 		if (attacker.era === defender.era) {
@@ -1032,7 +1040,7 @@ const attack = async (req: Request, res: Response) => {
 
 					attackDescription = {
 						result: 'success',
-						attackType: attackType,
+						attackType: attackType === 'standard' ? 'all out' : attackType,
 						era: attacker.era,
 						message: returnText,
 						troopLoss: attackLosses,
@@ -1109,9 +1117,11 @@ const attack = async (req: Request, res: Response) => {
 						attackType
 					].toLocaleString()} ${eraArray[attacker.era][attackType]}.`
 				} else {
-					content = `${
-						attacker.name
-					} attacked you with a ${attackType} attack and captured ${totalBuildGain.toLocaleString()} acres of land and buildings. /n 
+					content = `${attacker.name} attacked you with ${
+						attackType === 'standard' ? 'an' : 'a'
+					} ${
+						attackType === 'standard' ? 'all out' : attackType
+					} attack and captured ${totalBuildGain.toLocaleString()} acres of land and buildings. /n 
 					In the battle you lost: /n
 					${defenseLosses.trparm.toLocaleString()} ${
 						eraArray[defender.era].trparm
@@ -1128,9 +1138,11 @@ const attack = async (req: Request, res: Response) => {
 					${attackLosses.trpfly.toLocaleString()} ${eraArray[attacker.era].trpfly} /n 
 					${attackLosses.trpsea.toLocaleString()} ${eraArray[attacker.era].trpsea}.`
 
-					pubContent = `${attacker.name} attacked ${
-						defender.name
-					} with a ${attackType} attack and captured ${totalBuildGain.toLocaleString()} acres of land and buildings. /n 
+					pubContent = `${attacker.name} attacked ${defender.name} with ${
+						attackType === 'standard' ? 'an' : 'a'
+					} ${
+						attackType === 'standard' ? 'all out' : attackType
+					} attack and captured ${totalBuildGain.toLocaleString()} acres of land and buildings. /n 
 					In the battle ${defender.name} lost: /n
 					${defenseLosses.trparm.toLocaleString()} ${eraArray[defender.era].trparm} /n
 					${defenseLosses.trplnd.toLocaleString()} ${eraArray[defender.era].trplnd} /n
@@ -1175,7 +1187,7 @@ const attack = async (req: Request, res: Response) => {
 				} else {
 					attackDescription = {
 						result: 'fail',
-						attackType: attackType,
+						attackType: attackType === 'standard' ? 'all out' : attackType,
 						era: attacker.era,
 						message: returnText,
 						troopLoss: attackLosses,
@@ -1220,7 +1232,9 @@ const attack = async (req: Request, res: Response) => {
 				} else {
 					content = `You successfully defended your empire. /n ${
 						attacker.name
-					} attacked you with a ${attackType} attack. /n In the battle you lost: /n
+					} attacked you with ${attackType === 'standard' ? 'an' : 'a'} ${
+						attackType === 'standard' ? 'all out' : attackType
+					} attack. /n In the battle you lost: /n
 					${defenseLosses.trparm.toLocaleString()} ${
 						eraArray[defender.era].trparm
 					} /n ${defenseLosses.trplnd.toLocaleString()} ${

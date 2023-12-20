@@ -80,6 +80,10 @@ export const useTurn = async (
 		let luck = BASE_LUCK / size
 		let lucky = Math.random() * 100 <= luck
 
+		if (empire.health < 0) {
+			empire.health = 0
+		}
+
 		if (type === 'explore') {
 			turnResult = exploreAlt(empire, lucky)
 			// console.log(turnResult)
@@ -665,6 +669,10 @@ export const useTurnInternal = (
 
 		// size bonus penalty
 		let size = calcSizeBonus(empire)
+
+		if (empire.health < 0) {
+			empire.health = 0
+		}
 
 		// savings interest
 		let withdraw = 0
