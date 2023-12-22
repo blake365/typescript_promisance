@@ -608,6 +608,11 @@ const resetGame = async (req: Request, res: Response) => {
 			let profile = empire.profile
 			let profileIcon = empire.profileIcon
 			let turnsUsed = empire.turnsUsed
+			let finalTrpArm = empire.trpArm
+			let finalTrpLnd = empire.trpLnd
+			let finalTrpFly = empire.trpFly
+			let finalTrpSea = empire.trpSea
+			let finalTrpWiz = empire.trpWiz
 
 			// create empire history
 			await new EmpireHistory({
@@ -635,6 +640,11 @@ const resetGame = async (req: Request, res: Response) => {
 				profile,
 				profileIcon,
 				turnsUsed,
+				finalTrpArm,
+				finalTrpLnd,
+				finalTrpFly,
+				finalTrpSea,
+				finalTrpWiz,
 			}).save()
 			await empire.remove()
 		})

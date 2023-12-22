@@ -157,4 +157,34 @@ export default class EmpireHistory extends Model {
 
 	@Column({ type: 'varchar', nullable: true })
 	profileIcon: string
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	finalTrpArm: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	finalTrpLnd: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	finalTrpFly: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	finalTrpSea: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	finalTrpWiz: number
 }
