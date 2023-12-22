@@ -22,8 +22,8 @@ export const BASE_LANGUAGE = 'en-US' // Base language pack, used for anything no
 export const ROUND_START = new Date('2023-12-01T08:00:00') // Date and time of round start
 export const ROUND_END = new Date('2023-12-29T18:00:00') // Date and time of round end
 
-export const ROUND_NAME = 'Round 0' // Name of round
-export const ROUND_DESCRIPTION = 'Test' // Description of round
+export const ROUND_NAME = 'December 2023' // Name of round
+export const ROUND_DESCRIPTION = 'Starting to get things solid' // Description of round
 
 export const EMPIRES_PER_USER = 1 // How many empires can be owned at once by a particular user?
 export const TURNS_PROTECTION = 400 // Duration of protection
