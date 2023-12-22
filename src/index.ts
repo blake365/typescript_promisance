@@ -31,6 +31,7 @@ import aid from './routes/aid'
 import clans from './routes/clan'
 import lottery from './routes/lottery'
 import cron from './routes/chron'
+import archive from './routes/archives'
 
 import {
 	aidCredits,
@@ -58,9 +59,9 @@ Sentry.init({
 		new ProfilingIntegration(),
 	],
 	// Performance Monitoring
-	tracesSampleRate: 0.5, // Capture 100% of the transactions, reduce in production!
+	tracesSampleRate: 0.1, // Capture 100% of the transactions, reduce in production!
 	// Set sampling rate for profiling - this is relative to tracesSampleRate
-	profilesSampleRate: 0.5, // Capture 100% of the transactions, reduce in production!
+	profilesSampleRate: 0.1, // Capture 100% of the transactions, reduce in production!
 })
 
 const PORT = process.env.PORT
@@ -109,6 +110,7 @@ app.use('/api/aid', aid)
 app.use('/api/clans', clans)
 app.use('/api/lottery', lottery)
 app.use('/api/cron', cron)
+app.use('/api/archives', archive)
 
 app.get('/debug-sentry', function mainHandler(req, res) {
 	throw new Error('My first Sentry error!')

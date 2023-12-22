@@ -7,7 +7,7 @@ import EmpireMessage from '../entity/EmpireMessage'
 import Clan from '../entity/Clan'
 import ClanHistory from '../entity/ClanHistory'
 import EmpireHistory from '../entity/EmpireHistory'
-import { Not } from 'typeorm'
+import { MoreThan, Not } from 'typeorm'
 
 import auth from '../middleware/auth'
 import user from '../middleware/user'
@@ -19,6 +19,7 @@ import {
 	ROUND_END,
 	PVTM_FOOD,
 	PVTM_TRPARM,
+	TURNS_PROTECTION,
 } from '../config/conifg'
 import { makeId } from '../util/helpers'
 import { raceArray } from '../config/races'
@@ -579,6 +580,7 @@ const resetGame = async (req: Request, res: Response) => {
 		// get empires
 		let empires = await Empire.find({
 			relations: ['user'],
+			where: { turnsUsed: MoreThan(TURNS_PROTECTION) },
 		})
 		empires.forEach(async (empire) => {
 			// console.log(empire.user)
@@ -595,6 +597,17 @@ const resetGame = async (req: Request, res: Response) => {
 			let empireHistoryNetworth = empire.networth
 			let empireHistoryLand = empire.land
 			let empireHistoryRank = empire.rank
+			let empireHistoryAttackGain = empire.attackGains
+			let empireHistoryAttackLoss = empire.attackLosses
+			let empireHistoryExpenses = empire.expenses
+			let empireHistoryIncome = empire.income
+			let empireHistoryFoodCon = empire.foodcon
+			let empireHistoryFoodPro = empire.foodpro
+			let empireHistoryIndyProd = empire.indyProd
+			let empireHistoryMagicProd = empire.magicProd
+			let profile = empire.profile
+			let profileIcon = empire.profileIcon
+			let turnsUsed = empire.turnsUsed
 
 			// create empire history
 			await new EmpireHistory({
@@ -611,6 +624,17 @@ const resetGame = async (req: Request, res: Response) => {
 				empireHistoryNetworth,
 				empireHistoryLand,
 				empireHistoryRank,
+				empireHistoryAttackGain,
+				empireHistoryAttackLoss,
+				empireHistoryExpenses,
+				empireHistoryIncome,
+				empireHistoryFoodCon,
+				empireHistoryFoodPro,
+				empireHistoryIndyProd,
+				empireHistoryMagicProd,
+				profile,
+				profileIcon,
+				turnsUsed,
 			}).save()
 			await empire.remove()
 		})

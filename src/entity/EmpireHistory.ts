@@ -98,4 +98,63 @@ export default class EmpireHistory extends Model {
 		default: 0,
 	})
 	empireHistoryRank: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	empireHistoryFoodPro: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	empireHistoryFoodCon: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	empireHistoryIncome: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	empireHistoryExpenses: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	empireHistoryIndyProd: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	empireHistoryMagicProd: number
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	empireHistoryAttackGain: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	empireHistoryAttackLoss: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	turnsUsed: number
+
+	@Column({ type: 'varchar', nullable: true, length: 1000 })
+	profile: string
+
+	@Column({ type: 'varchar', nullable: true })
+	profileIcon: string
 }
