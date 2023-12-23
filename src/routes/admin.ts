@@ -556,6 +556,9 @@ const resetGame = async (req: Request, res: Response) => {
 			let clanHistoryName = clan.clanName
 			let clanHistoryMembers = clan.clanMembers
 			let totalNetworth = 0
+			let clanHistoryLeader = clan.empireIdLeader
+			let clanHistoryAssistant = clan.empireIdAssistant
+
 			const empires = await Empire.find({
 				where: { clanId: clan.id },
 			})
@@ -571,6 +574,8 @@ const resetGame = async (req: Request, res: Response) => {
 				clanHistoryName,
 				clanHistoryMembers,
 				clanHistoryTotalNet,
+				clanHistoryLeader,
+				clanHistoryAssistant,
 			}).save()
 			await clan.remove()
 		})
@@ -587,6 +592,7 @@ const resetGame = async (req: Request, res: Response) => {
 			let roundHistory_id = round_h_id
 			let u_id = empire.user.id
 			let empireHistoryName = empire.name
+			let empireHistoryId = empire.id
 			let empireHistoryRace = raceArray[empire.race].name
 			let empireHistoryEra = eraArray[empire.era].name
 			let clanHistory_id = empire.clanId
@@ -619,6 +625,7 @@ const resetGame = async (req: Request, res: Response) => {
 				roundHistory_id,
 				u_id,
 				empireHistoryName,
+				empireHistoryId,
 				empireHistoryRace,
 				empireHistoryEra,
 				clanHistory_id,

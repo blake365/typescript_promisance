@@ -30,6 +30,12 @@ export default class EmpireHistory extends Model {
 	})
 	u_id: number
 
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	empireHistoryId: number
+
 	@Column()
 	empireHistoryName: string
 

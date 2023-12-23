@@ -20,11 +20,11 @@ const getRounds = async (req: Request, res: Response) => {
 }
 
 const getEmpireHistory = async (req: Request, res: Response) => {
-	const { roundHistory_id } = req.params
+	const { clanHistory_id } = req.params
 
 	try {
 		const empireHistory = await EmpireHistory.find({
-			where: { roundHistory_id },
+			where: { clanHistory_id },
 			order: {
 				empireHistoryRank: 'DESC',
 			},
@@ -74,6 +74,10 @@ const getHistory = async (req: Request, res: Response) => {
 	const { roundHistory_id } = req.params
 
 	try {
+		const roundHistory = await RoundHistory.findOne({
+			where: { round_h_id: roundHistory_id },
+		})
+
 		const empireHistory = await EmpireHistory.find({
 			where: { roundHistory_id },
 			order: {
@@ -88,7 +92,7 @@ const getHistory = async (req: Request, res: Response) => {
 			},
 		})
 
-		return res.json({ empireHistory, clanHistory })
+		return res.json({ roundHistory, empireHistory, clanHistory })
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json(error)
@@ -99,8 +103,9 @@ const router = Router()
 
 router.get('/', getRounds)
 router.get('/:roundHistory_id', getHistory)
-router.get('/empires/:roundHistory_id', getEmpireHistory)
-router.get('/clans/:roundHistory_id', getClanHistory)
-router.get('/empires/:roundHistory_id/:empireHistory_id', getOneEmpireHistory)
+// router.get('/empires/:roundHistory_id', getEmpireHistory)
+router.get('/empires/:clanHistory_id', getEmpireHistory)
+// router.get('/clans/:roundHistory_id', getClanHistory)
+// router.get('/empires/:roundHistory_id/:empireHistory_id', getOneEmpireHistory)
 
 export default router

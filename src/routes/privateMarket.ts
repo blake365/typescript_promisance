@@ -227,7 +227,6 @@ const sell = async (req: Request, res: Response) => {
 
 const router = Router()
 
-//TODO: needs user and auth middleware
 router.post('/buy', user, auth, buy)
 router.post('/sell', user, auth, sell)
 

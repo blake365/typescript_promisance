@@ -35,4 +35,16 @@ export default class ClanHistory extends Model {
 		default: 0,
 	})
 	clanHistoryTotalNet: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	clanHistoryLeader: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	clanHistoryAssistant: number
 }
