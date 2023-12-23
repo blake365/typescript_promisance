@@ -213,16 +213,16 @@ const RACE_VAMPIRE = {
 const RACE_PIXIE = {
 	name: 'Pixie',
 	mod_offense: -18,
-	mod_defense: -12,
-	mod_buildrate: -10,
+	mod_defense: -15,
+	mod_buildrate: -15,
 	mod_expenses: 6,
-	mod_magic: 14,
-	mod_industry: -18,
-	mod_income: 10,
+	mod_magic: 10,
+	mod_industry: -10,
+	mod_income: 12,
 	mod_explore: 0,
-	mod_market: 10,
+	mod_market: 2,
 	mod_foodcon: 16,
-	mod_runepro: 12,
+	mod_runepro: 10,
 	mod_foodpro: -10,
 }
 
