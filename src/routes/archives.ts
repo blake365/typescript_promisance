@@ -20,11 +20,12 @@ const getRounds = async (req: Request, res: Response) => {
 }
 
 const getEmpireHistory = async (req: Request, res: Response) => {
-	const { clanHistory_id } = req.params
+	const { clan_id } = req.params
+	console.log(clan_id)
 
 	try {
 		const empireHistory = await EmpireHistory.find({
-			where: { clanHistory_id },
+			where: { clanHistory_id: clan_id },
 			order: {
 				empireHistoryRank: 'DESC',
 			},
@@ -104,7 +105,7 @@ const router = Router()
 router.get('/', getRounds)
 router.get('/:roundHistory_id', getHistory)
 // router.get('/empires/:roundHistory_id', getEmpireHistory)
-router.get('/empires/:clanHistory_id', getEmpireHistory)
+router.get('/empires/:clan_id', getEmpireHistory)
 // router.get('/clans/:roundHistory_id', getClanHistory)
 // router.get('/empires/:roundHistory_id/:empireHistory_id', getOneEmpireHistory)
 

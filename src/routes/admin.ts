@@ -556,6 +556,7 @@ const resetGame = async (req: Request, res: Response) => {
 			let clanHistoryName = clan.clanName
 			let clanHistoryMembers = clan.clanMembers
 			let totalNetworth = 0
+			let clan_id = clan.id
 			let clanHistoryLeader = clan.empireIdLeader
 			let clanHistoryAssistant = clan.empireIdAssistant
 
@@ -576,6 +577,7 @@ const resetGame = async (req: Request, res: Response) => {
 				clanHistoryTotalNet,
 				clanHistoryLeader,
 				clanHistoryAssistant,
+				clan_id,
 			}).save()
 			await clan.remove()
 		})
@@ -585,74 +587,76 @@ const resetGame = async (req: Request, res: Response) => {
 		// get empires
 		let empires = await Empire.find({
 			relations: ['user'],
-			where: { turnsUsed: MoreThan(TURNS_PROTECTION) },
 		})
-		empires.forEach(async (empire) => {
-			// console.log(empire.user)
-			let roundHistory_id = round_h_id
-			let u_id = empire.user.id
-			let empireHistoryName = empire.name
-			let empireHistoryId = empire.id
-			let empireHistoryRace = raceArray[empire.race].name
-			let empireHistoryEra = eraArray[empire.era].name
-			let clanHistory_id = empire.clanId
-			let empireHistoryOffSucc = empire.offSucc
-			let empireHistoryOffTotal = empire.offTotal
-			let empireHistoryDefSucc = empire.defSucc
-			let empireHistoryDefTotal = empire.defTotal
-			let empireHistoryNetworth = empire.networth
-			let empireHistoryLand = empire.land
-			let empireHistoryRank = empire.rank
-			let empireHistoryAttackGain = empire.attackGains
-			let empireHistoryAttackLoss = empire.attackLosses
-			let empireHistoryExpenses = empire.expenses
-			let empireHistoryIncome = empire.income
-			let empireHistoryFoodCon = empire.foodcon
-			let empireHistoryFoodPro = empire.foodpro
-			let empireHistoryIndyProd = empire.indyProd
-			let empireHistoryMagicProd = empire.magicProd
-			let profile = empire.profile
-			let profileIcon = empire.profileIcon
-			let turnsUsed = empire.turnsUsed
-			let finalTrpArm = empire.trpArm
-			let finalTrpLnd = empire.trpLnd
-			let finalTrpFly = empire.trpFly
-			let finalTrpSea = empire.trpSea
-			let finalTrpWiz = empire.trpWiz
 
-			// create empire history
-			await new EmpireHistory({
-				roundHistory_id,
-				u_id,
-				empireHistoryName,
-				empireHistoryId,
-				empireHistoryRace,
-				empireHistoryEra,
-				clanHistory_id,
-				empireHistoryOffSucc,
-				empireHistoryOffTotal,
-				empireHistoryDefSucc,
-				empireHistoryDefTotal,
-				empireHistoryNetworth,
-				empireHistoryLand,
-				empireHistoryRank,
-				empireHistoryAttackGain,
-				empireHistoryAttackLoss,
-				empireHistoryExpenses,
-				empireHistoryIncome,
-				empireHistoryFoodCon,
-				empireHistoryFoodPro,
-				empireHistoryIndyProd,
-				empireHistoryMagicProd,
-				profile,
-				profileIcon,
-				turnsUsed,
-				finalTrpArm,
-				finalTrpLnd,
-				finalTrpFly,
-				finalTrpSea,
-				finalTrpWiz,
-			}).save()
+		empires.forEach(async (empire) => {
+			if (empire.turnsUsed > TURNS_PROTECTION) {
+				// console.log(empire.user)
+				let roundHistory_id = round_h_id
+				let u_id = empire.user.id
+				let empireHistoryName = empire.name
+				let empireHistoryId = empire.id
+				let empireHistoryRace = raceArray[empire.race].name
+				let empireHistoryEra = eraArray[empire.era].name
+				let clanHistory_id = empire.clanId
+				let empireHistoryOffSucc = empire.offSucc
+				let empireHistoryOffTotal = empire.offTotal
+				let empireHistoryDefSucc = empire.defSucc
+				let empireHistoryDefTotal = empire.defTotal
+				let empireHistoryNetworth = empire.networth
+				let empireHistoryLand = empire.land
+				let empireHistoryRank = empire.rank
+				let empireHistoryAttackGain = empire.attackGains
+				let empireHistoryAttackLoss = empire.attackLosses
+				let empireHistoryExpenses = empire.expenses
+				let empireHistoryIncome = empire.income
+				let empireHistoryFoodCon = empire.foodcon
+				let empireHistoryFoodPro = empire.foodpro
+				let empireHistoryIndyProd = empire.indyProd
+				let empireHistoryMagicProd = empire.magicProd
+				let profile = empire.profile
+				let profileIcon = empire.profileIcon
+				let turnsUsed = empire.turnsUsed
+				let finalTrpArm = empire.trpArm
+				let finalTrpLnd = empire.trpLnd
+				let finalTrpFly = empire.trpFly
+				let finalTrpSea = empire.trpSea
+				let finalTrpWiz = empire.trpWiz
+
+				// create empire history
+				await new EmpireHistory({
+					roundHistory_id,
+					u_id,
+					empireHistoryName,
+					empireHistoryId,
+					empireHistoryRace,
+					empireHistoryEra,
+					clanHistory_id,
+					empireHistoryOffSucc,
+					empireHistoryOffTotal,
+					empireHistoryDefSucc,
+					empireHistoryDefTotal,
+					empireHistoryNetworth,
+					empireHistoryLand,
+					empireHistoryRank,
+					empireHistoryAttackGain,
+					empireHistoryAttackLoss,
+					empireHistoryExpenses,
+					empireHistoryIncome,
+					empireHistoryFoodCon,
+					empireHistoryFoodPro,
+					empireHistoryIndyProd,
+					empireHistoryMagicProd,
+					profile,
+					profileIcon,
+					turnsUsed,
+					finalTrpArm,
+					finalTrpLnd,
+					finalTrpFly,
+					finalTrpSea,
+					finalTrpWiz,
+				}).save()
+			}
 			await empire.remove()
 		})
 

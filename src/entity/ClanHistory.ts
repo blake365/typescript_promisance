@@ -22,6 +22,12 @@ export default class ClanHistory extends Model {
 		type: 'int',
 		default: 0,
 	})
+	clan_id: number
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
 	clanHistoryMembers: number
 
 	@Column()

@@ -106,48 +106,48 @@ export default class EmpireHistory extends Model {
 	empireHistoryRank: number
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	empireHistoryFoodPro: number
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	empireHistoryFoodCon: number
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	empireHistoryIncome: number
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	empireHistoryExpenses: number
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	empireHistoryIndyProd: number
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	empireHistoryMagicProd: number
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	empireHistoryAttackGain: number
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	empireHistoryAttackLoss: number
@@ -165,31 +165,31 @@ export default class EmpireHistory extends Model {
 	profileIcon: string
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	finalTrpArm: number
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	finalTrpLnd: number
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	finalTrpFly: number
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	finalTrpSea: number
 
 	@Column({
-		type: 'int',
+		type: 'bigint',
 		default: 0,
 	})
 	finalTrpWiz: number
