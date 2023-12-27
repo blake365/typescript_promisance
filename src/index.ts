@@ -89,7 +89,13 @@ app.use(express.static('public'))
 app.get('/', (_, res) => res.send('hello world'))
 app.get('/api/', (_, res) => res.send('hello api'))
 
-app.get('/api/time', (_, res) => res.send({ time: new Date().getTime() }))
+app.get('/api/time', (_, res) =>
+	res.send({
+		time: new Date().getTime(),
+		start: ROUND_START.getTime(),
+		end: ROUND_END.getTime(),
+	})
+)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/empire', empireRoutes)

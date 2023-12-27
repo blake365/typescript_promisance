@@ -607,6 +607,7 @@ const empireSnapshots = async (req: Request, res: Response) => {
 			console.log('taking snapshot')
 			const empire = empires[i]
 			const snapshot = new EmpireSnapshot(empire)
+			// console.log(empire)
 			snapshot.e_id = empire.id
 			snapshot.createdAt = new Date()
 			await snapshot.save()

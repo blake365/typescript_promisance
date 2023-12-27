@@ -99,204 +99,209 @@ const build = async (req: Request, res: Response) => {
 	let totalTurns = buildTotal / buildRate
 
 	const buildLoop = async () => {
-		if (totalTurns > empire.turns) {
-			return res.json({ error: 'Not enough turns' })
-		}
-		let resultArray = []
-		for (let i = 0; i < buildArray.length; i++) {
-			// console.log(buildArray[i])
-			let key: string = Object.keys(buildArray[i])[0]
-			let value: number = Object.values(buildArray[i])[0]
-			let turns = 0
-			if (value < buildRate) {
-				turns = 1
-			} else {
-				turns = Math.ceil(value / buildRate)
+		try {
+			if (totalTurns > empire.turns) {
+				return res.json({ error: 'Not enough turns' })
 			}
-			// console.log(turns)
-			let leftToBuild = value
-			for (let i = 0; i < turns; i++) {
-				// console.log(`build ${value} of ${key}s`)
-				let buildAmount: number
-				if (leftToBuild < buildRate) {
-					buildAmount = leftToBuild
+			let resultArray = []
+			for (let i = 0; i < buildArray.length; i++) {
+				// console.log(buildArray[i])
+				let key: string = Object.keys(buildArray[i])[0]
+				let value: number = Object.values(buildArray[i])[0]
+				let turns = 0
+				if (value < buildRate) {
+					turns = 1
 				} else {
-					buildAmount = buildRate
+					turns = Math.ceil(value / buildRate)
 				}
-				// use one turn
-				let oneTurn = useTurnInternal('build', 1, empire, clan, true)
-				// console.log(oneTurn)
-				let turnRes = oneTurn[0]
-				if (turnRes?.messages?.error) {
-					resultArray.push(turnRes)
-					break
-				} else if (!turnRes?.messages?.desertion) {
-					empire.cash =
-						empire.cash +
-						turnRes.withdraw +
-						turnRes.money -
-						turnRes.loanpayed -
-						buildAmount * buildCost
+				// console.log(turns)
+				let leftToBuild = value
+				for (let i = 0; i < turns; i++) {
+					// console.log(`build ${value} of ${key}s`)
+					let buildAmount: number
+					if (leftToBuild < buildRate) {
+						buildAmount = leftToBuild
+					} else {
+						buildAmount = buildRate
+					}
+					// use one turn
+					let oneTurn = useTurnInternal('build', 1, empire, clan, true)
+					// console.log(oneTurn)
+					let turnRes = oneTurn[0]
+					if (turnRes?.messages?.error) {
+						resultArray.push(turnRes)
+						break
+					} else if (!turnRes?.messages?.desertion) {
+						empire.cash =
+							empire.cash +
+							turnRes.withdraw +
+							turnRes.money -
+							turnRes.loanpayed -
+							buildAmount * buildCost
 
-					if (empire.cash < 0) {
-						empire.cash = 0
-					}
+						if (empire.cash < 0) {
+							empire.cash = 0
+						}
 
-					empire.income += turnRes.income
-					empire.expenses +=
-						turnRes.expenses + turnRes.wartax + turnRes.corruption
+						empire.income += turnRes.income
+						empire.expenses +=
+							turnRes.expenses + turnRes.wartax + turnRes.corruption
 
-					empire[key] += buildAmount
-					empire.freeLand -= buildAmount
-					// empire.cash -= buildAmount * buildCost
-					leftToBuild -= buildAmount
-					// extract turn info from result and put individual object in result array
-					resultArray.push(turnRes)
-					// add value to empire.key
-					empire.loan -= turnRes.loanpayed + turnRes.loanInterest
-					empire.trpArm += turnRes.trpArm
-					empire.trpLnd += turnRes.trpLnd
-					empire.trpFly += turnRes.trpFly
-					empire.trpSea += turnRes.trpSea
+						empire[key] += buildAmount
+						empire.freeLand -= buildAmount
+						// empire.cash -= buildAmount * buildCost
+						leftToBuild -= buildAmount
+						// extract turn info from result and put individual object in result array
+						resultArray.push(turnRes)
+						// add value to empire.key
+						empire.loan -= turnRes.loanpayed + turnRes.loanInterest
+						empire.trpArm += turnRes.trpArm
+						empire.trpLnd += turnRes.trpLnd
+						empire.trpFly += turnRes.trpFly
+						empire.trpSea += turnRes.trpSea
 
-					empire.indyProd +=
-						turnRes.trpArm * PVTM_TRPARM +
-						turnRes.trpLnd * PVTM_TRPLND +
-						turnRes.trpFly * PVTM_TRPFLY +
-						turnRes.trpSea * PVTM_TRPSEA
+						empire.indyProd +=
+							turnRes.trpArm * PVTM_TRPARM +
+							turnRes.trpLnd * PVTM_TRPLND +
+							turnRes.trpFly * PVTM_TRPFLY +
+							turnRes.trpSea * PVTM_TRPSEA
 
-					empire.food += turnRes.food
-					empire.foodpro += turnRes.foodpro
-					empire.foodcon += turnRes.foodcon
+						empire.food += turnRes.food
+						empire.foodpro += turnRes.foodpro
+						empire.foodcon += turnRes.foodcon
 
-					if (empire.food < 0) {
-						empire.food = 0
-					}
+						if (empire.food < 0) {
+							empire.food = 0
+						}
 
-					empire.peasants += turnRes.peasants
-					empire.runes += turnRes.runes
-					empire.trpWiz += turnRes.trpWiz
-					empire.networth = getNetworth(empire)
+						empire.peasants += turnRes.peasants
+						empire.runes += turnRes.runes
+						empire.trpWiz += turnRes.trpWiz
+						empire.networth = getNetworth(empire)
 
-					if (empire.peakCash < empire.cash + empire.bank) {
-						empire.peakCash = empire.cash + empire.bank
-					}
-					if (empire.peakFood < empire.food) {
-						empire.peakFood = empire.food
-					}
-					if (empire.peakRunes < empire.runes) {
-						empire.peakRunes = empire.runes
-					}
-					if (empire.peakPeasants < empire.peasants) {
-						empire.peakPeasants = empire.peasants
-					}
-					if (empire.peakLand < empire.land) {
-						empire.peakLand = empire.land
-					}
-					if (empire.peakNetworth < empire.networth) {
-						empire.peakNetworth = empire.networth
-					}
-					if (empire.peakTrpArm < empire.trpArm) {
-						empire.peakTrpArm = empire.trpArm
-					}
-					if (empire.peakTrpLnd < empire.trpLnd) {
-						empire.peakTrpLnd = empire.trpLnd
-					}
-					if (empire.peakTrpFly < empire.trpFly) {
-						empire.peakTrpFly = empire.trpFly
-					}
-					if (empire.peakTrpSea < empire.trpSea) {
-						empire.peakTrpSea = empire.trpSea
-					}
-					if (empire.peakTrpWiz < empire.trpWiz) {
-						empire.peakTrpWiz = empire.trpWiz
-					}
+						if (empire.peakCash < empire.cash + empire.bank) {
+							empire.peakCash = empire.cash + empire.bank
+						}
+						if (empire.peakFood < empire.food) {
+							empire.peakFood = empire.food
+						}
+						if (empire.peakRunes < empire.runes) {
+							empire.peakRunes = empire.runes
+						}
+						if (empire.peakPeasants < empire.peasants) {
+							empire.peakPeasants = empire.peasants
+						}
+						if (empire.peakLand < empire.land) {
+							empire.peakLand = empire.land
+						}
+						if (empire.peakNetworth < empire.networth) {
+							empire.peakNetworth = empire.networth
+						}
+						if (empire.peakTrpArm < empire.trpArm) {
+							empire.peakTrpArm = empire.trpArm
+						}
+						if (empire.peakTrpLnd < empire.trpLnd) {
+							empire.peakTrpLnd = empire.trpLnd
+						}
+						if (empire.peakTrpFly < empire.trpFly) {
+							empire.peakTrpFly = empire.trpFly
+						}
+						if (empire.peakTrpSea < empire.trpSea) {
+							empire.peakTrpSea = empire.trpSea
+						}
+						if (empire.peakTrpWiz < empire.trpWiz) {
+							empire.peakTrpWiz = empire.trpWiz
+						}
 
-					empire.turns--
-					empire.turnsUsed++
+						empire.turns--
+						empire.turnsUsed++
 
-					empire.lastAction = new Date()
-					await empire.save()
-				} else {
-					resultArray.push(turnRes)
-					// add value to empire.key
-					empire.cash =
-						empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
+						empire.lastAction = new Date()
+						await empire.save()
+					} else {
+						resultArray.push(turnRes)
+						// add value to empire.key
+						empire.cash =
+							empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
 
-					if (empire.cash < 0) {
-						empire.cash = 0
-					}
+						if (empire.cash < 0) {
+							empire.cash = 0
+						}
 
-					empire.income += turnRes.income
-					empire.expenses +=
-						turnRes.expenses + turnRes.wartax + turnRes.corruption
+						empire.income += turnRes.income
+						empire.expenses +=
+							turnRes.expenses + turnRes.wartax + turnRes.corruption
 
-					empire.bank += turnRes.bankInterest
-					empire.loan -= turnRes.loanpayed + turnRes.loanInterest
-					empire.trpArm += turnRes.trpArm
-					empire.trpLnd += turnRes.trpLnd
-					empire.trpFly += turnRes.trpFly
-					empire.trpSea += turnRes.trpSea
-					empire.indyProd +=
-						turnRes.trpArm * PVTM_TRPARM +
-						turnRes.trpLnd * PVTM_TRPLND +
-						turnRes.trpFly * PVTM_TRPFLY +
-						turnRes.trpSea * PVTM_TRPSEA
+						empire.bank += turnRes.bankInterest
+						empire.loan -= turnRes.loanpayed + turnRes.loanInterest
+						empire.trpArm += turnRes.trpArm
+						empire.trpLnd += turnRes.trpLnd
+						empire.trpFly += turnRes.trpFly
+						empire.trpSea += turnRes.trpSea
+						empire.indyProd +=
+							turnRes.trpArm * PVTM_TRPARM +
+							turnRes.trpLnd * PVTM_TRPLND +
+							turnRes.trpFly * PVTM_TRPFLY +
+							turnRes.trpSea * PVTM_TRPSEA
 
-					empire.food += turnRes.food
-					empire.foodpro += turnRes.foodpro
-					empire.foodcon += turnRes.foodcon
+						empire.food += turnRes.food
+						empire.foodpro += turnRes.foodpro
+						empire.foodcon += turnRes.foodcon
 
-					empire.peasants += turnRes.peasants
-					empire.runes += turnRes.runes
-					empire.trpWiz += turnRes.trpWiz
-					empire.networth = getNetworth(empire)
+						empire.peasants += turnRes.peasants
+						empire.runes += turnRes.runes
+						empire.trpWiz += turnRes.trpWiz
+						empire.networth = getNetworth(empire)
 
-					if (empire.peakCash < empire.cash + empire.bank) {
-						empire.peakCash = empire.cash + empire.bank
-					}
-					if (empire.peakFood < empire.food) {
-						empire.peakFood = empire.food
-					}
-					if (empire.peakRunes < empire.runes) {
-						empire.peakRunes = empire.runes
-					}
-					if (empire.peakPeasants < empire.peasants) {
-						empire.peakPeasants = empire.peasants
-					}
-					if (empire.peakLand < empire.land) {
-						empire.peakLand = empire.land
-					}
-					if (empire.peakNetworth < empire.networth) {
-						empire.peakNetworth = empire.networth
-					}
-					if (empire.peakTrpArm < empire.trpArm) {
-						empire.peakTrpArm = empire.trpArm
-					}
-					if (empire.peakTrpLnd < empire.trpLnd) {
-						empire.peakTrpLnd = empire.trpLnd
-					}
-					if (empire.peakTrpFly < empire.trpFly) {
-						empire.peakTrpFly = empire.trpFly
-					}
-					if (empire.peakTrpSea < empire.trpSea) {
-						empire.peakTrpSea = empire.trpSea
-					}
-					if (empire.peakTrpWiz < empire.trpWiz) {
-						empire.peakTrpWiz = empire.trpWiz
-					}
+						if (empire.peakCash < empire.cash + empire.bank) {
+							empire.peakCash = empire.cash + empire.bank
+						}
+						if (empire.peakFood < empire.food) {
+							empire.peakFood = empire.food
+						}
+						if (empire.peakRunes < empire.runes) {
+							empire.peakRunes = empire.runes
+						}
+						if (empire.peakPeasants < empire.peasants) {
+							empire.peakPeasants = empire.peasants
+						}
+						if (empire.peakLand < empire.land) {
+							empire.peakLand = empire.land
+						}
+						if (empire.peakNetworth < empire.networth) {
+							empire.peakNetworth = empire.networth
+						}
+						if (empire.peakTrpArm < empire.trpArm) {
+							empire.peakTrpArm = empire.trpArm
+						}
+						if (empire.peakTrpLnd < empire.trpLnd) {
+							empire.peakTrpLnd = empire.trpLnd
+						}
+						if (empire.peakTrpFly < empire.trpFly) {
+							empire.peakTrpFly = empire.trpFly
+						}
+						if (empire.peakTrpSea < empire.trpSea) {
+							empire.peakTrpSea = empire.trpSea
+						}
+						if (empire.peakTrpWiz < empire.trpWiz) {
+							empire.peakTrpWiz = empire.trpWiz
+						}
 
-					empire.turns--
-					empire.turnsUsed++
+						empire.turns--
+						empire.turnsUsed++
 
-					empire.lastAction = new Date()
-					await empire.save()
-					break
+						empire.lastAction = new Date()
+						await empire.save()
+						break
+					}
 				}
 			}
+			// console.log(resultArray)
+
+			return resultArray
+		} catch (err) {
+			console.log(err)
 		}
-		// console.log(resultArray)
-		return resultArray
 	}
 
 	let returnArray = await buildLoop()

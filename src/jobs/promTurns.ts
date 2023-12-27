@@ -335,7 +335,8 @@ export const snapshot = new AsyncTask('snapshot', async () => {
 			console.log('taking snapshot')
 			const empire = empires[i]
 			const snapshot = new EmpireSnapshot(empire)
-			snapshot.empireId = empire.id
+			// console.log(empire)
+			snapshot.e_id = empire.id
 			snapshot.createdAt = new Date()
 			await snapshot.save()
 		}
