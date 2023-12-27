@@ -622,6 +622,17 @@ const resetGame = async (req: Request, res: Response) => {
 				let finalTrpFly = empire.trpFly
 				let finalTrpSea = empire.trpSea
 				let finalTrpWiz = empire.trpWiz
+				let peakCash = empire.peakCash
+				let peakLand = empire.peakLand
+				let peakNetworth = empire.peakNetworth
+				let peakFood = empire.peakFood
+				let peakRunes = empire.peakRunes
+				let peakPeasants = empire.peakPeasants
+				let peakTrpArm = empire.peakTrpArm
+				let peakTrpLnd = empire.peakTrpLnd
+				let peakTrpFly = empire.peakTrpFly
+				let peakTrpSea = empire.peakTrpSea
+				let peakTrpWiz = empire.peakTrpWiz
 
 				// create empire history
 				await new EmpireHistory({
@@ -655,6 +666,17 @@ const resetGame = async (req: Request, res: Response) => {
 					finalTrpFly,
 					finalTrpSea,
 					finalTrpWiz,
+					peakCash,
+					peakLand,
+					peakNetworth,
+					peakFood,
+					peakRunes,
+					peakPeasants,
+					peakTrpArm,
+					peakTrpLnd,
+					peakTrpFly,
+					peakTrpSea,
+					peakTrpWiz,
 				}).save()
 			}
 			await empire.remove()

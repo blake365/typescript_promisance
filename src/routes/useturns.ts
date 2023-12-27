@@ -24,6 +24,215 @@ import {
 import user from '../middleware/user'
 import auth from '../middleware/auth'
 
+function calcProvisions(empire: Empire) {
+	let production =
+		10 * empire.freeLand +
+		empire.bldFood *
+			85 *
+			Math.sqrt(1 - (0.75 * empire.bldFood) / Math.max(empire.land, 1))
+
+	production *=
+		(100 +
+			raceArray[empire.race].mod_foodpro +
+			eraArray[empire.era].mod_foodpro) /
+		100
+
+	let foodpro = Math.round(production)
+
+	let consumption =
+		empire.trpArm * 0.05 * 0.7 +
+		empire.trpLnd * 0.03 * 0.7 +
+		empire.trpFly * 0.02 * 0.7 +
+		empire.trpSea * 0.01 * 0.7 +
+		empire.peasants * 0.01 * 0.7 +
+		empire.trpWiz * 0.2 * 0.7
+
+	consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
+
+	let foodcon = Math.round(consumption)
+
+	return { foodpro: foodpro, foodcon: foodcon }
+}
+
+function calcFinances(pci: number, empire: Empire, size: number) {
+	let income = Math.round(
+		(pci * (empire.tax / 100) * (empire.health / 100) * empire.peasants +
+			empire.bldCash * 500) *
+			Math.max(0.8, size)
+	)
+
+	// let loan = Math.round(empire.loan / 200)
+
+	let expenses = Math.round(
+		empire.trpArm * 0.5 * 0.8 +
+			empire.trpLnd * 1.25 * 0.8 +
+			empire.trpFly * 2 * 0.8 +
+			empire.trpSea * 3.5 * 0.8 +
+			empire.land * 4 * 0.8 +
+			empire.trpWiz * 0.5 * 0.8
+	)
+
+	// console.log(empire.loan)
+	// let loanpayed = 0
+	// if (empire.loan > 0) {
+	// 	loanpayed = Math.min(Math.round(empire.loan / 200), income - expenses)
+	// }
+	// console.log(loanpayed)
+	let expensesBonus = Math.min(
+		0.5,
+		(raceArray[empire.race].mod_expenses + 100) / 100 -
+			1 +
+			empire.bldCost / Math.max(empire.land, 1)
+	)
+
+	expenses -= Math.round(expenses * expensesBonus)
+
+	return { income: income, expenses: expenses }
+}
+
+function calcCorruption(empire: Empire): number {
+	let corruption = 0
+	if (empire.cash > empire.networth * 110) {
+		let multiples = Math.floor(empire.cash / empire.networth) - 1
+		corruption = Math.round(multiples * empire.networth * 0.001)
+	}
+	return corruption
+}
+
+function IndyOutput(empire: Empire, indMultiplier: number) {
+	let trparm = Math.ceil(
+		empire.bldTroop *
+			(empire.indArmy / 100) *
+			1.2 *
+			INDUSTRY_MULT *
+			indMultiplier *
+			((100 +
+				raceArray[empire.race].mod_industry +
+				eraArray[empire.era].mod_industry) /
+				100)
+	)
+	let trplnd = Math.ceil(
+		empire.bldTroop *
+			(empire.indLnd / 100) *
+			0.6 *
+			INDUSTRY_MULT *
+			indMultiplier *
+			((100 +
+				raceArray[empire.race].mod_industry +
+				eraArray[empire.era].mod_industry) /
+				100)
+	)
+	let trpfly = Math.ceil(
+		empire.bldTroop *
+			(empire.indFly / 100) *
+			0.3 *
+			INDUSTRY_MULT *
+			indMultiplier *
+			((100 +
+				raceArray[empire.race].mod_industry +
+				eraArray[empire.era].mod_industry) /
+				100)
+	)
+	let trpsea = Math.ceil(
+		empire.bldTroop *
+			(empire.indSea / 100) *
+			0.2 *
+			INDUSTRY_MULT *
+			indMultiplier *
+			((100 +
+				raceArray[empire.race].mod_industry +
+				eraArray[empire.era].mod_industry) /
+				100)
+	)
+
+	return { trparm: trparm, trplnd: trplnd, trpfly: trpfly, trpsea: trpsea }
+}
+
+function calcTaxPenalty(taxrate: number): number {
+	let taxpenalty = 0
+	if (taxrate > 0.4) {
+		taxpenalty = (taxrate - 0.4) / 2
+	} else if (taxrate < 0.2) {
+		taxpenalty = (taxrate - 0.2) / 2
+	} else {
+		taxpenalty = 0
+	}
+	return taxpenalty
+}
+
+function calculateRunes(empire: Empire, runeMultiplier: number): number {
+	let runes: number
+	if (empire.bldWiz / empire.land > 0.15) {
+		runes = Math.round(
+			getRandomInt(
+				Math.round(empire.bldWiz * 1.15),
+				Math.round(empire.bldWiz * 1.55)
+			) * runeMultiplier
+		)
+	} else {
+		runes = Math.round(empire.bldWiz * 1.1 * runeMultiplier)
+	}
+	runes = Math.round(
+		runes *
+			((100 +
+				raceArray[empire.race].mod_runepro +
+				eraArray[empire.era].mod_runepro) /
+				100)
+	)
+	return runes
+}
+
+function calcWizards(empire: Empire): number {
+	let trpWiz = 0
+
+	if (empire.trpWiz < empire.bldWiz * 25) {
+		trpWiz = empire.bldWiz * 0.45
+	} else if (empire.trpWiz < empire.bldWiz * 50) {
+		trpWiz = empire.bldWiz * 0.3
+	} else if (empire.trpWiz < empire.bldWiz * 90) {
+		trpWiz = empire.bldWiz * 0.15
+	} else if (empire.trpWiz < empire.bldWiz * 100) {
+		trpWiz = empire.bldWiz * 0.1
+	} else if (empire.trpWiz > empire.bldWiz * 175) {
+		trpWiz = empire.trpWiz * -0.05
+	}
+
+	trpWiz = Math.round(
+		trpWiz *
+			Math.sqrt(
+				1 -
+					((trpWiz / Math.max(1, Math.abs(trpWiz))) * 0.75 * empire.bldWiz) /
+						empire.land
+			)
+	)
+
+	return trpWiz
+}
+
+function calcPeasants(empire: Empire, popBase: number): number {
+	let peasants = 0
+	let peasantsMult = 1
+
+	if (empire.peasants !== popBase) {
+		peasants = (popBase - empire.peasants) / 20
+	}
+
+	if (peasants > 0) {
+		peasantsMult = 4 / ((empire.tax + 15) / 20) - 7 / 9
+	}
+	if (peasants < 0) {
+		peasantsMult = 1 / (4 / (empire.tax + 15) / 20 - 7 / 9)
+	}
+
+	peasants = Math.round(peasants * peasantsMult * peasantsMult)
+
+	if (empire.peasants + peasants < 1) {
+		peasants = 1 - empire.peasants
+	}
+
+	return peasants
+}
+
 function getRandomInt(min, max) {
 	min = Math.ceil(min)
 	max = Math.floor(max)
@@ -116,17 +325,9 @@ export const useTurn = async (
 		let loanInterest = Math.round(empire.loan * (loanRate / 52 / 100))
 		empire.loan += loanInterest
 		current['loanInterest'] = loanInterest
-		// income/expenses/loan
 
-		// takes place of calcFinances function
-		let income = Math.round(
-			(calcPCI(empire) *
-				(empire.tax / 100) *
-				(empire.health / 100) *
-				empire.peasants +
-				empire.bldCash * 500) *
-				Math.max(0.8, size)
-		)
+		let { income, expenses } = calcFinances(calcPCI(empire), empire, size)
+		// console.log(loanpayed)
 
 		if (type === 'cash') {
 			income = Math.round(income * 1.25)
@@ -137,27 +338,6 @@ export const useTurn = async (
 		if (type === 'heal') {
 			income = Math.round(income * 0.75)
 		}
-
-		let loan = Math.round(empire.loan / 200)
-
-		let expenses = Math.round(
-			empire.trpArm * 0.5 * 0.8 +
-				empire.trpLnd * 1.25 * 0.8 +
-				empire.trpFly * 2 * 0.8 +
-				empire.trpSea * 3.5 * 0.8 +
-				empire.land * 4 * 0.8 +
-				empire.trpWiz * 0.5 * 0.8
-		)
-
-		//set up race/era modifier
-		let expensesBonus = Math.min(
-			0.5,
-			(raceArray[empire.race].mod_expenses + 100) / 100 -
-				1 +
-				empire.bldCost / Math.max(empire.land, 1)
-		)
-
-		expenses -= Math.round(expenses * expensesBonus)
 
 		//war tax
 		let wartax = 0
@@ -184,12 +364,7 @@ export const useTurn = async (
 			wartax = Math.ceil(wartax)
 		}
 
-		let corruption = 0
-		if (empire.cash > empire.networth * 110) {
-			let multiples = Math.floor(empire.cash / empire.networth) - 1
-			corruption = Math.round(multiples * empire.networth * 0.001)
-			// console.log(corruption)
-		}
+		let corruption = calcCorruption(empire)
 
 		// net income
 		let money = Math.round(income - (expenses + wartax + corruption))
@@ -268,50 +443,7 @@ export const useTurn = async (
 			indMultiplier = 0.75
 		}
 
-		let trparm = Math.ceil(
-			empire.bldTroop *
-				(empire.indArmy / 100) *
-				1.2 *
-				INDUSTRY_MULT *
-				indMultiplier *
-				((100 +
-					raceArray[empire.race].mod_industry +
-					eraArray[empire.era].mod_industry) /
-					100)
-		)
-		let trplnd = Math.ceil(
-			empire.bldTroop *
-				(empire.indLnd / 100) *
-				0.6 *
-				INDUSTRY_MULT *
-				indMultiplier *
-				((100 +
-					raceArray[empire.race].mod_industry +
-					eraArray[empire.era].mod_industry) /
-					100)
-		)
-		let trpfly = Math.ceil(
-			empire.bldTroop *
-				(empire.indFly / 100) *
-				0.3 *
-				INDUSTRY_MULT *
-				indMultiplier *
-				((100 +
-					raceArray[empire.race].mod_industry +
-					eraArray[empire.era].mod_industry) /
-					100)
-		)
-		let trpsea = Math.ceil(
-			empire.bldTroop *
-				(empire.indSea / 100) *
-				0.2 *
-				INDUSTRY_MULT *
-				indMultiplier *
-				((100 +
-					raceArray[empire.race].mod_industry +
-					eraArray[empire.era].mod_industry) /
-					100)
-		)
+		let { trparm, trplnd, trpfly, trpsea } = IndyOutput(empire, indMultiplier)
 
 		empire.trpArm += trparm
 		empire.trpLnd += trplnd
@@ -338,28 +470,7 @@ export const useTurn = async (
 		}
 
 		// update food
-		// takes place of calcProvisions function
-		let production =
-			10 * empire.freeLand +
-			empire.bldFood *
-				85 *
-				Math.sqrt(1 - (0.75 * empire.bldFood) / Math.max(empire.land, 1))
-		production *=
-			(100 +
-				raceArray[empire.race].mod_foodpro +
-				eraArray[empire.era].mod_foodpro) /
-			100
-		let foodpro = Math.round(production)
-
-		let consumption =
-			empire.trpArm * 0.05 * 0.7 +
-			empire.trpLnd * 0.03 * 0.7 +
-			empire.trpFly * 0.02 * 0.7 +
-			empire.trpSea * 0.01 * 0.7 +
-			empire.peasants * 0.01 * 0.7 +
-			empire.trpWiz * 0.2 * 0.7
-		consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
-		let foodcon = Math.round(consumption)
+		let { foodpro, foodcon } = calcProvisions(empire)
 
 		if (type === 'farm') {
 			foodpro = Math.round(1.25 * foodpro)
@@ -412,39 +523,16 @@ export const useTurn = async (
 
 		// update population
 		let taxrate = empire.tax / 100
-		let taxpenalty = 0
-		if (taxrate > 0.4) {
-			taxpenalty = (taxrate - 0.4) / 2
-		} else if (taxrate < 0.2) {
-			taxpenalty = (taxrate - 0.2) / 2
-		} else {
-			taxpenalty = 0
-		}
+
+		let taxpenalty = calcTaxPenalty(taxrate)
 
 		let popBase = Math.round(
 			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 65) /
 				(0.95 + taxrate + taxpenalty)
 		) // 14495
 
-		let peasants = 0
-		let peasantsMult = 1
+		let peasants = calcPeasants(empire, popBase)
 
-		if (empire.peasants !== popBase) {
-			peasants = (popBase - empire.peasants) / 20
-		}
-
-		if (peasants > 0) {
-			peasantsMult = 4 / ((empire.tax + 15) / 20) - 7 / 9
-		}
-		if (peasants < 0) {
-			peasantsMult = 1 / (4 / (empire.tax + 15) / 20 - 7 / 9)
-		}
-
-		peasants = Math.round(peasants * peasantsMult * peasantsMult)
-
-		if (empire.peasants + peasants < 1) {
-			peasants = 1 - empire.peasants
-		}
 		empire.peasants += peasants
 		current['peasants'] = peasants
 
@@ -460,24 +548,7 @@ export const useTurn = async (
 			runeMultiplier = 0.75
 		}
 
-		let runes = 0
-		if (empire.bldWiz / empire.land > 0.15) {
-			runes = Math.round(
-				getRandomInt(
-					Math.round(empire.bldWiz * 1.15),
-					Math.round(empire.bldWiz * 1.55)
-				) * runeMultiplier
-			)
-		} else {
-			runes = Math.round(empire.bldWiz * 1.1 * runeMultiplier)
-		}
-		runes = Math.round(
-			runes *
-				((100 +
-					raceArray[empire.race].mod_runepro +
-					eraArray[empire.era].mod_runepro) /
-					100)
-		)
+		let runes = calculateRunes(empire, runeMultiplier)
 
 		empire.runes += runes
 		current['runes'] = runes
@@ -490,32 +561,45 @@ export const useTurn = async (
 		}
 
 		// add/lose wizards
-		let trpWiz = 0
-
-		if (empire.trpWiz < empire.bldWiz * 25) {
-			trpWiz = empire.bldWiz * 0.45
-		} else if (empire.trpWiz < empire.bldWiz * 50) {
-			trpWiz = empire.bldWiz * 0.3
-		} else if (empire.trpWiz < empire.bldWiz * 90) {
-			trpWiz = empire.bldWiz * 0.15
-		} else if (empire.trpWiz < empire.bldWiz * 100) {
-			trpWiz = empire.bldWiz * 0.1
-		} else if (empire.trpWiz > empire.bldWiz * 175) {
-			trpWiz = empire.trpWiz * -0.05
-		}
-		// console.log(trpWiz)
-		trpWiz = Math.round(
-			trpWiz *
-				Math.sqrt(
-					1 -
-						((trpWiz / Math.max(1, Math.abs(trpWiz))) * 0.75 * empire.bldWiz) /
-							empire.land
-				)
-		)
+		let trpWiz = calcWizards(empire)
 
 		// console.log(trpWiz)
 		empire.trpWiz += trpWiz
 		current['trpWiz'] = trpWiz
+
+		if (empire.peakCash < empire.cash + empire.bank) {
+			empire.peakCash = empire.cash + empire.bank
+		}
+		if (empire.peakFood < empire.food) {
+			empire.peakFood = empire.food
+		}
+		if (empire.peakRunes < empire.runes) {
+			empire.peakRunes = empire.runes
+		}
+		if (empire.peakPeasants < empire.peasants) {
+			empire.peakPeasants = empire.peasants
+		}
+		if (empire.peakLand < empire.land) {
+			empire.peakLand = empire.land
+		}
+		if (empire.peakNetworth < empire.networth) {
+			empire.peakNetworth = empire.networth
+		}
+		if (empire.peakTrpArm < empire.trpArm) {
+			empire.peakTrpArm = empire.trpArm
+		}
+		if (empire.peakTrpLnd < empire.trpLnd) {
+			empire.peakTrpLnd = empire.trpLnd
+		}
+		if (empire.peakTrpFly < empire.trpFly) {
+			empire.peakTrpFly = empire.trpFly
+		}
+		if (empire.peakTrpSea < empire.trpSea) {
+			empire.peakTrpSea = empire.trpSea
+		}
+		if (empire.peakTrpWiz < empire.trpWiz) {
+			empire.peakTrpWiz = empire.trpWiz
+		}
 
 		current['result'] = turnResult
 		empire.turnsUsed++
@@ -676,9 +760,9 @@ export const useTurnInternal = (
 
 		// savings interest
 		let withdraw = 0
-
+		let bankInterest
 		// savings interest
-		if (empire.turnsUsed > 200) {
+		if (empire.turnsUsed > TURNS_PROTECTION) {
 			let bankMax = empire.networth * 100
 			if (empire.bank > bankMax) {
 				withdraw = empire.bank - bankMax
@@ -686,12 +770,15 @@ export const useTurnInternal = (
 				empire.cash += withdraw
 			} else {
 				let saveRate = BANK_SAVERATE - size
-				let bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
-				empire.bank = Math.min(empire.bank + bankInterest, bankMax)
+				bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
+				if (empire.bank + bankInterest > bankMax) {
+					bankInterest = bankMax - empire.bank
+				}
 			}
 		}
 
 		// withdraw not accumulating in condensed view?
+		current['bankInterest'] = bankInterest
 		current['withdraw'] = withdraw
 
 		// loan interest
@@ -703,39 +790,7 @@ export const useTurnInternal = (
 		// income/expenses/loan
 
 		// takes place of calcFinances function
-		let income = Math.round(
-			(calcPCI(empire) *
-				(empire.tax / 100) *
-				(empire.health / 100) *
-				empire.peasants +
-				empire.bldCash * 500) *
-				Math.max(0.8, size)
-		)
-
-		let loan = Math.round(empire.loan / 200)
-
-		let expenses = Math.round(
-			empire.trpArm * 0.5 * 0.8 +
-				empire.trpLnd * 1.25 * 0.8 +
-				empire.trpFly * 2 * 0.8 +
-				empire.trpSea * 3.5 * 0.8 +
-				empire.land * 4 * 0.8 +
-				empire.trpWiz * 0.25 * 0.8
-		)
-
-		// set up race/era modifier
-		let expensesBonus = Math.min(
-			0.5,
-			(raceArray[empire.race].mod_expenses + 100) / 100 -
-				1 +
-				empire.bldCost / Math.max(empire.land, 1)
-		)
-
-		expenses -= Math.round(expenses * expensesBonus)
-
-		if (type === 'cash') {
-			income = Math.round(income * 1.25)
-		}
+		let { income, expenses } = calcFinances(calcPCI(empire), empire, size)
 
 		//war tax
 		let wartax = 0
@@ -761,12 +816,7 @@ export const useTurnInternal = (
 			wartax = Math.ceil(wartax)
 		}
 
-		let corruption = 0
-		if (empire.cash > empire.networth * 110) {
-			let multiples = Math.floor(empire.cash / empire.networth) - 1
-			corruption = Math.round(multiples * empire.networth * 0.001)
-			// console.log(corruption)
-		}
+		let corruption = calcCorruption(empire)
 
 		// net income
 		let money = Math.round(income - (expenses + wartax + corruption))
@@ -831,54 +881,8 @@ export const useTurnInternal = (
 
 		// industry
 		let indMultiplier = 1
-		// if (type === 'industry') {
-		// 	indMultiplier = 1.25
-		// }
 
-		let trparm = Math.ceil(
-			empire.bldTroop *
-				(empire.indArmy / 100) *
-				1.2 *
-				INDUSTRY_MULT *
-				indMultiplier *
-				((100 +
-					raceArray[empire.race].mod_industry +
-					eraArray[empire.era].mod_industry) /
-					100)
-		)
-		let trplnd = Math.ceil(
-			empire.bldTroop *
-				(empire.indLnd / 100) *
-				0.6 *
-				INDUSTRY_MULT *
-				indMultiplier *
-				((100 +
-					raceArray[empire.race].mod_industry +
-					eraArray[empire.era].mod_industry) /
-					100)
-		)
-		let trpfly = Math.ceil(
-			empire.bldTroop *
-				(empire.indFly / 100) *
-				0.3 *
-				INDUSTRY_MULT *
-				indMultiplier *
-				((100 +
-					raceArray[empire.race].mod_industry +
-					eraArray[empire.era].mod_industry) /
-					100)
-		)
-		let trpsea = Math.ceil(
-			empire.bldTroop *
-				(empire.indSea / 100) *
-				0.2 *
-				INDUSTRY_MULT *
-				indMultiplier *
-				((100 +
-					raceArray[empire.race].mod_industry +
-					eraArray[empire.era].mod_industry) /
-					100)
-		)
+		let { trparm, trplnd, trpfly, trpsea } = IndyOutput(empire, indMultiplier)
 
 		// empire.trpArm += trparm
 		// empire.trpLnd += trplnd
@@ -891,34 +895,9 @@ export const useTurnInternal = (
 		current['trpSea'] = trpsea
 
 		// update food
+		let { foodpro, foodcon } = calcProvisions(empire)
 
-		// takes place of calcProvisions function
-		let production =
-			10 * empire.freeLand +
-			empire.bldFood *
-				85 *
-				Math.sqrt(1 - (0.75 * empire.bldFood) / Math.max(empire.land, 1))
-		production *= (100 + raceArray[empire.race].mod_foodpro) / 100
-		let foodpro = Math.round(production)
-
-		let consumption =
-			empire.trpArm * 0.05 * 0.7 +
-			empire.trpLnd * 0.03 * 0.7 +
-			empire.trpFly * 0.02 * 0.7 +
-			empire.trpSea * 0.01 * 0.7 +
-			empire.peasants * 0.01 * 0.7 +
-			empire.trpWiz * 0.2 * 0.7
-		consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
-		let foodcon = Math.round(consumption)
-
-		if (type === 'farm') {
-			foodpro = Math.round(1.25 * foodpro)
-		}
 		let food = Math.round(foodpro - foodcon)
-		// empire.food += food
-		// if (type === 'farm') {
-		// 	turnResult += food
-		// }
 
 		current['foodpro'] = foodpro
 		current['foodcon'] = foodcon
@@ -938,96 +917,27 @@ export const useTurnInternal = (
 
 		// update population
 		let taxrate = empire.tax / 100
-		let taxpenalty = 0
-		if (taxrate > 0.4) {
-			taxpenalty = (taxrate - 0.4) / 2
-		} else if (taxrate < 0.2) {
-			taxpenalty = (taxrate - 0.2) / 2
-		} else {
-			taxpenalty = 0
-		}
+		let taxpenalty = calcTaxPenalty(taxrate)
 
 		let popBase = Math.round(
 			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 65) /
 				(0.95 + taxrate + taxpenalty)
 		) // 14495
 
-		let peasants = 0
-		let peasantsMult = 1
-
-		if (empire.peasants !== popBase) {
-			peasants = (popBase - empire.peasants) / 20
-		}
-
-		if (peasants > 0) {
-			peasantsMult = 4 / ((empire.tax + 15) / 20) - 7 / 9
-		}
-		if (peasants < 0) {
-			peasantsMult = 1 / (4 / (empire.tax + 15) / 20 - 7 / 9)
-		}
-
-		peasants = Math.round(peasants * peasantsMult * peasantsMult)
-
-		if (empire.peasants + peasants < 1) {
-			peasants = 1 - empire.peasants
-		}
+		let peasants = calcPeasants(empire, popBase)
 		// empire.peasants += peasants
 		current['peasants'] = peasants
 
 		// gain magic energy
 		let runeMultiplier = 1
-		if (type === 'meditate') {
-			runeMultiplier = 1.25
-		}
 
-		let runes = 0
-		if (empire.bldWiz / empire.land > 0.15) {
-			runes = Math.round(
-				getRandomInt(
-					Math.round(empire.bldWiz * 1.15),
-					Math.round(empire.bldWiz * 1.55)
-				) * runeMultiplier
-			)
-		} else {
-			runes = Math.round(empire.bldWiz * 1.1 * runeMultiplier)
-		}
+		let runes = calculateRunes(empire, runeMultiplier)
 
-		runes = Math.round(
-			runes *
-				((100 +
-					raceArray[empire.race].mod_runepro +
-					eraArray[empire.era].mod_runepro) /
-					100)
-		)
-		// empire.runes += runes
 		current['runes'] = runes
 
 		// add/lose wizards
-		let trpWiz = 0
+		let trpWiz = calcWizards(empire)
 
-		if (empire.trpWiz < empire.bldWiz * 25) {
-			trpWiz = empire.bldWiz * 0.45
-		} else if (empire.trpWiz < empire.bldWiz * 50) {
-			trpWiz = empire.bldWiz * 0.3
-		} else if (empire.trpWiz < empire.bldWiz * 90) {
-			trpWiz = empire.bldWiz * 0.15
-		} else if (empire.trpWiz < empire.bldWiz * 100) {
-			trpWiz = empire.bldWiz * 0.1
-		} else if (empire.trpWiz > empire.bldWiz * 175) {
-			trpWiz = empire.trpWiz * -0.05
-		}
-		// console.log(trpWiz)
-		trpWiz = Math.round(
-			trpWiz *
-				Math.sqrt(
-					1 -
-						((trpWiz / Math.max(1, Math.abs(trpWiz))) * 0.75 * empire.bldWiz) /
-							empire.land
-				)
-		)
-
-		// console.log(trpWiz)
-		// empire.trpWiz += trpWiz
 		current['trpWiz'] = trpWiz
 
 		// current['result'] = turnResult

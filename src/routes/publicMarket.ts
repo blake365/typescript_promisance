@@ -92,6 +92,32 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 
 	buyer.lastAction = new Date()
 
+	if (buyer.peakFood < buyer.food) {
+		buyer.peakFood = buyer.food
+	}
+	if (buyer.peakRunes < buyer.runes) {
+		buyer.peakRunes = buyer.runes
+	}
+	if (buyer.peakNetworth < buyer.networth) {
+		buyer.peakNetworth = buyer.networth
+	}
+	if (buyer.peakTrpArm < buyer.trpArm) {
+		buyer.peakTrpArm = buyer.trpArm
+	}
+	if (buyer.peakTrpLnd < buyer.trpLnd) {
+		buyer.peakTrpLnd = buyer.trpLnd
+	}
+	if (buyer.peakTrpFly < buyer.trpFly) {
+		buyer.peakTrpFly = buyer.trpFly
+	}
+	if (buyer.peakTrpSea < buyer.trpSea) {
+		buyer.peakTrpSea = buyer.trpSea
+	}
+
+	if (seller.peakCash < seller.cash + seller.bank) {
+		seller.peakCash = seller.cash + seller.bank
+	}
+
 	await buyer.save()
 	await seller.save()
 	await itemBought.save()
@@ -517,6 +543,31 @@ const recallItem = async (req: Request, res: Response) => {
 		empire[itemArray[item.type]] += Math.round(item.amount * 0.75)
 		empire.networth = getNetworth(empire)
 		await item.remove()
+
+		if (empire.peakCash < empire.cash + empire.bank) {
+			empire.peakCash = empire.cash + empire.bank
+		}
+		if (empire.peakFood < empire.food) {
+			empire.peakFood = empire.food
+		}
+		if (empire.peakRunes < empire.runes) {
+			empire.peakRunes = empire.runes
+		}
+		if (empire.peakNetworth < empire.networth) {
+			empire.peakNetworth = empire.networth
+		}
+		if (empire.peakTrpArm < empire.trpArm) {
+			empire.peakTrpArm = empire.trpArm
+		}
+		if (empire.peakTrpLnd < empire.trpLnd) {
+			empire.peakTrpLnd = empire.trpLnd
+		}
+		if (empire.peakTrpFly < empire.trpFly) {
+			empire.peakTrpFly = empire.trpFly
+		}
+		if (empire.peakTrpSea < empire.trpSea) {
+			empire.peakTrpSea = empire.trpSea
+		}
 		await empire.save()
 		return res.json({ success: 'Item recalled' })
 	} catch (e) {

@@ -142,6 +142,7 @@ const magic = async (req: Request, res: Response) => {
 					empire.expenses +=
 						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+					empire.bank += spellRes.bankInterest
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
@@ -168,6 +169,42 @@ const magic = async (req: Request, res: Response) => {
 					empire.turns -= turns
 					empire.turnsUsed += turns
 					empire.lastAction = new Date()
+
+					empire.networth = getNetworth(empire)
+					if (empire.peakCash < empire.cash + empire.bank) {
+						empire.peakCash = empire.cash + empire.bank
+					}
+					if (empire.peakFood < empire.food) {
+						empire.peakFood = empire.food
+					}
+					if (empire.peakRunes < empire.runes) {
+						empire.peakRunes = empire.runes
+					}
+					if (empire.peakPeasants < empire.peasants) {
+						empire.peakPeasants = empire.peasants
+					}
+					if (empire.peakLand < empire.land) {
+						empire.peakLand = empire.land
+					}
+					if (empire.peakNetworth < empire.networth) {
+						empire.peakNetworth = empire.networth
+					}
+					if (empire.peakTrpArm < empire.trpArm) {
+						empire.peakTrpArm = empire.trpArm
+					}
+					if (empire.peakTrpLnd < empire.trpLnd) {
+						empire.peakTrpLnd = empire.trpLnd
+					}
+					if (empire.peakTrpFly < empire.trpFly) {
+						empire.peakTrpFly = empire.trpFly
+					}
+					if (empire.peakTrpSea < empire.trpSea) {
+						empire.peakTrpSea = empire.trpSea
+					}
+					if (empire.peakTrpWiz < empire.trpWiz) {
+						empire.peakTrpWiz = empire.trpWiz
+					}
+
 					await empire.save()
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
@@ -224,6 +261,7 @@ const magic = async (req: Request, res: Response) => {
 					empire.expenses +=
 						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+					empire.bank += spellRes.bankInterest
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
@@ -250,6 +288,42 @@ const magic = async (req: Request, res: Response) => {
 					empire.turns -= turns
 					empire.turnsUsed += turns
 					empire.lastAction = new Date()
+
+					empire.networth = getNetworth(empire)
+					if (empire.peakCash < empire.cash + empire.bank) {
+						empire.peakCash = empire.cash + empire.bank
+					}
+					if (empire.peakFood < empire.food) {
+						empire.peakFood = empire.food
+					}
+					if (empire.peakRunes < empire.runes) {
+						empire.peakRunes = empire.runes
+					}
+					if (empire.peakPeasants < empire.peasants) {
+						empire.peakPeasants = empire.peasants
+					}
+					if (empire.peakLand < empire.land) {
+						empire.peakLand = empire.land
+					}
+					if (empire.peakNetworth < empire.networth) {
+						empire.peakNetworth = empire.networth
+					}
+					if (empire.peakTrpArm < empire.trpArm) {
+						empire.peakTrpArm = empire.trpArm
+					}
+					if (empire.peakTrpLnd < empire.trpLnd) {
+						empire.peakTrpLnd = empire.trpLnd
+					}
+					if (empire.peakTrpFly < empire.trpFly) {
+						empire.peakTrpFly = empire.trpFly
+					}
+					if (empire.peakTrpSea < empire.trpSea) {
+						empire.peakTrpSea = empire.trpSea
+					}
+					if (empire.peakTrpWiz < empire.trpWiz) {
+						empire.peakTrpWiz = empire.trpWiz
+					}
+
 					await empire.save()
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
@@ -305,6 +379,7 @@ const magic = async (req: Request, res: Response) => {
 					empire.expenses +=
 						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+					empire.bank += spellRes.bankInterest
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
@@ -332,6 +407,42 @@ const magic = async (req: Request, res: Response) => {
 					empire.turns -= turns
 					empire.turnsUsed += turns
 					empire.lastAction = new Date()
+
+					empire.networth = getNetworth(empire)
+					if (empire.peakCash < empire.cash + empire.bank) {
+						empire.peakCash = empire.cash + empire.bank
+					}
+					if (empire.peakFood < empire.food) {
+						empire.peakFood = empire.food
+					}
+					if (empire.peakRunes < empire.runes) {
+						empire.peakRunes = empire.runes
+					}
+					if (empire.peakPeasants < empire.peasants) {
+						empire.peakPeasants = empire.peasants
+					}
+					if (empire.peakLand < empire.land) {
+						empire.peakLand = empire.land
+					}
+					if (empire.peakNetworth < empire.networth) {
+						empire.peakNetworth = empire.networth
+					}
+					if (empire.peakTrpArm < empire.trpArm) {
+						empire.peakTrpArm = empire.trpArm
+					}
+					if (empire.peakTrpLnd < empire.trpLnd) {
+						empire.peakTrpLnd = empire.trpLnd
+					}
+					if (empire.peakTrpFly < empire.trpFly) {
+						empire.peakTrpFly = empire.trpFly
+					}
+					if (empire.peakTrpSea < empire.trpSea) {
+						empire.peakTrpSea = empire.trpSea
+					}
+					if (empire.peakTrpWiz < empire.trpWiz) {
+						empire.peakTrpWiz = empire.trpWiz
+					}
+
 					await empire.save()
 					// console.log('cash:', empire.cash, empire.turns, empire.runes)
 				} else {
@@ -394,6 +505,7 @@ const magic = async (req: Request, res: Response) => {
 						empire.expenses +=
 							spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+						empire.bank += spellRes.bankInterest
 						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 						empire.trpArm += spellRes.trpArm
 						empire.trpLnd += spellRes.trpLnd
@@ -420,6 +532,42 @@ const magic = async (req: Request, res: Response) => {
 						empire.turns -= turns
 						empire.turnsUsed += turns
 						empire.lastAction = new Date()
+
+						empire.networth = getNetworth(empire)
+						if (empire.peakCash < empire.cash + empire.bank) {
+							empire.peakCash = empire.cash + empire.bank
+						}
+						if (empire.peakFood < empire.food) {
+							empire.peakFood = empire.food
+						}
+						if (empire.peakRunes < empire.runes) {
+							empire.peakRunes = empire.runes
+						}
+						if (empire.peakPeasants < empire.peasants) {
+							empire.peakPeasants = empire.peasants
+						}
+						if (empire.peakLand < empire.land) {
+							empire.peakLand = empire.land
+						}
+						if (empire.peakNetworth < empire.networth) {
+							empire.peakNetworth = empire.networth
+						}
+						if (empire.peakTrpArm < empire.trpArm) {
+							empire.peakTrpArm = empire.trpArm
+						}
+						if (empire.peakTrpLnd < empire.trpLnd) {
+							empire.peakTrpLnd = empire.trpLnd
+						}
+						if (empire.peakTrpFly < empire.trpFly) {
+							empire.peakTrpFly = empire.trpFly
+						}
+						if (empire.peakTrpSea < empire.trpSea) {
+							empire.peakTrpSea = empire.trpSea
+						}
+						if (empire.peakTrpWiz < empire.trpWiz) {
+							empire.peakTrpWiz = empire.trpWiz
+						}
+
 						await empire.save()
 						// console.log(empire.era, empire.turns, empire.runes)
 					}
@@ -484,6 +632,7 @@ const magic = async (req: Request, res: Response) => {
 						empire.expenses +=
 							spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+						empire.bank += spellRes.bankInterest
 						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 						empire.trpArm += spellRes.trpArm
 						empire.trpLnd += spellRes.trpLnd
@@ -510,6 +659,42 @@ const magic = async (req: Request, res: Response) => {
 						empire.turns -= turns
 						empire.turnsUsed += turns
 						empire.lastAction = new Date()
+
+						empire.networth = getNetworth(empire)
+						if (empire.peakCash < empire.cash + empire.bank) {
+							empire.peakCash = empire.cash + empire.bank
+						}
+						if (empire.peakFood < empire.food) {
+							empire.peakFood = empire.food
+						}
+						if (empire.peakRunes < empire.runes) {
+							empire.peakRunes = empire.runes
+						}
+						if (empire.peakPeasants < empire.peasants) {
+							empire.peakPeasants = empire.peasants
+						}
+						if (empire.peakLand < empire.land) {
+							empire.peakLand = empire.land
+						}
+						if (empire.peakNetworth < empire.networth) {
+							empire.peakNetworth = empire.networth
+						}
+						if (empire.peakTrpArm < empire.trpArm) {
+							empire.peakTrpArm = empire.trpArm
+						}
+						if (empire.peakTrpLnd < empire.trpLnd) {
+							empire.peakTrpLnd = empire.trpLnd
+						}
+						if (empire.peakTrpFly < empire.trpFly) {
+							empire.peakTrpFly = empire.trpFly
+						}
+						if (empire.peakTrpSea < empire.trpSea) {
+							empire.peakTrpSea = empire.trpSea
+						}
+						if (empire.peakTrpWiz < empire.trpWiz) {
+							empire.peakTrpWiz = empire.trpWiz
+						}
+
 						await empire.save()
 						// console.log(empire.era, empire.turns, empire.runes)
 					}
@@ -560,6 +745,7 @@ const magic = async (req: Request, res: Response) => {
 					empire.expenses +=
 						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+					empire.bank += spellRes.bankInterest
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
@@ -586,6 +772,42 @@ const magic = async (req: Request, res: Response) => {
 					empire.turns -= turns
 					empire.turnsUsed += turns
 					empire.lastAction = new Date()
+
+					empire.networth = getNetworth(empire)
+					if (empire.peakCash < empire.cash + empire.bank) {
+						empire.peakCash = empire.cash + empire.bank
+					}
+					if (empire.peakFood < empire.food) {
+						empire.peakFood = empire.food
+					}
+					if (empire.peakRunes < empire.runes) {
+						empire.peakRunes = empire.runes
+					}
+					if (empire.peakPeasants < empire.peasants) {
+						empire.peakPeasants = empire.peasants
+					}
+					if (empire.peakLand < empire.land) {
+						empire.peakLand = empire.land
+					}
+					if (empire.peakNetworth < empire.networth) {
+						empire.peakNetworth = empire.networth
+					}
+					if (empire.peakTrpArm < empire.trpArm) {
+						empire.peakTrpArm = empire.trpArm
+					}
+					if (empire.peakTrpLnd < empire.trpLnd) {
+						empire.peakTrpLnd = empire.trpLnd
+					}
+					if (empire.peakTrpFly < empire.trpFly) {
+						empire.peakTrpFly = empire.trpFly
+					}
+					if (empire.peakTrpSea < empire.trpSea) {
+						empire.peakTrpSea = empire.trpSea
+					}
+					if (empire.peakTrpWiz < empire.trpWiz) {
+						empire.peakTrpWiz = empire.trpWiz
+					}
+
 					await empire.save()
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
@@ -632,6 +854,7 @@ const magic = async (req: Request, res: Response) => {
 					empire.expenses +=
 						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+					empire.bank += spellRes.bankInterest
 					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 					empire.trpArm += spellRes.trpArm
 					empire.trpLnd += spellRes.trpLnd
@@ -658,6 +881,42 @@ const magic = async (req: Request, res: Response) => {
 					empire.turns -= turns
 					empire.turnsUsed += turns
 					empire.lastAction = new Date()
+
+					empire.networth = getNetworth(empire)
+					if (empire.peakCash < empire.cash + empire.bank) {
+						empire.peakCash = empire.cash + empire.bank
+					}
+					if (empire.peakFood < empire.food) {
+						empire.peakFood = empire.food
+					}
+					if (empire.peakRunes < empire.runes) {
+						empire.peakRunes = empire.runes
+					}
+					if (empire.peakPeasants < empire.peasants) {
+						empire.peakPeasants = empire.peasants
+					}
+					if (empire.peakLand < empire.land) {
+						empire.peakLand = empire.land
+					}
+					if (empire.peakNetworth < empire.networth) {
+						empire.peakNetworth = empire.networth
+					}
+					if (empire.peakTrpArm < empire.trpArm) {
+						empire.peakTrpArm = empire.trpArm
+					}
+					if (empire.peakTrpLnd < empire.trpLnd) {
+						empire.peakTrpLnd = empire.trpLnd
+					}
+					if (empire.peakTrpFly < empire.trpFly) {
+						empire.peakTrpFly = empire.trpFly
+					}
+					if (empire.peakTrpSea < empire.trpSea) {
+						empire.peakTrpSea = empire.trpSea
+					}
+					if (empire.peakTrpWiz < empire.trpWiz) {
+						empire.peakTrpWiz = empire.trpWiz
+					}
+
 					await empire.save()
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
@@ -708,6 +967,7 @@ const attackSpell = async (
 		attacker.expenses +=
 			spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+		attacker.bank += spellRes.bankInterest
 		attacker.loan -= spellRes.loanpayed + spellRes.loanInterest
 		attacker.trpArm += spellRes.trpArm
 		attacker.trpLnd += spellRes.trpLnd
@@ -738,6 +998,41 @@ const attackSpell = async (
 		attacker.lastAction = new Date()
 
 		attacker.networth = getNetworth(attacker)
+
+		if (attacker.peakCash < attacker.cash + attacker.bank) {
+			attacker.peakCash = attacker.cash + attacker.bank
+		}
+		if (attacker.peakFood < attacker.food) {
+			attacker.peakFood = attacker.food
+		}
+		if (attacker.peakRunes < attacker.runes) {
+			attacker.peakRunes = attacker.runes
+		}
+		if (attacker.peakPeasants < attacker.peasants) {
+			attacker.peakPeasants = attacker.peasants
+		}
+		if (attacker.peakLand < attacker.land) {
+			attacker.peakLand = attacker.land
+		}
+		if (attacker.peakNetworth < attacker.networth) {
+			attacker.peakNetworth = attacker.networth
+		}
+		if (attacker.peakTrpArm < attacker.trpArm) {
+			attacker.peakTrpArm = attacker.trpArm
+		}
+		if (attacker.peakTrpLnd < attacker.trpLnd) {
+			attacker.peakTrpLnd = attacker.trpLnd
+		}
+		if (attacker.peakTrpFly < attacker.trpFly) {
+			attacker.peakTrpFly = attacker.trpFly
+		}
+		if (attacker.peakTrpSea < attacker.trpSea) {
+			attacker.peakTrpSea = attacker.trpSea
+		}
+		if (attacker.peakTrpWiz < attacker.trpWiz) {
+			attacker.peakTrpWiz = attacker.trpWiz
+		}
+
 		await attacker.save()
 
 		// console.log('returning with spellTurns')

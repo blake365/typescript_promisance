@@ -193,4 +193,103 @@ export default class EmpireHistory extends Model {
 		default: 0,
 	})
 	finalTrpWiz: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 0,
+	})
+	peakCash: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 0,
+	})
+	peakFood: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 0,
+	})
+	peakRunes: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 0,
+	})
+	peakTrpArm: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 0,
+	})
+	peakTrpLnd: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 0,
+	})
+	peakTrpFly: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 0,
+	})
+	peakTrpSea: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 0,
+	})
+	peakTrpWiz: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 0,
+	})
+	peakLand: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 0,
+	})
+	peakNetworth: number
+
+	@Column('bigint', {
+		transformer: {
+			to: (value) => value,
+			from: (value) => parseInt(value),
+		},
+		default: 0,
+	})
+	peakPeasants: number
 }

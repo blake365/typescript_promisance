@@ -24,6 +24,7 @@ import Session from '../entity/Session'
 import { eraArray } from '../config/eras'
 import { createNewsEvent } from '../util/helpers'
 import Lottery from '../entity/Lottery'
+import EmpireSnapshot from '../entity/EmpireSnapshot'
 
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
@@ -321,6 +322,25 @@ export const hourlyUpdate = new AsyncTask('hourly update', async () => {
 			})
 			.where('spells < 0 AND id != 0')
 			.execute()
+	}
+})
+
+export const snapshot = new AsyncTask('snapshot', async () => {
+	console.log('taking snapshots')
+	try {
+		// loop over empires, save each empire to separate snapshot row
+		const empires = await Empire.find()
+
+		for (let i = 0; i < empires.length; i++) {
+			console.log('taking snapshot')
+			const empire = empires[i]
+			const snapshot = new EmpireSnapshot(empire)
+			snapshot.empireId = empire.id
+			snapshot.createdAt = new Date()
+			await snapshot.save()
+		}
+	} catch (err) {
+		console.log(err)
 	}
 })
 

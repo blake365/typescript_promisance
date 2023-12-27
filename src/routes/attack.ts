@@ -683,6 +683,7 @@ const attack = async (req: Request, res: Response) => {
 			attacker.expenses +=
 				attackRes.expenses + attackRes.wartax + attackRes.corruption
 
+			attacker.bank += attackRes.bankInterest
 			attacker.loan -= attackRes.loanpayed + attackRes.loanInterest
 			attacker.trpArm += attackRes.trpArm
 			attacker.trpLnd += attackRes.trpLnd
@@ -1306,6 +1307,40 @@ const attack = async (req: Request, res: Response) => {
 			resultArray.push(attackTurns)
 			attacker.networth = getNetworth(attacker)
 			defender.networth = getNetworth(defender)
+
+			if (attacker.peakCash < attacker.cash + attacker.bank) {
+				attacker.peakCash = attacker.cash + attacker.bank
+			}
+			if (attacker.peakFood < attacker.food) {
+				attacker.peakFood = attacker.food
+			}
+			if (attacker.peakRunes < attacker.runes) {
+				attacker.peakRunes = attacker.runes
+			}
+			if (attacker.peakPeasants < attacker.peasants) {
+				attacker.peakPeasants = attacker.peasants
+			}
+			if (attacker.peakLand < attacker.land) {
+				attacker.peakLand = attacker.land
+			}
+			if (attacker.peakNetworth < attacker.networth) {
+				attacker.peakNetworth = attacker.networth
+			}
+			if (attacker.peakTrpArm < attacker.trpArm) {
+				attacker.peakTrpArm = attacker.trpArm
+			}
+			if (attacker.peakTrpLnd < attacker.trpLnd) {
+				attacker.peakTrpLnd = attacker.trpLnd
+			}
+			if (attacker.peakTrpFly < attacker.trpFly) {
+				attacker.peakTrpFly = attacker.trpFly
+			}
+			if (attacker.peakTrpSea < attacker.trpSea) {
+				attacker.peakTrpSea = attacker.trpSea
+			}
+			if (attacker.peakTrpWiz < attacker.trpWiz) {
+				attacker.peakTrpWiz = attacker.trpWiz
+			}
 
 			attacker.lastAction = new Date()
 			// save updated attacker and defender

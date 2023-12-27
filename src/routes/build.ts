@@ -13,7 +13,7 @@ import Clan from '../entity/Clan'
 import { useTurnInternal } from './useturns'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
-import { calcSizeBonus } from './actions/actions'
+import { calcSizeBonus, getNetworth } from './actions/actions'
 import User from '../entity/User'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
@@ -176,6 +176,41 @@ const build = async (req: Request, res: Response) => {
 					empire.peasants += turnRes.peasants
 					empire.runes += turnRes.runes
 					empire.trpWiz += turnRes.trpWiz
+					empire.networth = getNetworth(empire)
+
+					if (empire.peakCash < empire.cash + empire.bank) {
+						empire.peakCash = empire.cash + empire.bank
+					}
+					if (empire.peakFood < empire.food) {
+						empire.peakFood = empire.food
+					}
+					if (empire.peakRunes < empire.runes) {
+						empire.peakRunes = empire.runes
+					}
+					if (empire.peakPeasants < empire.peasants) {
+						empire.peakPeasants = empire.peasants
+					}
+					if (empire.peakLand < empire.land) {
+						empire.peakLand = empire.land
+					}
+					if (empire.peakNetworth < empire.networth) {
+						empire.peakNetworth = empire.networth
+					}
+					if (empire.peakTrpArm < empire.trpArm) {
+						empire.peakTrpArm = empire.trpArm
+					}
+					if (empire.peakTrpLnd < empire.trpLnd) {
+						empire.peakTrpLnd = empire.trpLnd
+					}
+					if (empire.peakTrpFly < empire.trpFly) {
+						empire.peakTrpFly = empire.trpFly
+					}
+					if (empire.peakTrpSea < empire.trpSea) {
+						empire.peakTrpSea = empire.trpSea
+					}
+					if (empire.peakTrpWiz < empire.trpWiz) {
+						empire.peakTrpWiz = empire.trpWiz
+					}
 
 					empire.turns--
 					empire.turnsUsed++
@@ -196,6 +231,7 @@ const build = async (req: Request, res: Response) => {
 					empire.expenses +=
 						turnRes.expenses + turnRes.wartax + turnRes.corruption
 
+					empire.bank += turnRes.bankInterest
 					empire.loan -= turnRes.loanpayed + turnRes.loanInterest
 					empire.trpArm += turnRes.trpArm
 					empire.trpLnd += turnRes.trpLnd
@@ -214,6 +250,41 @@ const build = async (req: Request, res: Response) => {
 					empire.peasants += turnRes.peasants
 					empire.runes += turnRes.runes
 					empire.trpWiz += turnRes.trpWiz
+					empire.networth = getNetworth(empire)
+
+					if (empire.peakCash < empire.cash + empire.bank) {
+						empire.peakCash = empire.cash + empire.bank
+					}
+					if (empire.peakFood < empire.food) {
+						empire.peakFood = empire.food
+					}
+					if (empire.peakRunes < empire.runes) {
+						empire.peakRunes = empire.runes
+					}
+					if (empire.peakPeasants < empire.peasants) {
+						empire.peakPeasants = empire.peasants
+					}
+					if (empire.peakLand < empire.land) {
+						empire.peakLand = empire.land
+					}
+					if (empire.peakNetworth < empire.networth) {
+						empire.peakNetworth = empire.networth
+					}
+					if (empire.peakTrpArm < empire.trpArm) {
+						empire.peakTrpArm = empire.trpArm
+					}
+					if (empire.peakTrpLnd < empire.trpLnd) {
+						empire.peakTrpLnd = empire.trpLnd
+					}
+					if (empire.peakTrpFly < empire.trpFly) {
+						empire.peakTrpFly = empire.trpFly
+					}
+					if (empire.peakTrpSea < empire.trpSea) {
+						empire.peakTrpSea = empire.trpSea
+					}
+					if (empire.peakTrpWiz < empire.trpWiz) {
+						empire.peakTrpWiz = empire.trpWiz
+					}
 
 					empire.turns--
 					empire.turnsUsed++

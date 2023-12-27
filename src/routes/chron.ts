@@ -24,6 +24,7 @@ import { eraArray } from '../config/eras'
 import { createNewsEvent } from '../util/helpers'
 import Lottery from '../entity/Lottery'
 import { Request, Response, Router } from 'express'
+import EmpireSnapshot from '../entity/EmpireSnapshot'
 
 // perform standard turn update events
 const promTurns = async (req: Request, res: Response) => {
@@ -290,7 +291,7 @@ const thirtyMinUpdate = async (req: Request, res: Response) => {
 			let sourceName = empire.name
 			let destinationId = empire.id
 			let destinationName = empire.name
-			let content: string = `You're ${
+			let content: string = `Your ${
 				eraArray[empire.era][itemName.toLowerCase()]
 			} on the public market have expired and 75% have been returned to you.`
 			let pubContent: string = `${empire.name} failed to sell their items on the public market.`
@@ -482,7 +483,8 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 		const totalTickets = allTickets.length
 		if (totalTickets < 1) return
 		// console.log('total tickets', totalTickets)
-		const ticketsToDraw = Math.ceil(totalTickets * 1.3)
+		let ticketsToDraw = Math.ceil(totalTickets * 1.35)
+		if (ticketsToDraw < 15) ticketsToDraw = 15
 		// console.log('tickets to draw', ticketsToDraw)
 		const winningTicket = Math.ceil(Math.random() * ticketsToDraw)
 		// console.log('winning ticket', winningTicket)
@@ -590,10 +592,33 @@ const test = async (req: Request, res: Response) => {
 	}
 }
 
-// // lottery
-// export const lotteryCheck = new AsyncTask('lottery', async () => {
+// empire snapshots, save empire stats every 4 hours to a separate table
+// can use snapshots to create graphs of empire stats over time
+const empireSnapshots = async (req: Request, res: Response) => {
+	if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
+		return res.status(401).end('Unauthorized')
+	}
 
-// })
+	try {
+		// loop over empires, save each empire to separate snapshot row
+		const empires = await Empire.find()
+
+		for (let i = 0; i < empires.length; i++) {
+			console.log('taking snapshot')
+			const empire = empires[i]
+			const snapshot = new EmpireSnapshot(empire)
+			snapshot.e_id = empire.id
+			snapshot.createdAt = new Date()
+			await snapshot.save()
+		}
+
+		return res.status(200).json({ message: 'snapshot' })
+	} catch (err) {
+		console.log(err)
+		return res.status(500).json({ message: 'Something went wrong in snapshot' })
+	}
+}
+
 const router = Router()
 
 router.get('/test', test)
@@ -602,5 +627,6 @@ router.get('/thirty', thirtyMinUpdate)
 router.get('/hourly', hourlyUpdate)
 router.get('/aid', aidCredits)
 router.get('/daily', cleanDemoAccounts)
+router.get('/snapshot', empireSnapshots)
 
 export default router

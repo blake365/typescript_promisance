@@ -94,6 +94,32 @@ const buy = async (req: Request, res: Response) => {
 	}
 
 	empire.networth = getNetworth(empire)
+
+	if (empire.peakCash < empire.cash + empire.bank) {
+		empire.peakCash = empire.cash + empire.bank
+	}
+	if (empire.peakFood < empire.food) {
+		empire.peakFood = empire.food
+	}
+	if (empire.peakRunes < empire.runes) {
+		empire.peakRunes = empire.runes
+	}
+	if (empire.peakNetworth < empire.networth) {
+		empire.peakNetworth = empire.networth
+	}
+	if (empire.peakTrpArm < empire.trpArm) {
+		empire.peakTrpArm = empire.trpArm
+	}
+	if (empire.peakTrpLnd < empire.trpLnd) {
+		empire.peakTrpLnd = empire.trpLnd
+	}
+	if (empire.peakTrpFly < empire.trpFly) {
+		empire.peakTrpFly = empire.trpFly
+	}
+	if (empire.peakTrpSea < empire.trpSea) {
+		empire.peakTrpSea = empire.trpSea
+	}
+
 	await empire.save()
 
 	let resultBuyArm = { amount: buyArm, price: spendArray[0] }
@@ -202,6 +228,32 @@ const sell = async (req: Request, res: Response) => {
 	}
 
 	empire.networth = getNetworth(empire)
+
+	if (empire.peakCash < empire.cash + empire.bank) {
+		empire.peakCash = empire.cash + empire.bank
+	}
+	if (empire.peakFood < empire.food) {
+		empire.peakFood = empire.food
+	}
+	if (empire.peakRunes < empire.runes) {
+		empire.peakRunes = empire.runes
+	}
+	if (empire.peakNetworth < empire.networth) {
+		empire.peakNetworth = empire.networth
+	}
+	if (empire.peakTrpArm < empire.trpArm) {
+		empire.peakTrpArm = empire.trpArm
+	}
+	if (empire.peakTrpLnd < empire.trpLnd) {
+		empire.peakTrpLnd = empire.trpLnd
+	}
+	if (empire.peakTrpFly < empire.trpFly) {
+		empire.peakTrpFly = empire.trpFly
+	}
+	if (empire.peakTrpSea < empire.trpSea) {
+		empire.peakTrpSea = empire.trpSea
+	}
+
 	await empire.save()
 
 	let resultSellArm = { amount: sellArm, price: spendArray[0] }

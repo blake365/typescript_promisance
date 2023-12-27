@@ -39,6 +39,7 @@ import {
 	// cleanMarket,
 	hourlyUpdate,
 	promTurns,
+	snapshot,
 	thirtyMinUpdate,
 	// updateRanks,
 	// lotteryCheck,
@@ -178,9 +179,9 @@ if (process.env.NODE_ENV === 'development') {
 			if (thirtyMin.getStatus() !== 'running') {
 				scheduler.startById('id_5')
 			}
-			// if (ranks.getStatus() !== 'running') {
-			// 	scheduler.startById('id_3')
-			// }
+			if (snaps.getStatus() !== 'running') {
+				scheduler.startById('id_3')
+			}
 			if (hourly.getStatus() !== 'running') {
 				scheduler.startById('id_2')
 			}
@@ -205,9 +206,9 @@ if (process.env.NODE_ENV === 'development') {
 			if (thirtyMin.getStatus() === 'running') {
 				scheduler.stopById('id_5')
 			}
-			// if (ranks.getStatus() === 'running') {
-			// 	scheduler.stopById('id_3')
-			// }
+			if (snaps.getStatus() === 'running') {
+				scheduler.stopById('id_3')
+			}
 			if (hourly.getStatus() === 'running') {
 				scheduler.stopById('id_2')
 			}
@@ -254,11 +255,11 @@ if (process.env.NODE_ENV === 'development') {
 		'id_5'
 	)
 
-	// const ranks = new SimpleIntervalJob(
-	// 	{ minutes: TURNS_FREQ, runImmediately: false },
-	// 	updateRanks,
-	// 	'id_3'
-	// )
+	const snaps = new SimpleIntervalJob(
+		{ minutes: TURNS_FREQ, runImmediately: false },
+		snapshot,
+		'id_3'
+	)
 
 	const hourly = new SimpleIntervalJob(
 		{ hours: 1, runImmediately: false },
@@ -286,7 +287,7 @@ if (process.env.NODE_ENV === 'development') {
 
 	const scheduler = new ToadScheduler()
 
-	// scheduler.addSimpleIntervalJob(ranks)
+	scheduler.addSimpleIntervalJob(snaps)
 	scheduler.addSimpleIntervalJob(thirtyMin)
 	scheduler.addSimpleIntervalJob(hourly)
 	scheduler.addSimpleIntervalJob(daily)

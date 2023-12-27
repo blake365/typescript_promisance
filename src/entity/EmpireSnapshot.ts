@@ -1,22 +1,10 @@
-import {
-	Entity,
-	Column,
-	PrimaryGeneratedColumn,
-	Index,
-	ManyToOne,
-	JoinColumn,
-	OneToMany,
-	OneToOne,
-} from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm'
 
 import Model from './Model'
-import User from './User'
-import EmpireEffect from './EmpireEffect'
-import Clan from './Clan'
 
-@Entity('empires')
-export default class Empire extends Model {
-	constructor(empire: Partial<Empire>) {
+@Entity('empire snapshots')
+export default class EmpireSnapshot extends Model {
+	constructor(empire: Partial<EmpireSnapshot>) {
 		super()
 		Object.assign(this, empire)
 	}
@@ -36,29 +24,11 @@ export default class Empire extends Model {
 	})
 	clanId: number
 
-	@ManyToOne(() => Clan, (clan) => clan.empires)
-	clan: Clan
-
-	@ManyToOne(() => User, (user) => user.empires)
-	@JoinColumn({ name: 'username', referencedColumnName: 'username' })
-	user: User
-
-	// @CreateDateColumn()
-	// createdAt: Date
-
-	// @UpdateDateColumn()
-	// updatedAt: Date
 	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
 	lastAction: Date
 
 	@Column({ default: '' })
 	mode: string
-
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	clanOldId: number
 
 	@Column({
 		type: 'int',
@@ -180,54 +150,6 @@ export default class Empire extends Model {
 
 	@Column({
 		type: 'int',
-		default: 0,
-	})
-	idle: number
-
-	@Column({
-		type: 'int',
-		default: 25,
-	})
-	indArmy: number
-
-	@Column({
-		type: 'int',
-		default: 25,
-	})
-	indFly: number
-
-	@Column({
-		type: 'int',
-		default: 25,
-	})
-	indLnd: number
-
-	@Column({
-		type: 'int',
-		default: 25,
-	})
-	indSea: number
-
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	killClan: number
-
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	killedBy: number
-
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	kills: number
-
-	@Column({
-		type: 'int',
 		default: 250,
 	})
 	land: number
@@ -240,85 +162,6 @@ export default class Empire extends Model {
 		default: 0,
 	})
 	loan: number
-
-	// private market supplies
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 4000,
-	})
-	mktArm: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 2000,
-	})
-	mktFly: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 100000,
-	})
-	mktFood: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 100000,
-	})
-	mktRunes: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 3000,
-	})
-	mktLnd: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 1000,
-	})
-	mktSea: number
-
-	@Column({
-		type: 'int',
-		default: 500,
-	})
-	mktPerArm: number
-
-	@Column({
-		type: 'int',
-		default: 2000,
-	})
-	mktPerFly: number
-
-	@Column({
-		type: 'int',
-		default: 1000,
-	})
-	mktPerLnd: number
-
-	@Column({
-		type: 'int',
-		default: 3000,
-	})
-	mktPerSea: number
 
 	@Column()
 	name: string
@@ -365,12 +208,6 @@ export default class Empire extends Model {
 	})
 	rank: number
 
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	reason: string
-
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
@@ -379,24 +216,6 @@ export default class Empire extends Model {
 		default: 0,
 	})
 	runes: number
-
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	score: number
-
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	sharing: number
-
-	@Column({
-		type: 'int',
-		default: 25,
-	})
-	tax: number
 
 	@Column('bigint', {
 		transformer: {
@@ -460,36 +279,6 @@ export default class Empire extends Model {
 		default: 0,
 	})
 	turnsUsed: number
-
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	vacation: number
-
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	valCode: number
-
-	@Column({ type: 'simple-array', default: '', nullable: true })
-	favorites: string[]
-
-	@Column({ type: 'varchar', nullable: true, length: 1000 })
-	profile: string
-
-	@Column({ type: 'varchar', nullable: true })
-	profileIcon: string
-
-	@Column({ type: 'float', default: 0 })
-	diminishingReturns: number
-
-	@Column({ type: 'int', default: 0 })
-	spells: number
-
-	@Column({ type: 'int', default: 4 })
-	aidCredits: number
 
 	@Column('bigint', {
 		transformer: {
@@ -571,105 +360,6 @@ export default class Empire extends Model {
 		default: 0,
 	})
 	magicProd: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 0,
-	})
-	peakCash: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 0,
-	})
-	peakFood: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 0,
-	})
-	peakRunes: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 0,
-	})
-	peakTrpArm: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 0,
-	})
-	peakTrpLnd: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 0,
-	})
-	peakTrpFly: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 0,
-	})
-	peakTrpSea: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 0,
-	})
-	peakTrpWiz: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 0,
-	})
-	peakLand: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 0,
-	})
-	peakNetworth: number
-
-	@Column('bigint', {
-		transformer: {
-			to: (value) => value,
-			from: (value) => parseInt(value),
-		},
-		default: 0,
-	})
-	peakPeasants: number
 
 	// after load, set updatedAt to now
 	// @AfterLoad()

@@ -154,6 +154,31 @@ const sendAid = async (req: Request, res: Response) => {
 
 			receiver.networth = getNetworth(receiver)
 
+			if (receiver.peakCash < receiver.cash + receiver.bank) {
+				receiver.peakCash = receiver.cash + receiver.bank
+			}
+			if (receiver.peakFood < receiver.food) {
+				receiver.peakFood = receiver.food
+			}
+			if (receiver.peakRunes < receiver.runes) {
+				receiver.peakRunes = receiver.runes
+			}
+			if (receiver.peakNetworth < receiver.networth) {
+				receiver.peakNetworth = receiver.networth
+			}
+			if (receiver.peakTrpArm < receiver.trpArm) {
+				receiver.peakTrpArm = receiver.trpArm
+			}
+			if (receiver.peakTrpLnd < receiver.trpLnd) {
+				receiver.peakTrpLnd = receiver.trpLnd
+			}
+			if (receiver.peakTrpFly < receiver.trpFly) {
+				receiver.peakTrpFly = receiver.trpFly
+			}
+			if (receiver.peakTrpSea < receiver.trpSea) {
+				receiver.peakTrpSea = receiver.trpSea
+			}
+
 			await receiver.save()
 
 			aidTurns['aid'] = 'Shipment sent successfully'
@@ -198,6 +223,7 @@ const sendAid = async (req: Request, res: Response) => {
 		sender.income += spellRes.income
 		sender.expenses += spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+		sender.bank += spellRes.bankInterest
 		sender.loan -= spellRes.loanpayed + spellRes.loanInterest
 		sender.trpArm += spellRes.trpArm
 		sender.trpLnd += spellRes.trpLnd
@@ -226,6 +252,40 @@ const sendAid = async (req: Request, res: Response) => {
 		sender.lastAction = new Date()
 
 		sender.networth = getNetworth(sender)
+
+		if (sender.peakCash < sender.cash + sender.bank) {
+			sender.peakCash = sender.cash + sender.bank
+		}
+		if (sender.peakFood < sender.food) {
+			sender.peakFood = sender.food
+		}
+		if (sender.peakRunes < sender.runes) {
+			sender.peakRunes = sender.runes
+		}
+		if (sender.peakPeasants < sender.peasants) {
+			sender.peakPeasants = sender.peasants
+		}
+		if (sender.peakLand < sender.land) {
+			sender.peakLand = sender.land
+		}
+		if (sender.peakNetworth < sender.networth) {
+			sender.peakNetworth = sender.networth
+		}
+		if (sender.peakTrpArm < sender.trpArm) {
+			sender.peakTrpArm = sender.trpArm
+		}
+		if (sender.peakTrpLnd < sender.trpLnd) {
+			sender.peakTrpLnd = sender.trpLnd
+		}
+		if (sender.peakTrpFly < sender.trpFly) {
+			sender.peakTrpFly = sender.trpFly
+		}
+		if (sender.peakTrpSea < sender.trpSea) {
+			sender.peakTrpSea = sender.trpSea
+		}
+		if (sender.peakTrpWiz < sender.trpWiz) {
+			sender.peakTrpWiz = sender.trpWiz
+		}
 
 		await sender.save()
 	} catch (err) {
