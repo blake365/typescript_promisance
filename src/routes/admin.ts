@@ -20,6 +20,7 @@ import {
 	PVTM_FOOD,
 	PVTM_TRPARM,
 	TURNS_PROTECTION,
+	GAME_VERSION,
 } from '../config/conifg'
 import { makeId } from '../util/helpers'
 import { raceArray } from '../config/races'
@@ -686,6 +687,7 @@ const resetGame = async (req: Request, res: Response) => {
 
 		let allClans = clans.length
 		let allEmpires = empires.length
+		let gameVersion = String(GAME_VERSION)
 		const countUnclanned = empires.filter((empire) => {
 			return empire.clanId === 0
 		})
@@ -700,6 +702,7 @@ const resetGame = async (req: Request, res: Response) => {
 			allClans,
 			allEmpires,
 			nonClanEmpires,
+			gameVersion,
 		}).save()
 
 		console.log('round history added')

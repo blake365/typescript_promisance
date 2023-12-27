@@ -25,6 +25,11 @@ export default class RoundHistory extends Model {
 	})
 	description: string
 
+	@Column({
+		type: 'text',
+	})
+	gameVersion: string
+
 	@Column()
 	startDate: Date
 

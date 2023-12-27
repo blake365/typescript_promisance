@@ -2,7 +2,6 @@ import { Request, Response, Router } from 'express'
 import RoundHistory from '../entity/RoundHistory'
 import EmpireHistory from '../entity/EmpireHistory'
 import ClanHistory from '../entity/ClanHistory'
-import { get } from 'http'
 
 const getRounds = async (req: Request, res: Response) => {
 	try {
