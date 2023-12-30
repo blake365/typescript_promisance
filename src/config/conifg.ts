@@ -1,29 +1,14 @@
-export const GAME_VERSION = 0.2
+export const GAME_VERSION = 0.3
 export const GAME_TITLE = 'NeoPromisance' + ' ' + GAME_VERSION // server title, may customize to liking
-export const URL_BASE = 'http://www.yoursite.com/promisance/' // the path in which Promisance is installed
-export const URL_HOMEPAGE = 'http://www.yoursite.com/' // where users will be sent when they logout
-export const URL_FORUMS = 'http://www.yoursite.com/forums/viewforum.php?f=N' // where your site's forums are located
-// (comment out if you have none)
-export const MAIL_ADMIN = 'admin@yoursite.com' // administrative contact address
-export const MAIL_VALIDATE = 'promisance@yoursite.com' // source address for validation emails
-export const TXT_NEWS =
-	'<span style="color:white">Welcome to ' + GAME_TITLE + '!</span>'
-// news message displayed at top of all pages
-// undefine if you don't want any
-export const TXT_RULES =
-	'Additional information can be found in our forums.<br />' + // extra rules to display on signup page
-	'Please read through the FAQs before contacting an Administrator.' // undefine if you don't want any
-export const TXT_EMAIL =
-	'Be sure to check out http://www.qmtpro.com/ and tell your friends about us!'
-// custom text to display in signup email
+
 export const DEFAULT_LANGUAGE = 'en-US' // Default language pack to use, also used when not logged in
 export const BASE_LANGUAGE = 'en-US' // Base language pack, used for anything not defined in current/default
 
-export const ROUND_START = new Date('2023-12-01T08:00:00') // Date and time of round start
-export const ROUND_END = new Date('2023-12-29T18:00:00') // Date and time of round end
+export const ROUND_START = new Date('2024-01-02T08:00:00') // Date and time of round start
+export const ROUND_END = new Date('2024-01-31T18:00:00') // Date and time of round end
 
-export const ROUND_NAME = 'December 2023 - Beta' // Name of round
-export const ROUND_DESCRIPTION = 'Starting to get things solid' // Description of round
+export const ROUND_NAME = 'January 2023 - Beta' // Name of round
+export const ROUND_DESCRIPTION = 'Welcome to 2024' // Description of round
 
 export const EMPIRES_PER_USER = 1 // How many empires can be owned at once by a particular user?
 export const TURNS_PROTECTION = 400 // Duration of protection
@@ -53,7 +38,7 @@ export const IDLE_TIMEOUT_KILLED = 2 // Remove dead empire after this many days 
 export const IDLE_TIMEOUT_DELETE = 3 // Remove deleted empire after this many days (unless still under protection, in which case it is immediate)
 
 export const LOTTERY_MAXTICKETS = 3 // Maximum number of lottery tickets per empire
-export const LOTTERY_JACKPOT: number = 1000000000 // Base jackpot
+export const LOTTERY_JACKPOT = 1000000000 // Base jackpot
 
 export const BUILD_COST = 10000 // Base building cost
 export const DROP_DELAY = 60 * 60 * 12 // Minimum delay (in seconds) between gaining land and dropping it
@@ -91,19 +76,18 @@ export const PVTM_TRPLND = 1000
 export const PVTM_TRPFLY = 2000
 export const PVTM_TRPSEA = 3000
 export const PVTM_FOOD = 30
-export const PVTM_RUNES = 1400
+export const PVTM_RUNES = 1600
 
 export const INDUSTRY_MULT = 3 // Industry output multiplier
-export const MAX_ATTACKS = 35 // Maximum number of attacks
-export const MAX_SPELLS = 25 // Maximum number of attack spells
+export const MAX_ATTACKS = 30 // Maximum number of attacks
+export const MAX_SPELLS = 20 // Maximum number of attack spells
 export const DR_RATE = 1.5 // diminishing returns rate
-export const BASE_LUCK = 5 // Base luck
+export const BASE_LUCK = 5 // base luck
 
 export const AID_ENABLE = true // Enable sending foreign aid
 export const AID_MAXCREDITS = 5 // Maximum number of aid credits that can be accumulated at once
 export const AID_DELAY = 60 * 60 * 3 // Once you send too much aid, how many seconds before you can send more
-export const MESSAGES_MAXCREDITS = 5 // Maximum number of new private messages that can be sent at once
-export const MESSAGES_DELAY = 10 * 60 // Once you send too many messages, how many seconds before you can send more
+
 export const FRIEND_MAGIC_ENABLE = false // Enable casting spells on friendly empires
 export const SCORE_ENABLE = false // Enable keeping score for empires attacking each other
 export const MAGIC_ALLOW_REGRESS = true // Enables usage of the "Regress to Previous Era" spell
@@ -113,37 +97,10 @@ export const CLANSTATS_MINSIZE = 1 // Minimum member count for inclusion on Top 
 export const TOPEMPIRES_COUNT = 50 // Maximum number of empires to list on Top Empires page
 export const TOPPLAYERS_COUNT = 50 // Maximum number of user accounts to list on All Time Top Players page
 
-export const SIGNUP_CLOSED_USER = false // Don't allow creation of new user accounts from signup page
-export const SIGNUP_CLOSED_EMPIRE = false // Don't allow creation of new empires from signup page
-
 export const VALIDATE_REQUIRE = false // Require users to validate their empires before they can continue playing
 export const VALIDATE_ALLOW = false // Allow users to validate their own empires
 export const VALIDATE_RESEND = 60 * 60 // How long users must wait between resending their validation code
 
-export const COUNTER_TEMPLATE = 'counter2.png' // Digit style for "registered empires" counter
-// Set to empty string to use plain bold text
-export const COUNTER_DIGITS = 3 // Number of digits for "registered empires" counter
-// Set to 0 to determine automatically
-
 export const BONUS_TURNS = true // Allow users to collect 1 hour worth of bonus turns each day.
 // Turns are collected by clicking a banner (defined below) or,
 // if none are defined, a "Bonus Turns" button at the top of the page.
-
-export const banners = [] // Define banners below. Do NOT use paid advertisements if bonus
-// turns are enabled, as it provides an incentive for click fraud.
-// $banners[] = array('label' => 'Hover text', 'image' => 'Image URL', 'url' => 'Click URL', 'width' => '468', 'height' => '60', 'ismap' => '1' if imagemap, '0' if not);
-
-// Stylesheets for use in-game
-// export const styles = [
-// 	{qmt => array('file' => 'qmt.css', 'name' => 'QMT Black'),
-// 	'ezclan' => array('file' => 'ezclan.css', 'name' => 'EZClan Blue'),
-// ]
-
-export const DEFAULT_STYLE = 'qmt' // Default style, also used when not logged in
-export const DEFAULT_TIMEZONE = -21600 // Default timezone for new accounts
-// Specify UTC offset in seconds, must be defined in constants.php
-export const DEFAULT_DATEFORMAT = 'r' // Default date/time format for new accounts
-
-export const LOG_ENABLE = false // Enable logging of all in-game events
-// Warnings are logged regardless of this setting
-export const DEBUG_FOOTER = false // Display page generation time, memory usage, and query count at bottom of page
