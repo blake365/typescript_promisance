@@ -159,4 +159,10 @@ export default class User extends Model {
 		default: 0,
 	})
 	totalConsumption: number
+
+	@Column({
+		type: 'json',
+		default: {},
+	})
+	achievements: object
 }

@@ -797,6 +797,27 @@ const bonusTurns = async (req: Request, res: Response) => {
 	}
 }
 
+const getAchievements = async (req: Request, res: Response) => {
+	const { uuid } = req.params
+
+	// const user: User = res.locals.user
+
+	// if (user.empires[0].uuid !== uuid) {
+	// 	return res.status(403).json({ error: 'unauthorized' })
+	// }
+
+	try {
+		const empire = await Empire.findOneOrFail({ uuid })
+
+		const achievements = empire.achievements
+
+		return res.status(200).json(achievements)
+	} catch (error) {
+		console.log(error)
+		return res.status(404).json({ empire: 'empire not found' })
+	}
+}
+
 const router = Router()
 
 router.post('/', user, auth, createEmpire)
@@ -804,6 +825,7 @@ router.post('/', user, auth, createEmpire)
 router.get('/', getEmpires)
 router.get('/scores', getScores)
 router.get('/:uuid', user, auth, findOneEmpire)
+router.get('/:uuid/achievements', getAchievements)
 router.post('/effects', user, auth, getEmpireEffects)
 router.post('/effects/new', user, auth, addEmpireEffect)
 // router.put('/:uuid', user, auth, updateEmpire)

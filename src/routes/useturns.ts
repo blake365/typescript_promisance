@@ -760,7 +760,7 @@ export const useTurnInternal = (
 
 		// savings interest
 		let withdraw = 0
-		let bankInterest
+		let bankInterest = 0
 		// savings interest
 		if (empire.turnsUsed > TURNS_PROTECTION) {
 			let bankMax = empire.networth * 100

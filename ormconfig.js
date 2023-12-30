@@ -16,11 +16,12 @@ module.exports = {
 	logging: false,
 	namingStrategy: new SnakeNamingStrategy(),
 	entities: [rootDir + '/entity/**/*{.ts,.js}'],
+	subscribers: [rootDir + '/subscriber/**/*{.ts,.js}'],
 	migrations: [rootDir + '/migrations/**/*{.ts,.js}'],
 	cli: {
 		entitiesDir: rootDir + '/entity',
 		migrationsDir: rootDir + '/migrations',
-		subscribersDir: rootDir + '/subscribers',
+		subscribersDir: rootDir + '/subscriber',
 	},
 	name: 'default',
 	// cache: true,
