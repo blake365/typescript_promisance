@@ -4,8 +4,8 @@ export const GAME_TITLE = 'NeoPromisance' + ' ' + GAME_VERSION // server title, 
 export const DEFAULT_LANGUAGE = 'en-US' // Default language pack to use, also used when not logged in
 export const BASE_LANGUAGE = 'en-US' // Base language pack, used for anything not defined in current/default
 
-export const ROUND_START = new Date('2023-12-02T08:00:00') // Date and time of round start
-export const ROUND_END = new Date('2023-12-31T18:00:00') // Date and time of round end
+export const ROUND_START = new Date('2024-01-02T08:00:00') // Date and time of round start
+export const ROUND_END = new Date('2024-01-31T22:00:00') // Date and time of round end
 
 export const ROUND_NAME = 'January 2024 - Beta' // Name of round
 export const ROUND_DESCRIPTION = 'Welcome to 2024' // Description of round

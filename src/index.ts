@@ -264,7 +264,7 @@ if (process.env.NODE_ENV === 'development') {
 	)
 
 	const snaps = new SimpleIntervalJob(
-		{ minutes: 30, runImmediately: false },
+		{ minutes: 15, runImmediately: false },
 		snapshot,
 		'id_3'
 	)
