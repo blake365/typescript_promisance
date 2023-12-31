@@ -1,4 +1,4 @@
-import { MoreThan, getConnection, getRepository } from 'typeorm'
+import { MoreThan, Not, getConnection, getRepository } from 'typeorm'
 // import ClanInvite from '../entity/ClanInvite'
 import Empire from '../entity/Empire'
 import Market from '../entity/Market'
@@ -602,7 +602,7 @@ const empireSnapshots = async (req: Request, res: Response) => {
 	try {
 		// loop over empires, save each empire to separate snapshot row
 		const empires = await Empire.find({
-			where: { turnsUsed: MoreThan(TURNS_PROTECTION - 1) },
+			where: { turnsUsed: MoreThan(TURNS_PROTECTION - 1), mode: Not('demo') },
 		})
 
 		for (let i = 0; i < empires.length; i++) {
