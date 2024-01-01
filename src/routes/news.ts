@@ -5,7 +5,7 @@ import { Request, Response, Router } from 'express'
 import EmpireNews from '../entity/EmpireNews'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
-import { getConnection } from 'typeorm'
+import { getConnection, Raw } from 'typeorm'
 import User from '../entity/User'
 
 // set up route for pagination of news data
@@ -228,8 +228,33 @@ const clanNews = async (req: Request, res: Response) => {
 	}
 }
 
+const simpleNews = async (req: Request, res: Response) => {
+	try {
+		const news = await EmpireNews.find({
+			select: [
+				'sourceName',
+				'destinationName',
+				'type',
+				'result',
+				'createdAt',
+				'publicContent',
+			],
+			where: {
+				createdAt: Raw((alias) => `${alias} > NOW() - INTERVAL '24 hours'`),
+			},
+			order: { createdAt: 'ASC' },
+		})
+
+		return res.json(news)
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
 const router = Router()
 
+router.get('/simple', simpleNews)
 router.post('/', getPageNews)
 router.post('/search', searchNews)
 router.get('/:id', user, auth, getEmpireNews)

@@ -215,6 +215,10 @@ const getScores = async (_: Request, res: Response) => {
 				'lastAction',
 				'clanId',
 				'diminishingReturns',
+				'offSucc',
+				'offTotal',
+				'defSucc',
+				'defTotal',
 			],
 			order: {
 				rank: 'ASC',
