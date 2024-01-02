@@ -25,6 +25,7 @@ import { eraArray } from '../config/eras'
 import { createNewsEvent } from '../util/helpers'
 import Lottery from '../entity/Lottery'
 import EmpireSnapshot from '../entity/EmpireSnapshot'
+import User from '../entity/User'
 
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
@@ -500,8 +501,6 @@ export const cleanDemoAccounts = new AsyncTask(
 				'lottery',
 				'fail'
 			)
-
-			return
 		} else {
 			// console.log('winner', winner)
 			// console.log(jackpot)
@@ -539,8 +538,44 @@ export const cleanDemoAccounts = new AsyncTask(
 				.delete()
 				.from(Lottery)
 				.execute()
+		}
 
-			return
+		// sync achievements to user
+		const empires = await Empire.find({
+			select: ['id', 'achievements'],
+			relations: ['user'],
+		})
+
+		// loop through empires, sync achievements to user
+		for (let i = 0; i < empires.length; i++) {
+			const empire = empires[i]
+			const user = await User.findOne({ id: empire.user.id })
+
+			// compare empire achievements to user achievements
+			// if an achievement was earned on the empire, add it to the user
+
+			let newUserAchievements
+			if (Object.keys(user.achievements).length === 0) {
+				newUserAchievements = empire.achievements
+			} else {
+				newUserAchievements = user.achievements
+			}
+
+			Object.keys(empire.achievements).forEach((key) => {
+				// console.log(empire.achievements[key])
+				// console.log(newUserAchievements[key])
+				if (
+					empire.achievements[key].awarded === true &&
+					newUserAchievements[key].awarded === false
+				) {
+					newUserAchievements[key].awarded = true
+					newUserAchievements[key].timeAwarded =
+						empire.achievements[key].timeAwarded
+				}
+			})
+
+			user.achievements = newUserAchievements
+			await user.save()
 		}
 	}
 )

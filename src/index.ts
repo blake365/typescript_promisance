@@ -276,7 +276,7 @@ if (process.env.NODE_ENV === 'development') {
 	)
 
 	const daily = new SimpleIntervalJob(
-		{ days: 1, runImmediately: false },
+		{ minutes: 15, runImmediately: false },
 		cleanDemoAccounts,
 		'id_4'
 	)
