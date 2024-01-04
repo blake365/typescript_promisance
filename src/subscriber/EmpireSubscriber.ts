@@ -6,16 +6,7 @@ import {
 import Empire from '../entity/Empire'
 import { achievements } from '../config/achievements'
 
-async function updateEmpire(id: number, achievements: any) {
-	const empire = await Empire.findOne({ id: id })
-	// console.log(empire)
-	empire.achievements = achievements
-	await empire.save()
-	console.log('saved')
-	return 'saved'
-}
-
-function sortObject(obj) {
+function sortObject(obj: Record<string, unknown>) {
 	return Object.keys(obj)
 		.sort()
 		.reduce((result, key) => {
@@ -33,12 +24,15 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 	/**
 	 * Called after entity update.
 	 */
-	afterUpdate(event: UpdateEvent<Empire>) {
+	async afterUpdate(event: UpdateEvent<Empire>) {
 		// console.log(`AFTER ENTITY UPDATED: `, event.entity.id)
 		// console.log(event.entity.name)
 		// console.log('starting', event.entity.achievements)
+		await event.queryRunner.commitTransaction()
+		await event.queryRunner.startTransaction()
 
 		if (event.entity.id > 0) {
+			console.log('empire found', event.entity.id)
 			let newAchievements = JSON.parse(
 				JSON.stringify(event.entity.achievements)
 			) // loop through achievements
@@ -76,7 +70,6 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 							awarded: true,
 							timeAwarded: new Date().toISOString(),
 						}
-						break
 					} else if (
 						property === 'freeLand' &&
 						event.entity[property] === thresholds[i] &&
@@ -89,7 +82,6 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 							awarded: true,
 							timeAwarded: new Date().toISOString(),
 						}
-						break
 					} else if (
 						event.entity[property] >= thresholds[i] &&
 						property !== 'rank' &&
@@ -101,7 +93,6 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 							awarded: true,
 							timeAwarded: new Date().toISOString(),
 						}
-						break
 					}
 				}
 			}
@@ -113,8 +104,16 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 			) {
 				// The objects are different, so you can update the empire
 				console.log('updating empire')
-				updateEmpire(event.entity.id, newAchievements)
+				return event.manager
+					.createQueryBuilder()
+					.update(Empire)
+					.set({ achievements: newAchievements })
+					.where({
+						id: event.entity.id,
+					})
+					.execute()
 			}
+
 			// console.log(status)
 		}
 	}

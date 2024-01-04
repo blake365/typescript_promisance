@@ -683,7 +683,7 @@ const useTurns = async (req: Request, res: Response) => {
 
 	// const user = res.locals.user
 	// const empireId = res.locals.user.empire.empireId
-
+	// console.log(type, turns, empireId, condensed)
 	const response = await useTurn(type, turns, empireId, condensed)
 
 	return res.json(response)
