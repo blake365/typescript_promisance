@@ -8,6 +8,9 @@ import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import Session from '../entity/Session'
+import { makeId } from '../util/helpers'
+import ResetToken from '../entity/ResetToken'
+import { sendSESEmail } from '../util/mail'
 
 const mapErrors = (errors: Object[]) => {
 	return errors.reduce((prev: any, err: any) => {
@@ -249,11 +252,99 @@ const demoAccount = async (req: Request, res: Response) => {
 	}
 }
 
+const forgotPassword = async (req: Request, res: Response) => {
+	const { email } = req.body
+	const origin = req.headers.origin
+
+	// console.log(origin)
+
+	try {
+		const user = await User.findOne({ email })
+
+		if (!user) {
+			return res.json({ error: 'Email address not found' })
+		}
+
+		const token = makeId(40)
+
+		const selector = token.slice(0, 18)
+		let validator = token.slice(18)
+		validator = await bcrypt.hash(validator, 6)
+
+		const resetToken = new ResetToken()
+		resetToken.email = email
+		resetToken.selector = selector
+		resetToken.verifier = validator
+		resetToken.expiredAt = new Date(Date.now() + 3600000)
+		await resetToken.save()
+
+		const link = `${origin}/reset-password/${token}`
+		const text = `NeoPromisance password reset link: ${link}`
+		const html = `<p>Click the link below to reset your Neopromisance password:</p><a href="${link}">${link}</a>`
+
+		await sendSESEmail(
+			email,
+			'admin@neopromisance.com',
+			'Reset your NeoPromisance password',
+			text,
+			html
+		)
+
+		return res.json({
+			message: 'Email sent, be sure to check your spam filters',
+		})
+	} catch (err) {
+		console.log(err)
+		return res.json({ error: 'Something went wrong' })
+	}
+}
+
+const confirmToken = async (req: Request, res: Response) => {
+	const { token, password } = req.body
+
+	try {
+		const resetToken = await ResetToken.findOne({
+			selector: token.slice(0, 18),
+		})
+
+		if (!resetToken) {
+			return res.json({ error: 'Invalid Request' })
+		}
+
+		const isValid = await bcrypt.compare(token.slice(18), resetToken.verifier)
+
+		if (resetToken.expiredAt < new Date()) {
+			return res.json({ error: 'Token expired' })
+		}
+
+		// console.log(isValid)
+		if (!isValid) {
+			return res.json({ error: 'Invalid Request' })
+		} else {
+			const user = await User.findOne({ email: resetToken.email })
+
+			if (!user) {
+				return res.json({ error: 'User not found' })
+			}
+
+			user.password = await bcrypt.hash(password, 6)
+			await user.save()
+			await resetToken.remove()
+			return res.json({ message: 'Success!' })
+		}
+	} catch (err) {
+		console.log(err)
+		return res.json({ error: 'Something went wrong' })
+	}
+}
+
 const router = Router()
 router.post('/register', register)
 router.post('/demo', demoAccount)
 router.post('/login', login)
 router.get('/me', user, auth, me)
 router.get('/logout', user, auth, logout)
+router.post('/forgot-password', forgotPassword)
+router.post('/confirm-token', confirmToken)
 
 export default router

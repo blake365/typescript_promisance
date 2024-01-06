@@ -28,8 +28,8 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 		// console.log(`AFTER ENTITY UPDATED: `, event.entity.id)
 		// console.log(event.entity.name)
 		// console.log('starting', event.entity.achievements)
-		await event.queryRunner.commitTransaction()
-		await event.queryRunner.startTransaction()
+		// await event.queryRunner.commitTransaction()
+		// await event.queryRunner.startTransaction()
 
 		if (event.entity.id > 0) {
 			console.log('empire found', event.entity.id)
@@ -113,7 +113,6 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 					})
 					.execute()
 			}
-
 			// console.log(status)
 		}
 	}
