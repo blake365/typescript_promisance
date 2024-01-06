@@ -33,7 +33,7 @@ import lottery from './routes/lottery'
 import cron from './routes/chron'
 import archive from './routes/archives'
 import snapshots from './routes/snapshots'
-import testMail from './util/mail'
+// import testMail from './util/mail'
 
 import {
 	aidCredits,
@@ -121,7 +121,7 @@ app.use('/api/lottery', lottery)
 app.use('/api/cron', cron)
 app.use('/api/archives', archive)
 app.use('/api/snapshots', snapshots)
-app.use('/api/send', testMail)
+// app.use('/api/send', testMail)
 
 app.get('/debug-sentry', function mainHandler(req, res) {
 	throw new Error('My first Sentry error!')
