@@ -252,11 +252,49 @@ const simpleNews = async (req: Request, res: Response) => {
 	}
 }
 
+const scoresNews = async (req: Request, res: Response) => {
+	const { view, empire, take } = req.body
+
+	try {
+		const news = await EmpireNews.find({
+			where: [
+				{
+					public: view,
+					empireIdDestination: empire,
+					type: 'attack',
+				},
+				{
+					public: view,
+					empireIdDestination: empire,
+					type: 'spell',
+				},
+				{
+					public: view,
+					empireIdSource: empire,
+					type: 'attack',
+				},
+				{
+					public: view,
+					empireIdSource: empire,
+					type: 'spell',
+				},
+			],
+			order: { createdAt: 'DESC' },
+			take: take,
+		})
+		return res.json(news)
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
 const router = Router()
 
 router.get('/simple', simpleNews)
 router.post('/', getPageNews)
-router.post('/search', searchNews)
+router.post('/search', user, auth, searchNews)
+router.post('/scores', user, auth, scoresNews)
 router.get('/:id', user, auth, getEmpireNews)
 router.get('/:id/read', user, auth, markRead)
 router.get('/:id/check', user, auth, checkForNew)
