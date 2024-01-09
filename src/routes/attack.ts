@@ -652,7 +652,7 @@ const attack = async (req: Request, res: Response) => {
 				attacker.trpWiz = Math.round(0.97 * attacker.trpWiz)
 			}
 
-			if (attacker.networth < defender.networth * 0.25 && type !== 'war') {
+			if (attacker.networth < defender.networth * 0.2 && type !== 'war') {
 				// the attacker is fearful, troops desert
 				returnText +=
 					'Your troops are fearful of fighting such a strong opponent, many desert...'

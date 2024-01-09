@@ -1,10 +1,12 @@
-# Promisance Typescript Backend
+# Promisance Typescript Back End
 
+Built for NeoPromisance, playable at https://www.neopromisance.com
 Based on the QMT Promisance 4.81
 
-Porting from PHP to express/typeORM
+Ported from PHP to javascript using node, express, typeORM, etc.
 
-There is a lot to do...
+This repo is the node server for the game NeoPromisance. It is intended to be paired with the react front end.
+The server includes authentication, database schemas, and game logic.
 
 Steps to run this project:
 

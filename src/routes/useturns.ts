@@ -336,7 +336,7 @@ export const useTurn = async (
 			}
 		}
 		if (type === 'heal') {
-			income = Math.round(income * 0.75)
+			income = Math.round(income * 0.66)
 		}
 
 		//war tax
@@ -440,7 +440,7 @@ export const useTurn = async (
 			}
 		}
 		if (type === 'heal') {
-			indMultiplier = 0.75
+			indMultiplier = 0.66
 		}
 
 		let { trparm, trplnd, trpfly, trpsea } = IndyOutput(empire, indMultiplier)
@@ -479,7 +479,7 @@ export const useTurn = async (
 			}
 		}
 		if (type === 'heal') {
-			foodpro = Math.round(0.75 * foodpro)
+			foodpro = Math.round(0.66 * foodpro)
 		}
 
 		let food = Math.round(foodpro - foodcon)
@@ -545,7 +545,7 @@ export const useTurn = async (
 			}
 		}
 		if (type === 'heal') {
-			runeMultiplier = 0.75
+			runeMultiplier = 0.66
 		}
 
 		let runes = calculateRunes(empire, runeMultiplier)

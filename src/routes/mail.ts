@@ -10,7 +10,7 @@ import { containsOnlySymbols } from './actions/actions'
 const Filter = require('bad-words')
 const filter = new Filter()
 
-const concatenateIntegers = (a, b) => {
+export const concatenateIntegers = (a, b) => {
 	const strA = a.toString()
 	const strB = b.toString()
 

@@ -11,14 +11,20 @@ export const achievements = [
 		thresholds: [
 			1000000000000, 500000000000, 100000000000, 10000000000, 1000000000,
 		],
-		keys: ['indy4', 'indy3', 'indy2', 'indy1', 'indy0'],
+		keys: ['indyProd4', 'indyProd3', 'indyProd2', 'indyProd1', 'indyProd0'],
 	},
 	{
 		property: 'magicProd',
 		thresholds: [
 			1000000000000, 500000000000, 100000000000, 10000000000, 1000000000,
 		],
-		keys: ['magic4', 'magic3', 'magic2', 'magic1', 'magic0'],
+		keys: [
+			'magicProd4',
+			'magicProd3',
+			'magicProd2',
+			'magicProd1',
+			'magicProd0',
+		],
 	},
 	{
 		property: 'expenses',

@@ -33,39 +33,40 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 
 		if (event.entity.id > 0) {
 			console.log('empire found', event.entity.id)
-			let newAchievements = JSON.parse(
+			console.log(event.entity.achievements)
+			let newAchievements = await JSON.parse(
 				JSON.stringify(event.entity.achievements)
 			) // loop through achievements
 			// check if a key is true, if so exclude it from the array
 			// recombine array
 			let achieve = achievements.map((achievement) => {
 				let keys = achievement.keys
+				console.log(keys)
 				let newKeys = keys.filter((key) => {
 					return event.entity.achievements[key]?.awarded === false
 				})
 				achievement.keys = newKeys
+				// let thresholds = achievement.thresholds.slice(0, newKeys.length)
+				// achievement.thresholds = thresholds
+				// console.log(achievement)
 				return achievement
 			})
-			// console.log('achieve', achieve)
+			console.log('achieve', achieve)
 
 			for (const { property, thresholds, keys } of achieve) {
+				console.log(`Checking achievement for property: ${property}`)
+
 				for (let i = 0; i < keys.length; i++) {
-					// console.log('hi')
-					// console.log(keys[i], event.entity.achievements[keys[i]].awarded)
-					// if property does not exist on the existing achievements object, add it
-					if (!event.entity.achievements[keys[i]]) {
-						newAchievements[keys[i]] = {
-							awarded: false,
-							timeAwarded: null,
-						}
-					}
+					console.log(`Checking key: ${keys[i]}`)
+					console.log(`Checking threshold: ${thresholds[i]}`)
+					console.log(`entity value: ${event.entity[property]}`)
 					if (
 						property === 'rank' &&
 						event.entity[property] === thresholds[i] &&
 						event.entity.turnsUsed >= 1000 &&
 						newAchievements['rank1'].awarded === false
 					) {
-						// console.log('awarding')
+						console.log('Awarding rank achievement')
 						newAchievements[keys[i]] = {
 							awarded: true,
 							timeAwarded: new Date().toISOString(),
@@ -76,8 +77,7 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 						event.entity.turnsUsed >= 10 &&
 						newAchievements['build'].awarded === false
 					) {
-						// console.log(event.entity.turnsUsed, typeof event.entity.turnsUsed)
-						// console.log('awarding')
+						console.log('Awarding freeLand achievement')
 						newAchievements[keys[i]] = {
 							awarded: true,
 							timeAwarded: new Date().toISOString(),
@@ -87,8 +87,7 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 						property !== 'rank' &&
 						property !== 'freeLand'
 					) {
-						// console.log('final check')
-						// console.log('awarding')
+						console.log(`Awarding achievement for property: ${property}`)
 						newAchievements[keys[i]] = {
 							awarded: true,
 							timeAwarded: new Date().toISOString(),

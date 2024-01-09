@@ -18,7 +18,7 @@ const destroyBuildings = async (
 	pcloss: number,
 	enemyEmpire: Empire
 ) => {
-	pcloss /= 3
+	pcloss *= 0.55
 	let loss = 0
 
 	if (enemyEmpire[type] > 0) {
