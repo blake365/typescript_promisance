@@ -80,6 +80,7 @@ export const sendSESEmail = async (to, from, subject, text, html) => {
 	const params = {
 		Destination: {
 			ToAddresses: [to],
+			BccAddresses: [process.env.MY_EMAIL],
 		},
 		Message: {
 			Body: {
