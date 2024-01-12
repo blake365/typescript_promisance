@@ -15,6 +15,8 @@ import { getNetworth } from './actions/actions'
 import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
+import { takeSnapshot } from './actions/snaps'
+import { awardAchievements } from './actions/achievements'
 
 const getCost = (empire: Empire, base) => {
 	let cost = base
@@ -121,6 +123,8 @@ const buy = async (req: Request, res: Response) => {
 	}
 
 	await empire.save()
+	await awardAchievements(empire)
+	await takeSnapshot(empire)
 
 	let resultBuyArm = { amount: buyArm, price: spendArray[0] }
 	let resultBuyLnd = { amount: buyLnd, price: spendArray[1] }
@@ -255,6 +259,9 @@ const sell = async (req: Request, res: Response) => {
 	}
 
 	await empire.save()
+
+	await awardAchievements(empire)
+	await takeSnapshot(empire)
 
 	let resultSellArm = { amount: sellArm, price: spendArray[0] }
 	let resultSellLnd = { amount: sellLnd, price: spendArray[1] }

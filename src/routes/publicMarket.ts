@@ -14,6 +14,8 @@ import user from '../middleware/user'
 import { Not, Raw } from 'typeorm'
 import { createNewsEvent } from '../util/helpers'
 import User from '../entity/User'
+import { awardAchievements } from './actions/achievements'
+import { takeSnapshot } from './actions/snaps'
 
 interface ReturnObject {
 	amount: number
@@ -121,6 +123,10 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 	await buyer.save()
 	await seller.save()
 	await itemBought.save()
+
+	await awardAchievements(buyer)
+	await takeSnapshot(buyer)
+	await takeSnapshot(seller)
 
 	// create news entry
 	let content: string = `You sold ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}. The money was deposited into the bank.`
@@ -373,6 +379,8 @@ const pubSell = async (req: Request, res: Response) => {
 	empire.lastAction = new Date()
 
 	await empire.save()
+	await awardAchievements(empire)
+	await takeSnapshot(empire)
 
 	// console.log(returnArray)
 	// console.log(empire.networth)
@@ -569,6 +577,8 @@ const recallItem = async (req: Request, res: Response) => {
 			empire.peakTrpSea = empire.trpSea
 		}
 		await empire.save()
+		await awardAchievements(empire)
+		await takeSnapshot(empire)
 		return res.json({ success: 'Item recalled' })
 	} catch (e) {
 		console.log(e)

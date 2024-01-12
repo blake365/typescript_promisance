@@ -23,6 +23,8 @@ import {
 } from '../config/conifg'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
+import { awardAchievements } from './actions/achievements'
+import { takeSnapshot } from './actions/snaps'
 
 function calcProvisions(empire: Empire) {
 	let production =
@@ -674,6 +676,10 @@ export const useTurn = async (
 	empire.lastAction = new Date()
 	empire.networth = getNetworth(empire)
 	await empire.save()
+
+	await awardAchievements(empire)
+	// console.log(achievementResult)
+	await takeSnapshot(empire)
 	// console.log(statsArray)
 	return statsArray
 }

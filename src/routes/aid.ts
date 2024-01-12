@@ -16,6 +16,8 @@ import {
 } from '../config/conifg'
 import { getNetworth } from './actions/actions'
 import User from '../entity/User'
+import { awardAchievements } from './actions/achievements'
+import { takeSnapshot } from './actions/snaps'
 
 // send aid to another empire
 const sendAid = async (req: Request, res: Response) => {
@@ -180,6 +182,7 @@ const sendAid = async (req: Request, res: Response) => {
 			}
 
 			await receiver.save()
+			await takeSnapshot(receiver)
 
 			aidTurns['aid'] = 'Shipment sent successfully'
 
@@ -288,6 +291,9 @@ const sendAid = async (req: Request, res: Response) => {
 		}
 
 		await sender.save()
+
+		await awardAchievements(sender)
+		await takeSnapshot(sender)
 	} catch (err) {
 		return res.status(400).json({ error: 'something went wrong' })
 	}

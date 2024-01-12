@@ -20,6 +20,8 @@ import {
 import { cauchyRandom, gaussianRandom, getNetworth } from './actions/actions'
 import Clan from '../entity/Clan'
 import User from '../entity/User'
+import { awardAchievements } from './actions/achievements'
+import { takeSnapshot } from './actions/snaps'
 
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
@@ -1346,6 +1348,10 @@ const attack = async (req: Request, res: Response) => {
 			// save updated attacker and defender
 			await attacker.save()
 			await defender.save()
+
+			await awardAchievements(attacker)
+			await takeSnapshot(attacker)
+			await takeSnapshot(defender)
 		} else {
 			// console.log('not allowed')
 			return res.json({

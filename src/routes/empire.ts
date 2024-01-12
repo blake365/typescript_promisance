@@ -135,23 +135,23 @@ const createEmpire = async (req: Request, res: Response) => {
 
 		effect.save()
 
-		const messageBody = `Welcome to NeoPromisance. This game is played in month long rounds. This round started on ${ROUND_START.toLocaleString()} and will end on ${ROUND_END.toLocaleString()}. You can find a lot of helpful information in the game guide. If you have any questions, please feel free to ask in the Discord or ask other players in game. Good luck!`
+		// const messageBody = `Welcome to NeoPromisance. This game is played in month long rounds. This round started on ${ROUND_START.toLocaleString()} and will end on ${ROUND_END.toLocaleString()}. You can find a lot of helpful information in the game guide. If you have any questions, please feel free to ask in the Discord or ask other players in game. Good luck!`
 
-		// new player intro mail message
-		let message = EmpireMessage.create({
-			empireIdSource: 0,
-			empireSourceName: 'Welcome',
-			empireIdDestination: empire.id,
-			empireDestinationName: empire.name,
-			messageSubject: '',
-			messageBody: messageBody,
-			messageTime: 0,
-			messageFlags: 0,
-			messageIdRef: 0,
-			conversationId: concatenateIntegers(0, empire.id),
-		})
+		// // new player intro mail message
+		// let message = EmpireMessage.create({
+		// 	empireIdSource: 0,
+		// 	empireSourceName: 'Welcome',
+		// 	empireIdDestination: empire.id,
+		// 	empireDestinationName: empire.name,
+		// 	messageSubject: '',
+		// 	messageBody: messageBody,
+		// 	messageTime: 0,
+		// 	messageFlags: 0,
+		// 	messageIdRef: 0,
+		// 	conversationId: concatenateIntegers(0, empire.id),
+		// })
 
-		await message.save()
+		// await message.save()
 
 		return res.status(201).json(empire)
 	} catch (error) {

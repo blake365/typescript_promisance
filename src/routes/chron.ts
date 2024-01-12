@@ -202,6 +202,20 @@ const promTurns = async (req: Request, res: Response) => {
 				.execute()
 		}
 
+		const snapEmpires = empires.filter(
+			(emp) => emp.turnsUsed > TURNS_PROTECTION - 1 && emp.mode !== 'demo'
+		)
+
+		for (let i = 0; i < snapEmpires.length; i++) {
+			console.log('taking snapshot')
+			const empire = snapEmpires[i]
+			const snapshot = new EmpireSnapshot(empire)
+			// console.log(empire)
+			snapshot.e_id = empire.id
+			snapshot.createdAt = new Date()
+			await snapshot.save()
+		}
+
 		console.log('Turns update', new Date())
 		return res.status(200).json({ message: 'Turns updated' })
 	} catch (err) {
@@ -638,35 +652,36 @@ const test = async (req: Request, res: Response) => {
 	}
 }
 
+// MOVED TO PROMTURNS
 // empire snapshots, save empire stats every 4 hours to a separate table
 // can use snapshots to create graphs of empire stats over time
-const empireSnapshots = async (req: Request, res: Response) => {
-	if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
-		return res.status(401).end('Unauthorized')
-	}
+// const empireSnapshots = async (req: Request, res: Response) => {
+// 	if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
+// 		return res.status(401).end('Unauthorized')
+// 	}
 
-	try {
-		// loop over empires, save each empire to separate snapshot row
-		const empires = await Empire.find({
-			where: { turnsUsed: MoreThan(TURNS_PROTECTION - 1), mode: Not('demo') },
-		})
+// 	try {
+// 		// loop over empires, save each empire to separate snapshot row
+// 		const empires = await Empire.find({
+// 			where: { turnsUsed: MoreThan(TURNS_PROTECTION - 1), mode: Not('demo') },
+// 		})
 
-		for (let i = 0; i < empires.length; i++) {
-			console.log('taking snapshot')
-			const empire = empires[i]
-			const snapshot = new EmpireSnapshot(empire)
-			// console.log(empire)
-			snapshot.e_id = empire.id
-			snapshot.createdAt = new Date()
-			await snapshot.save()
-		}
+// 		for (let i = 0; i < empires.length; i++) {
+// 			console.log('taking snapshot')
+// 			const empire = empires[i]
+// 			const snapshot = new EmpireSnapshot(empire)
+// 			// console.log(empire)
+// 			snapshot.e_id = empire.id
+// 			snapshot.createdAt = new Date()
+// 			await snapshot.save()
+// 		}
 
-		return res.status(200).json({ message: 'snapshot' })
-	} catch (err) {
-		console.log(err)
-		return res.status(500).json({ message: 'Something went wrong in snapshot' })
-	}
-}
+// 		return res.status(200).json({ message: 'snapshot' })
+// 	} catch (err) {
+// 		console.log(err)
+// 		return res.status(500).json({ message: 'Something went wrong in snapshot' })
+// 	}
+// }
 
 const router = Router()
 
@@ -676,6 +691,6 @@ router.get('/thirty', thirtyMinUpdate)
 router.get('/hourly', hourlyUpdate)
 router.get('/aid', aidCredits)
 router.get('/daily', cleanDemoAccounts)
-router.get('/snapshot', empireSnapshots)
+// router.get('/snapshot', empireSnapshots)
 
 export default router

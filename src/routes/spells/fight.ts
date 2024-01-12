@@ -51,10 +51,7 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		}
 
 		empire.offTotal++
-		enemyEmpire.defTotal++
-
 		await empire.save()
-		await enemyEmpire.save()
 
 		return result
 	}
@@ -95,6 +92,7 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		empire.freeLand += bldLoss
 		empire.attackGains += bldLoss
 		enemyEmpire.attackLosses += bldLoss
+		empire.attacks++
 		empire.offSucc++
 		empire.offTotal++
 		enemyEmpire.defTotal++

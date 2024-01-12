@@ -35,6 +35,10 @@ import {
 
 import { getNetworth } from './actions/actions'
 import User from '../entity/User'
+
+import { awardAchievements } from './actions/achievements'
+import { takeSnapshot } from './actions/snaps'
+import { snapshot } from '../jobs/promTurns'
 // FIXED: internal turns not working
 
 const spellCheck = (empire: Empire, cost: number, turns: number) => {
@@ -103,6 +107,82 @@ const magic = async (req: Request, res: Response) => {
 	// handle errors
 	// add break if spell check is false
 
+	const updateEmpire = async (empire, spellRes, turns) => {
+		empire.cash =
+			empire.cash + spellRes.withdraw + spellRes.money - spellRes.loanpayed
+		if (empire.cash < 0) {
+			empire.cash = 0
+		}
+
+		empire.income += spellRes.income
+		empire.expenses += spellRes.expenses + spellRes.wartax + spellRes.corruption
+
+		empire.bank += spellRes.bankInterest
+		empire.loan -= spellRes.loanpayed + spellRes.loanInterest
+		empire.trpArm += spellRes.trpArm
+		empire.trpLnd += spellRes.trpLnd
+		empire.trpFly += spellRes.trpFly
+		empire.trpSea += spellRes.trpSea
+
+		empire.indyProd +=
+			spellRes.trpArm * PVTM_TRPARM +
+			spellRes.trpLnd * PVTM_TRPLND +
+			spellRes.trpFly * PVTM_TRPFLY +
+			spellRes.trpSea * PVTM_TRPSEA
+
+		empire.food += spellRes.food
+		if (empire.food < 0) {
+			empire.food = 0
+		}
+
+		empire.foodpro += spellRes.foodpro
+		empire.foodcon += spellRes.foodcon
+
+		empire.peasants += spellRes.peasants
+		empire.runes += spellRes.runes
+		empire.trpWiz += spellRes.trpWiz
+		empire.turns -= turns
+		empire.turnsUsed += turns
+		empire.lastAction = new Date()
+
+		empire.networth = getNetworth(empire)
+		if (empire.peakCash < empire.cash + empire.bank) {
+			empire.peakCash = empire.cash + empire.bank
+		}
+		if (empire.peakFood < empire.food) {
+			empire.peakFood = empire.food
+		}
+		if (empire.peakRunes < empire.runes) {
+			empire.peakRunes = empire.runes
+		}
+		if (empire.peakPeasants < empire.peasants) {
+			empire.peakPeasants = empire.peasants
+		}
+		if (empire.peakLand < empire.land) {
+			empire.peakLand = empire.land
+		}
+		if (empire.peakNetworth < empire.networth) {
+			empire.peakNetworth = empire.networth
+		}
+		if (empire.peakTrpArm < empire.trpArm) {
+			empire.peakTrpArm = empire.trpArm
+		}
+		if (empire.peakTrpLnd < empire.trpLnd) {
+			empire.peakTrpLnd = empire.trpLnd
+		}
+		if (empire.peakTrpFly < empire.trpFly) {
+			empire.peakTrpFly = empire.trpFly
+		}
+		if (empire.peakTrpSea < empire.trpSea) {
+			empire.peakTrpSea = empire.trpSea
+		}
+		if (empire.peakTrpWiz < empire.trpWiz) {
+			empire.peakTrpWiz = empire.trpWiz
+		}
+
+		await empire.save()
+	}
+
 	let resultArray = []
 	if (spell === 0) {
 		// shield
@@ -127,97 +207,21 @@ const magic = async (req: Request, res: Response) => {
 					}
 					// console.log(spellTurns)
 					resultArray.push(spellTurns)
-					// cast the spell and get result
-					// compose turn result and food result into a single object, insert into array
-					empire.cash =
-						empire.cash +
-						spellRes.withdraw +
-						spellRes.money -
-						spellRes.loanpayed
-					if (empire.cash < 0) {
-						empire.cash = 0
-					}
 
-					empire.income += spellRes.income
-					empire.expenses +=
-						spellRes.expenses + spellRes.wartax + spellRes.corruption
-
-					empire.bank += spellRes.bankInterest
-					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
-					empire.trpArm += spellRes.trpArm
-					empire.trpLnd += spellRes.trpLnd
-					empire.trpFly += spellRes.trpFly
-					empire.trpSea += spellRes.trpSea
-
-					empire.indyProd +=
-						spellRes.trpArm * PVTM_TRPARM +
-						spellRes.trpLnd * PVTM_TRPLND +
-						spellRes.trpFly * PVTM_TRPFLY +
-						spellRes.trpSea * PVTM_TRPSEA
-
-					empire.food += spellRes.food
-					if (empire.food < 0) {
-						empire.food = 0
-					}
-
-					empire.foodpro += spellRes.foodpro
-					empire.foodcon += spellRes.foodcon
-
-					empire.peasants += spellRes.peasants
-					empire.runes += spellRes.runes
-					empire.trpWiz += spellRes.trpWiz
-					empire.turns -= turns
-					empire.turnsUsed += turns
-					empire.lastAction = new Date()
-
-					empire.networth = getNetworth(empire)
-					if (empire.peakCash < empire.cash + empire.bank) {
-						empire.peakCash = empire.cash + empire.bank
-					}
-					if (empire.peakFood < empire.food) {
-						empire.peakFood = empire.food
-					}
-					if (empire.peakRunes < empire.runes) {
-						empire.peakRunes = empire.runes
-					}
-					if (empire.peakPeasants < empire.peasants) {
-						empire.peakPeasants = empire.peasants
-					}
-					if (empire.peakLand < empire.land) {
-						empire.peakLand = empire.land
-					}
-					if (empire.peakNetworth < empire.networth) {
-						empire.peakNetworth = empire.networth
-					}
-					if (empire.peakTrpArm < empire.trpArm) {
-						empire.peakTrpArm = empire.trpArm
-					}
-					if (empire.peakTrpLnd < empire.trpLnd) {
-						empire.peakTrpLnd = empire.trpLnd
-					}
-					if (empire.peakTrpFly < empire.trpFly) {
-						empire.peakTrpFly = empire.trpFly
-					}
-					if (empire.peakTrpSea < empire.trpSea) {
-						empire.peakTrpSea = empire.trpSea
-					}
-					if (empire.peakTrpWiz < empire.trpWiz) {
-						empire.peakTrpWiz = empire.trpWiz
-					}
-
-					await empire.save()
+					await updateEmpire(empire, spellRes, turns)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
 					resultArray.push(spellTurns)
 					break
 				}
-
-				// console.log('food:', empire.food, empire.turns, empire.runes)
 			}
 		} else {
 			let spellTurns = spellCheck(empire, cost, turns)
 			resultArray.push(spellTurns)
 		}
+
+		await awardAchievements(empire)
+		await takeSnapshot(empire)
 	} else if (spell === 1) {
 		// food
 		const cost = food_cost(base)
@@ -247,84 +251,7 @@ const magic = async (req: Request, res: Response) => {
 					resultArray.push(spellTurns)
 					// cast the spell and get result
 					// compose turn result and food result into a single object, insert into array
-					empire.cash =
-						empire.cash +
-						spellRes.withdraw +
-						spellRes.money -
-						spellRes.loanpayed
-
-					if (empire.cash < 0) {
-						empire.cash = 0
-					}
-
-					empire.income += spellRes.income
-					empire.expenses +=
-						spellRes.expenses + spellRes.wartax + spellRes.corruption
-
-					empire.bank += spellRes.bankInterest
-					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
-					empire.trpArm += spellRes.trpArm
-					empire.trpLnd += spellRes.trpLnd
-					empire.trpFly += spellRes.trpFly
-					empire.trpSea += spellRes.trpSea
-
-					empire.indyProd +=
-						spellRes.trpArm * PVTM_TRPARM +
-						spellRes.trpLnd * PVTM_TRPLND +
-						spellRes.trpFly * PVTM_TRPFLY +
-						spellRes.trpSea * PVTM_TRPSEA
-
-					empire.food += spellRes.food
-					if (empire.food < 0) {
-						empire.food = 0
-					}
-
-					empire.foodpro += spellRes.foodpro
-					empire.foodcon += spellRes.foodcon
-
-					empire.peasants += spellRes.peasants
-					empire.runes += spellRes.runes
-					empire.trpWiz += spellRes.trpWiz
-					empire.turns -= turns
-					empire.turnsUsed += turns
-					empire.lastAction = new Date()
-
-					empire.networth = getNetworth(empire)
-					if (empire.peakCash < empire.cash + empire.bank) {
-						empire.peakCash = empire.cash + empire.bank
-					}
-					if (empire.peakFood < empire.food) {
-						empire.peakFood = empire.food
-					}
-					if (empire.peakRunes < empire.runes) {
-						empire.peakRunes = empire.runes
-					}
-					if (empire.peakPeasants < empire.peasants) {
-						empire.peakPeasants = empire.peasants
-					}
-					if (empire.peakLand < empire.land) {
-						empire.peakLand = empire.land
-					}
-					if (empire.peakNetworth < empire.networth) {
-						empire.peakNetworth = empire.networth
-					}
-					if (empire.peakTrpArm < empire.trpArm) {
-						empire.peakTrpArm = empire.trpArm
-					}
-					if (empire.peakTrpLnd < empire.trpLnd) {
-						empire.peakTrpLnd = empire.trpLnd
-					}
-					if (empire.peakTrpFly < empire.trpFly) {
-						empire.peakTrpFly = empire.trpFly
-					}
-					if (empire.peakTrpSea < empire.trpSea) {
-						empire.peakTrpSea = empire.trpSea
-					}
-					if (empire.peakTrpWiz < empire.trpWiz) {
-						empire.peakTrpWiz = empire.trpWiz
-					}
-
-					await empire.save()
+					await updateEmpire(empire, spellRes, turns)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
 					resultArray.push(spellTurns)
@@ -337,6 +264,9 @@ const magic = async (req: Request, res: Response) => {
 			let spellTurns = spellCheck(empire, cost, turns)
 			resultArray.push(spellTurns)
 		}
+
+		await awardAchievements(empire)
+		await takeSnapshot(empire)
 	} else if (spell === 2) {
 		// cash
 		const cost = cash_cost(base)
@@ -365,85 +295,7 @@ const magic = async (req: Request, res: Response) => {
 
 					resultArray.push(spellTurns)
 					// compose turn result and food result into a single object, insert into array
-					empire.cash =
-						empire.cash +
-						spellRes.withdraw +
-						spellRes.money -
-						spellRes.loanpayed
-
-					if (empire.cash < 0) {
-						empire.cash = 0
-					}
-
-					empire.income += spellRes.income
-					empire.expenses +=
-						spellRes.expenses + spellRes.wartax + spellRes.corruption
-
-					empire.bank += spellRes.bankInterest
-					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
-					empire.trpArm += spellRes.trpArm
-					empire.trpLnd += spellRes.trpLnd
-					empire.trpFly += spellRes.trpFly
-					empire.trpSea += spellRes.trpSea
-
-					empire.indyProd +=
-						spellRes.trpArm * PVTM_TRPARM +
-						spellRes.trpLnd * PVTM_TRPLND +
-						spellRes.trpFly * PVTM_TRPFLY +
-						spellRes.trpSea * PVTM_TRPSEA
-
-					empire.food += spellRes.food
-					if (empire.food < 0) {
-						empire.food = 0
-					}
-
-					empire.foodpro += spellRes.foodpro
-					empire.foodcon += spellRes.foodcon
-
-					empire.peasants += spellRes.peasants
-					empire.runes += spellRes.runes
-					empire.trpWiz += spellRes.trpWiz
-
-					empire.turns -= turns
-					empire.turnsUsed += turns
-					empire.lastAction = new Date()
-
-					empire.networth = getNetworth(empire)
-					if (empire.peakCash < empire.cash + empire.bank) {
-						empire.peakCash = empire.cash + empire.bank
-					}
-					if (empire.peakFood < empire.food) {
-						empire.peakFood = empire.food
-					}
-					if (empire.peakRunes < empire.runes) {
-						empire.peakRunes = empire.runes
-					}
-					if (empire.peakPeasants < empire.peasants) {
-						empire.peakPeasants = empire.peasants
-					}
-					if (empire.peakLand < empire.land) {
-						empire.peakLand = empire.land
-					}
-					if (empire.peakNetworth < empire.networth) {
-						empire.peakNetworth = empire.networth
-					}
-					if (empire.peakTrpArm < empire.trpArm) {
-						empire.peakTrpArm = empire.trpArm
-					}
-					if (empire.peakTrpLnd < empire.trpLnd) {
-						empire.peakTrpLnd = empire.trpLnd
-					}
-					if (empire.peakTrpFly < empire.trpFly) {
-						empire.peakTrpFly = empire.trpFly
-					}
-					if (empire.peakTrpSea < empire.trpSea) {
-						empire.peakTrpSea = empire.trpSea
-					}
-					if (empire.peakTrpWiz < empire.trpWiz) {
-						empire.peakTrpWiz = empire.trpWiz
-					}
-
-					await empire.save()
+					await updateEmpire(empire, spellRes, turns)
 					// console.log('cash:', empire.cash, empire.turns, empire.runes)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
@@ -456,6 +308,9 @@ const magic = async (req: Request, res: Response) => {
 			let spellTurns = spellCheck(empire, cost, turns)
 			resultArray.push(spellTurns)
 		}
+
+		await awardAchievements(empire)
+		await takeSnapshot(empire)
 	} else if (spell === 3) {
 		// advance
 		// only allow one at a time
@@ -493,82 +348,8 @@ const magic = async (req: Request, res: Response) => {
 						}
 
 						resultArray.push(spellTurns)
-						empire.cash =
-							empire.cash +
-							spellRes.withdraw +
-							spellRes.money -
-							spellRes.loanpayed
-						if (empire.cash < 0) {
-							empire.cash = 0
-						}
-						empire.income += spellRes.income
-						empire.expenses +=
-							spellRes.expenses + spellRes.wartax + spellRes.corruption
 
-						empire.bank += spellRes.bankInterest
-						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
-						empire.trpArm += spellRes.trpArm
-						empire.trpLnd += spellRes.trpLnd
-						empire.trpFly += spellRes.trpFly
-						empire.trpSea += spellRes.trpSea
-
-						empire.indyProd +=
-							spellRes.trpArm * PVTM_TRPARM +
-							spellRes.trpLnd * PVTM_TRPLND +
-							spellRes.trpFly * PVTM_TRPFLY +
-							spellRes.trpSea * PVTM_TRPSEA
-
-						empire.food += spellRes.food
-						if (empire.food < 0) {
-							empire.food = 0
-						}
-
-						empire.foodpro += spellRes.foodpro
-						empire.foodcon += spellRes.foodcon
-
-						empire.peasants += spellRes.peasants
-						empire.runes += spellRes.runes
-						empire.trpWiz += spellRes.trpWiz
-						empire.turns -= turns
-						empire.turnsUsed += turns
-						empire.lastAction = new Date()
-
-						empire.networth = getNetworth(empire)
-						if (empire.peakCash < empire.cash + empire.bank) {
-							empire.peakCash = empire.cash + empire.bank
-						}
-						if (empire.peakFood < empire.food) {
-							empire.peakFood = empire.food
-						}
-						if (empire.peakRunes < empire.runes) {
-							empire.peakRunes = empire.runes
-						}
-						if (empire.peakPeasants < empire.peasants) {
-							empire.peakPeasants = empire.peasants
-						}
-						if (empire.peakLand < empire.land) {
-							empire.peakLand = empire.land
-						}
-						if (empire.peakNetworth < empire.networth) {
-							empire.peakNetworth = empire.networth
-						}
-						if (empire.peakTrpArm < empire.trpArm) {
-							empire.peakTrpArm = empire.trpArm
-						}
-						if (empire.peakTrpLnd < empire.trpLnd) {
-							empire.peakTrpLnd = empire.trpLnd
-						}
-						if (empire.peakTrpFly < empire.trpFly) {
-							empire.peakTrpFly = empire.trpFly
-						}
-						if (empire.peakTrpSea < empire.trpSea) {
-							empire.peakTrpSea = empire.trpSea
-						}
-						if (empire.peakTrpWiz < empire.trpWiz) {
-							empire.peakTrpWiz = empire.trpWiz
-						}
-
-						await empire.save()
+						await updateEmpire(empire, spellRes, turns)
 						// console.log(empire.era, empire.turns, empire.runes)
 					}
 				} else {
@@ -583,6 +364,9 @@ const magic = async (req: Request, res: Response) => {
 			let spellTurns = spellCheck(empire, cost, turns)
 			resultArray.push(spellTurns)
 		}
+
+		await awardAchievements(empire)
+		await takeSnapshot(empire)
 	} else if (spell === 4) {
 		// regress
 		// only allow one at a time
@@ -620,82 +404,8 @@ const magic = async (req: Request, res: Response) => {
 						}
 
 						resultArray.push(spellTurns)
-						empire.cash =
-							empire.cash +
-							spellRes.withdraw +
-							spellRes.money -
-							spellRes.loanpayed
-						if (empire.cash < 0) {
-							empire.cash = 0
-						}
-						empire.income += spellRes.income
-						empire.expenses +=
-							spellRes.expenses + spellRes.wartax + spellRes.corruption
 
-						empire.bank += spellRes.bankInterest
-						empire.loan -= spellRes.loanpayed + spellRes.loanInterest
-						empire.trpArm += spellRes.trpArm
-						empire.trpLnd += spellRes.trpLnd
-						empire.trpFly += spellRes.trpFly
-						empire.trpSea += spellRes.trpSea
-
-						empire.indyProd +=
-							spellRes.trpArm * PVTM_TRPARM +
-							spellRes.trpLnd * PVTM_TRPLND +
-							spellRes.trpFly * PVTM_TRPFLY +
-							spellRes.trpSea * PVTM_TRPSEA
-
-						empire.food += spellRes.food
-						if (empire.food < 0) {
-							empire.food = 0
-						}
-
-						empire.foodpro += spellRes.foodpro
-						empire.foodcon += spellRes.foodcon
-
-						empire.peasants += spellRes.peasants
-						empire.runes += spellRes.runes
-						empire.trpWiz += spellRes.trpWiz
-						empire.turns -= turns
-						empire.turnsUsed += turns
-						empire.lastAction = new Date()
-
-						empire.networth = getNetworth(empire)
-						if (empire.peakCash < empire.cash + empire.bank) {
-							empire.peakCash = empire.cash + empire.bank
-						}
-						if (empire.peakFood < empire.food) {
-							empire.peakFood = empire.food
-						}
-						if (empire.peakRunes < empire.runes) {
-							empire.peakRunes = empire.runes
-						}
-						if (empire.peakPeasants < empire.peasants) {
-							empire.peakPeasants = empire.peasants
-						}
-						if (empire.peakLand < empire.land) {
-							empire.peakLand = empire.land
-						}
-						if (empire.peakNetworth < empire.networth) {
-							empire.peakNetworth = empire.networth
-						}
-						if (empire.peakTrpArm < empire.trpArm) {
-							empire.peakTrpArm = empire.trpArm
-						}
-						if (empire.peakTrpLnd < empire.trpLnd) {
-							empire.peakTrpLnd = empire.trpLnd
-						}
-						if (empire.peakTrpFly < empire.trpFly) {
-							empire.peakTrpFly = empire.trpFly
-						}
-						if (empire.peakTrpSea < empire.trpSea) {
-							empire.peakTrpSea = empire.trpSea
-						}
-						if (empire.peakTrpWiz < empire.trpWiz) {
-							empire.peakTrpWiz = empire.trpWiz
-						}
-
-						await empire.save()
+						await updateEmpire(empire, spellRes, turns)
 						// console.log(empire.era, empire.turns, empire.runes)
 					}
 				} else {
@@ -703,13 +413,15 @@ const magic = async (req: Request, res: Response) => {
 					resultArray.push(spellTurns)
 					break
 				}
-
 				// console.log('food:', empire.food, empire.turns, empire.runes)
 			}
 		} else {
 			let spellTurns = spellCheck(empire, cost, turns)
 			resultArray.push(spellTurns)
 		}
+
+		await awardAchievements(empire)
+		await takeSnapshot(empire)
 	} else if (spell === 5) {
 		// open time gate
 		const cost = gate_cost(base)
@@ -733,82 +445,8 @@ const magic = async (req: Request, res: Response) => {
 					}
 
 					resultArray.push(spellTurns)
-					empire.cash =
-						empire.cash +
-						spellRes.withdraw +
-						spellRes.money -
-						spellRes.loanpayed
-					if (empire.cash < 0) {
-						empire.cash = 0
-					}
-					empire.income += spellRes.income
-					empire.expenses +=
-						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
-					empire.bank += spellRes.bankInterest
-					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
-					empire.trpArm += spellRes.trpArm
-					empire.trpLnd += spellRes.trpLnd
-					empire.trpFly += spellRes.trpFly
-					empire.trpSea += spellRes.trpSea
-
-					empire.indyProd +=
-						spellRes.trpArm * PVTM_TRPARM +
-						spellRes.trpLnd * PVTM_TRPLND +
-						spellRes.trpFly * PVTM_TRPFLY +
-						spellRes.trpSea * PVTM_TRPSEA
-
-					empire.food += spellRes.food
-					if (empire.food < 0) {
-						empire.food = 0
-					}
-
-					empire.foodpro += spellRes.foodpro
-					empire.foodcon += spellRes.foodcon
-
-					empire.peasants += spellRes.peasants
-					empire.runes += spellRes.runes
-					empire.trpWiz += spellRes.trpWiz
-					empire.turns -= turns
-					empire.turnsUsed += turns
-					empire.lastAction = new Date()
-
-					empire.networth = getNetworth(empire)
-					if (empire.peakCash < empire.cash + empire.bank) {
-						empire.peakCash = empire.cash + empire.bank
-					}
-					if (empire.peakFood < empire.food) {
-						empire.peakFood = empire.food
-					}
-					if (empire.peakRunes < empire.runes) {
-						empire.peakRunes = empire.runes
-					}
-					if (empire.peakPeasants < empire.peasants) {
-						empire.peakPeasants = empire.peasants
-					}
-					if (empire.peakLand < empire.land) {
-						empire.peakLand = empire.land
-					}
-					if (empire.peakNetworth < empire.networth) {
-						empire.peakNetworth = empire.networth
-					}
-					if (empire.peakTrpArm < empire.trpArm) {
-						empire.peakTrpArm = empire.trpArm
-					}
-					if (empire.peakTrpLnd < empire.trpLnd) {
-						empire.peakTrpLnd = empire.trpLnd
-					}
-					if (empire.peakTrpFly < empire.trpFly) {
-						empire.peakTrpFly = empire.trpFly
-					}
-					if (empire.peakTrpSea < empire.trpSea) {
-						empire.peakTrpSea = empire.trpSea
-					}
-					if (empire.peakTrpWiz < empire.trpWiz) {
-						empire.peakTrpWiz = empire.trpWiz
-					}
-
-					await empire.save()
+					await updateEmpire(empire, spellRes, turns)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
 					resultArray.push(spellTurns)
@@ -819,6 +457,9 @@ const magic = async (req: Request, res: Response) => {
 			let spellTurns = spellCheck(empire, cost, turns)
 			resultArray.push(spellTurns)
 		}
+
+		await awardAchievements(empire)
+		await takeSnapshot(empire)
 	} else if (spell === 6) {
 		// close time gate
 		const cost = ungate_cost(base)
@@ -842,82 +483,8 @@ const magic = async (req: Request, res: Response) => {
 					}
 
 					resultArray.push(spellTurns)
-					empire.cash =
-						empire.cash +
-						spellRes.withdraw +
-						spellRes.money -
-						spellRes.loanpayed
-					if (empire.cash < 0) {
-						empire.cash = 0
-					}
-					empire.income += spellRes.income
-					empire.expenses +=
-						spellRes.expenses + spellRes.wartax + spellRes.corruption
 
-					empire.bank += spellRes.bankInterest
-					empire.loan -= spellRes.loanpayed + spellRes.loanInterest
-					empire.trpArm += spellRes.trpArm
-					empire.trpLnd += spellRes.trpLnd
-					empire.trpFly += spellRes.trpFly
-					empire.trpSea += spellRes.trpSea
-
-					empire.indyProd +=
-						spellRes.trpArm * PVTM_TRPARM +
-						spellRes.trpLnd * PVTM_TRPLND +
-						spellRes.trpFly * PVTM_TRPFLY +
-						spellRes.trpSea * PVTM_TRPSEA
-
-					empire.food += spellRes.food
-					if (empire.food < 0) {
-						empire.food = 0
-					}
-
-					empire.foodpro += spellRes.foodpro
-					empire.foodcon += spellRes.foodcon
-
-					empire.peasants += spellRes.peasants
-					empire.runes += spellRes.runes
-					empire.trpWiz += spellRes.trpWiz
-					empire.turns -= turns
-					empire.turnsUsed += turns
-					empire.lastAction = new Date()
-
-					empire.networth = getNetworth(empire)
-					if (empire.peakCash < empire.cash + empire.bank) {
-						empire.peakCash = empire.cash + empire.bank
-					}
-					if (empire.peakFood < empire.food) {
-						empire.peakFood = empire.food
-					}
-					if (empire.peakRunes < empire.runes) {
-						empire.peakRunes = empire.runes
-					}
-					if (empire.peakPeasants < empire.peasants) {
-						empire.peakPeasants = empire.peasants
-					}
-					if (empire.peakLand < empire.land) {
-						empire.peakLand = empire.land
-					}
-					if (empire.peakNetworth < empire.networth) {
-						empire.peakNetworth = empire.networth
-					}
-					if (empire.peakTrpArm < empire.trpArm) {
-						empire.peakTrpArm = empire.trpArm
-					}
-					if (empire.peakTrpLnd < empire.trpLnd) {
-						empire.peakTrpLnd = empire.trpLnd
-					}
-					if (empire.peakTrpFly < empire.trpFly) {
-						empire.peakTrpFly = empire.trpFly
-					}
-					if (empire.peakTrpSea < empire.trpSea) {
-						empire.peakTrpSea = empire.trpSea
-					}
-					if (empire.peakTrpWiz < empire.trpWiz) {
-						empire.peakTrpWiz = empire.trpWiz
-					}
-
-					await empire.save()
+					await updateEmpire(empire, spellRes, turns)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
 					resultArray.push(spellTurns)
@@ -928,6 +495,9 @@ const magic = async (req: Request, res: Response) => {
 			let spellTurns = spellCheck(empire, cost, turns)
 			resultArray.push(spellTurns)
 		}
+
+		await awardAchievements(empire)
+		await takeSnapshot(empire)
 	}
 	// console.log(resultArray)
 
@@ -1283,6 +853,9 @@ const magicAttack = async (req: Request, res: Response) => {
 			})
 		}
 
+		await awardAchievements(attacker)
+		await takeSnapshot(attacker)
+		await takeSnapshot(defender)
 		// console.log('test', spellTurns)
 		return res.json(spellTurns)
 	} catch (e) {

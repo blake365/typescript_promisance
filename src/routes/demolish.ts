@@ -15,6 +15,8 @@ import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { calcSizeBonus, getNetworth } from './actions/actions'
 import User from '../entity/User'
+import { awardAchievements } from './actions/achievements'
+import { takeSnapshot } from './actions/snaps'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
@@ -297,6 +299,10 @@ const demolish = async (req: Request, res: Response) => {
 				}
 			}
 		}
+
+		await awardAchievements(empire)
+		await takeSnapshot(empire)
+
 		// console.log(resultArray)
 		return resultArray
 	}

@@ -14,6 +14,8 @@ import { useTurnInternal } from './useturns'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
 import User from '../entity/User'
+import { awardAchievements } from './actions/achievements'
+import { takeSnapshot } from './actions/snaps'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
@@ -193,6 +195,8 @@ const drop = async (req: Request, res: Response) => {
 			}
 		}
 		// console.log(resultArray)
+		await awardAchievements(empire)
+		await takeSnapshot(empire)
 		return resultArray
 	}
 
