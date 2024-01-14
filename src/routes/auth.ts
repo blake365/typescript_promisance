@@ -279,8 +279,8 @@ const forgotPassword = async (req: Request, res: Response) => {
 		await resetToken.save()
 
 		const link = `${origin}/reset-password/${token}`
-		const text = `NeoPromisance password reset link: ${link}`
-		const html = `<p>Click the link below to reset your Neopromisance password:</p><a href="${link}">${link}</a>`
+		const text = `NeoPromisance password reset link: ${link}. NeoPromisance username: ${user.username}.`
+		const html = `<p>Click the link below to reset your NeoPromisance password:</p><a href="${link}">${link}</a><p>Your NeoPromisance username is: ${user.username}.</p>`
 
 		await sendSESEmail(
 			email,
@@ -338,6 +338,25 @@ const confirmToken = async (req: Request, res: Response) => {
 	}
 }
 
+const forgotUsername = async (req: Request, res: Response) => {
+	const { email } = req.body
+
+	try {
+		const user = await User.findOne({ email })
+
+		if (!user) {
+			return res.json({ error: 'Email address not found' })
+		}
+
+		const text = `Your username is: ${user.username}`
+
+		return res.json({ message: text })
+	} catch (err) {
+		console.log(err)
+		return res.json({ error: 'Something went wrong' })
+	}
+}
+
 const router = Router()
 router.post('/register', register)
 router.post('/demo', demoAccount)
@@ -346,5 +365,6 @@ router.get('/me', user, auth, me)
 router.get('/logout', user, auth, logout)
 router.post('/forgot-password', forgotPassword)
 router.post('/confirm-token', confirmToken)
+router.post('/forgot-username', forgotUsername)
 
 export default router
