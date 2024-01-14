@@ -220,7 +220,7 @@ const magic = async (req: Request, res: Response) => {
 			resultArray.push(spellTurns)
 		}
 
-		await awardAchievements(empire)
+		// await awardAchievements(empire)
 		await takeSnapshot(empire)
 	} else if (spell === 1) {
 		// food
@@ -265,7 +265,7 @@ const magic = async (req: Request, res: Response) => {
 			resultArray.push(spellTurns)
 		}
 
-		await awardAchievements(empire)
+		// await awardAchievements(empire)
 		await takeSnapshot(empire)
 	} else if (spell === 2) {
 		// cash
@@ -309,7 +309,7 @@ const magic = async (req: Request, res: Response) => {
 			resultArray.push(spellTurns)
 		}
 
-		await awardAchievements(empire)
+		// await awardAchievements(empire)
 		await takeSnapshot(empire)
 	} else if (spell === 3) {
 		// advance
@@ -365,7 +365,7 @@ const magic = async (req: Request, res: Response) => {
 			resultArray.push(spellTurns)
 		}
 
-		await awardAchievements(empire)
+		// await awardAchievements(empire)
 		await takeSnapshot(empire)
 	} else if (spell === 4) {
 		// regress
@@ -420,7 +420,7 @@ const magic = async (req: Request, res: Response) => {
 			resultArray.push(spellTurns)
 		}
 
-		await awardAchievements(empire)
+		// await awardAchievements(empire)
 		await takeSnapshot(empire)
 	} else if (spell === 5) {
 		// open time gate
@@ -458,7 +458,7 @@ const magic = async (req: Request, res: Response) => {
 			resultArray.push(spellTurns)
 		}
 
-		await awardAchievements(empire)
+		// await awardAchievements(empire)
 		await takeSnapshot(empire)
 	} else if (spell === 6) {
 		// close time gate
@@ -496,7 +496,7 @@ const magic = async (req: Request, res: Response) => {
 			resultArray.push(spellTurns)
 		}
 
-		await awardAchievements(empire)
+		// await awardAchievements(empire)
 		await takeSnapshot(empire)
 	}
 	// console.log(resultArray)
@@ -853,7 +853,7 @@ const magicAttack = async (req: Request, res: Response) => {
 			})
 		}
 
-		await awardAchievements(attacker)
+		// await awardAchievements(attacker)
 		await takeSnapshot(attacker)
 		await takeSnapshot(defender)
 		// console.log('test', spellTurns)

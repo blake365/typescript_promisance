@@ -195,7 +195,7 @@ const drop = async (req: Request, res: Response) => {
 			}
 		}
 		// console.log(resultArray)
-		await awardAchievements(empire)
+		// await awardAchievements(empire)
 		await takeSnapshot(empire)
 		return resultArray
 	}

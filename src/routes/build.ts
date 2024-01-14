@@ -299,7 +299,7 @@ const build = async (req: Request, res: Response) => {
 				}
 			}
 			// console.log(resultArray)
-			await awardAchievements(empire)
+			// await awardAchievements(empire)
 			// console.log(achievementResult)
 			await takeSnapshot(empire)
 			return resultArray

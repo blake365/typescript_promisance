@@ -675,9 +675,10 @@ export const useTurn = async (
 
 	empire.lastAction = new Date()
 	empire.networth = getNetworth(empire)
-	await empire.save()
+	// empire.achievements = await awardAchievements(empire)
 
-	await awardAchievements(empire)
+	await empire.save()
+	// console.log(empire)
 	// console.log(achievementResult)
 	await takeSnapshot(empire)
 	// console.log(statsArray)

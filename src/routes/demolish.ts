@@ -300,7 +300,7 @@ const demolish = async (req: Request, res: Response) => {
 			}
 		}
 
-		await awardAchievements(empire)
+		// await awardAchievements(empire)
 		await takeSnapshot(empire)
 
 		// console.log(resultArray)

@@ -11,8 +11,12 @@ function sortObject(obj: Record<string, unknown>) {
 }
 
 export const awardAchievements = async (empire: Empire) => {
+	// console.log(empire)
+	// console.log('checking achievements')
 	try {
-		let newAchievements = await JSON.parse(JSON.stringify(empire.achievements)) // loop through achievements
+		let newAchievements = JSON.parse(JSON.stringify(empire.achievements))
+
+		// loop through achievements
 		// check if a key is true, if so exclude it from the array
 		// recombine array
 		let achieve = achievements.map((achievement) => {
@@ -27,11 +31,10 @@ export const awardAchievements = async (empire: Empire) => {
 			// console.log(achievement)
 			return achievement
 		})
-		// console.log('achieve', achieve)
+		console.log('achieve', achieve)
 
 		for (const { property, thresholds, keys } of achieve) {
 			// console.log(`Checking achievement for property: ${property}`)
-
 			for (let i = 0; i < keys.length; i++) {
 				// console.log(`Checking key: ${keys[i]}`)
 				// console.log(`Checking threshold: ${thresholds[i]}`)
@@ -42,7 +45,7 @@ export const awardAchievements = async (empire: Empire) => {
 					empire.turnsUsed >= 1000 &&
 					newAchievements['rank1'].awarded === false
 				) {
-					console.log('Awarding rank achievement')
+					// console.log('Awarding rank achievement')
 					newAchievements[keys[i]] = {
 						awarded: true,
 						timeAwarded: new Date().toISOString(),
@@ -53,7 +56,7 @@ export const awardAchievements = async (empire: Empire) => {
 					empire.turnsUsed >= 10 &&
 					newAchievements['build'].awarded === false
 				) {
-					console.log('Awarding freeLand achievement')
+					// console.log('Awarding freeLand achievement')
 					newAchievements[keys[i]] = {
 						awarded: true,
 						timeAwarded: new Date().toISOString(),
@@ -63,7 +66,7 @@ export const awardAchievements = async (empire: Empire) => {
 					property !== 'rank' &&
 					property !== 'freeLand'
 				) {
-					console.log(`Awarding achievement for property: ${property}`)
+					// console.log(`Awarding achievement for property: ${property}`)
 					newAchievements[keys[i]] = {
 						awarded: true,
 						timeAwarded: new Date().toISOString(),
@@ -72,16 +75,16 @@ export const awardAchievements = async (empire: Empire) => {
 			}
 		}
 
-		// console.log('newAchievements', newAchievements)
+		// to deeply compare: sort, stringify and then compare
 		if (
 			JSON.stringify(sortObject(newAchievements)) !==
 			JSON.stringify(sortObject(empire.achievements))
 		) {
-			empire.achievements = newAchievements
-			await empire.save()
-			return 'updated'
+			console.log('achievements changed')
+			return newAchievements
 		} else {
-			return 'no change'
+			console.log('no change')
+			return empire.achievements
 		}
 	} catch (error) {
 		console.log(error)

@@ -124,7 +124,7 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 	await seller.save()
 	await itemBought.save()
 
-	await awardAchievements(buyer)
+	// await awardAchievements(buyer)
 	await takeSnapshot(buyer)
 	await takeSnapshot(seller)
 
@@ -379,7 +379,7 @@ const pubSell = async (req: Request, res: Response) => {
 	empire.lastAction = new Date()
 
 	await empire.save()
-	await awardAchievements(empire)
+	// await awardAchievements(empire)
 	await takeSnapshot(empire)
 
 	// console.log(returnArray)
@@ -577,7 +577,7 @@ const recallItem = async (req: Request, res: Response) => {
 			empire.peakTrpSea = empire.trpSea
 		}
 		await empire.save()
-		await awardAchievements(empire)
+		// await awardAchievements(empire)
 		await takeSnapshot(empire)
 		return res.json({ success: 'Item recalled' })
 	} catch (e) {

@@ -292,7 +292,7 @@ const sendAid = async (req: Request, res: Response) => {
 
 		await sender.save()
 
-		await awardAchievements(sender)
+		// await awardAchievements(sender)
 		await takeSnapshot(sender)
 	} catch (err) {
 		return res.status(400).json({ error: 'something went wrong' })

@@ -1349,7 +1349,7 @@ const attack = async (req: Request, res: Response) => {
 			await attacker.save()
 			await defender.save()
 
-			await awardAchievements(attacker)
+			// await awardAchievements(attacker)
 			await takeSnapshot(attacker)
 			await takeSnapshot(defender)
 		} else {

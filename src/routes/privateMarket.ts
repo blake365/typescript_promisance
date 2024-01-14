@@ -123,7 +123,7 @@ const buy = async (req: Request, res: Response) => {
 	}
 
 	await empire.save()
-	await awardAchievements(empire)
+	// await awardAchievements(empire)
 	await takeSnapshot(empire)
 
 	let resultBuyArm = { amount: buyArm, price: spendArray[0] }
@@ -260,7 +260,7 @@ const sell = async (req: Request, res: Response) => {
 
 	await empire.save()
 
-	await awardAchievements(empire)
+	// await awardAchievements(empire)
 	await takeSnapshot(empire)
 
 	let resultSellArm = { amount: sellArm, price: spendArray[0] }
