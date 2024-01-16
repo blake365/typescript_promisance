@@ -61,6 +61,7 @@ const createEmpire = async (req: Request, res: Response) => {
 	let now = new Date()
 	let roundStart = new Date(ROUND_START)
 	let diff = now.getTime() - roundStart.getTime()
+	let daysRaw = diff / (1000 * 3600 * 24)
 	let days = Math.floor(diff / (1000 * 3600 * 24))
 	console.log(days)
 	let turnsElapsed = ((days * 24 * 60) / TURNS_FREQ) * TURNS_COUNT
@@ -124,11 +125,22 @@ const createEmpire = async (req: Request, res: Response) => {
 			createdAt = now
 		}
 
+		let effectCatchUp = 5760
+		if (daysRaw > 0) {
+			effectCatchUp = Math.floor(5760 - days * 1440)
+		} else if (daysRaw < 0) {
+			effectCatchUp = Math.floor(5760 + Math.abs(days * 1440))
+		}
+
+		if (effectCatchUp < 0) {
+			effectCatchUp = 0
+		}
+
 		let effect: EmpireEffect = null
 		effect = new EmpireEffect({
 			effectOwnerId: empire.id,
 			empireEffectName: 'era delay',
-			empireEffectValue: 5760,
+			empireEffectValue: effectCatchUp,
 			createdAt: createdAt,
 			updatedAt: createdAt,
 		})

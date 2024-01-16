@@ -62,9 +62,9 @@ Sentry.init({
 		new ProfilingIntegration(),
 	],
 	// Performance Monitoring
-	tracesSampleRate: 0.1, // Capture 100% of the transactions, reduce in production!
+	tracesSampleRate: 0.5, // Capture 100% of the transactions, reduce in production!
 	// Set sampling rate for profiling - this is relative to tracesSampleRate
-	profilesSampleRate: 0.1, // Capture 100% of the transactions, reduce in production!
+	profilesSampleRate: 0.5, // Capture 100% of the transactions, reduce in production!
 })
 
 const PORT = process.env.PORT

@@ -131,8 +131,28 @@ const downloadSnapshots = async (req: Request, res: Response) => {
 	}
 }
 
+const delayedData = async (req: Request, res: Response) => {
+	console.log('delayed...')
+	try {
+		const snapshot = await EmpireSnapshot.find({
+			where: {
+				createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '3 days'`),
+			},
+			order: {
+				createdAt: 'ASC',
+			},
+		})
+
+		return res.json(snapshot)
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
 const router = Router()
 
+router.get('/all/delayed', delayedData)
 router.get('/:id', user, auth, getSnapshot)
 router.get('/:id/recent', user, auth, getRecentSnapshot)
 router.post('/:id/paginate', user, auth, paginateSnapshot)
