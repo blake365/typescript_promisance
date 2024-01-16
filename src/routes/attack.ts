@@ -4,7 +4,6 @@ import EmpireEffect from '../entity/EmpireEffect'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { useTurnInternal } from './useturns'
-
 import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
 import { createNewsEvent } from '../util/helpers'
@@ -20,8 +19,9 @@ import {
 import { cauchyRandom, gaussianRandom, getNetworth } from './actions/actions'
 import Clan from '../entity/Clan'
 import User from '../entity/User'
-import { awardAchievements } from './actions/achievements'
+// import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
+import { getRepository } from 'typeorm'
 
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
@@ -342,10 +342,22 @@ const attack = async (req: Request, res: Response) => {
 
 	try {
 		const attacker = await Empire.findOneOrFail({ id: empireId })
-
 		// console.log(attacker)
-
 		const defender = await Empire.findOneOrFail({ id: defenderId })
+
+		const { totalLand, empireCount } = await getRepository(Empire)
+			.createQueryBuilder('empire')
+			.select('SUM(empire.land)', 'totalLand')
+			.addSelect('COUNT(empire.id)', 'empireCount')
+			.where('empire.turnsUsed > :turnsUsed AND empire.mode != :demo', {
+				turnsUsed: TURNS_PROTECTION,
+				demo: 'demo',
+			})
+			.getRawOne()
+
+		console.log(totalLand, empireCount)
+		const avgLand = totalLand / empireCount
+		console.log(avgLand)
 
 		if (attacker.attacks >= MAX_ATTACKS) {
 			canAttack = false
@@ -646,7 +658,7 @@ const attack = async (req: Request, res: Response) => {
 			if (attacker.networth > defender.networth * 2 && type !== 'war') {
 				// the attacker is ashamed, troops desert
 				returnText +=
-					'Your troops are ashamed to fight such a weak opponent, many desert...'
+					'Your army is ashamed to fight such a weak opponent, many desert... '
 				attacker.trpArm = Math.round(0.97 * attacker.trpArm)
 				attacker.trpLnd = Math.round(0.97 * attacker.trpLnd)
 				attacker.trpFly = Math.round(0.97 * attacker.trpFly)
@@ -657,7 +669,7 @@ const attack = async (req: Request, res: Response) => {
 			if (attacker.networth < defender.networth * 0.2 && type !== 'war') {
 				// the attacker is fearful, troops desert
 				returnText +=
-					'Your troops are fearful of fighting such a strong opponent, many desert...'
+					'Your army is fearful of fighting such a strong opponent, many desert... '
 				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
 				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
 				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
@@ -884,16 +896,27 @@ const attack = async (req: Request, res: Response) => {
 			}
 
 			// let won: boolean
-
+			let lowLand = 1
 			if (offPower > defPower * 1.05) {
+				if (
+					defender.land < avgLand * 0.75 &&
+					attacker.land > defender.land * 2 &&
+					attacker.land > avgLand &&
+					type !== 'war'
+				) {
+					// the defender is being "low landed"
+					returnText +=
+						'Your troops are ashamed to attack an opponent with so little land, their effectiveness dropped... '
+					lowLand = 0.5
+				}
 				// won = true
 				let buildLoss: buildLoss = {}
 				let buildGain: buildGain = {}
 
 				destroyBuildings(
 					attackType,
-					0.07,
-					0.7,
+					0.07 * lowLand,
+					0.7 * lowLand,
 					'bldCash',
 					defender,
 					attacker,
@@ -902,8 +925,8 @@ const attack = async (req: Request, res: Response) => {
 				)
 				destroyBuildings(
 					attackType,
-					0.07,
-					0.7,
+					0.07 * lowLand,
+					0.7 * lowLand,
 					'bldPop',
 					defender,
 					attacker,
@@ -912,8 +935,8 @@ const attack = async (req: Request, res: Response) => {
 				)
 				destroyBuildings(
 					attackType,
-					0.07,
-					0.5,
+					0.07 * lowLand,
+					0.5 * lowLand,
 					'bldTroop',
 					defender,
 					attacker,
@@ -922,8 +945,8 @@ const attack = async (req: Request, res: Response) => {
 				)
 				destroyBuildings(
 					attackType,
-					0.07,
-					0.7,
+					0.07 * lowLand,
+					0.7 * lowLand,
 					'bldCost',
 					defender,
 					attacker,
@@ -932,8 +955,8 @@ const attack = async (req: Request, res: Response) => {
 				)
 				destroyBuildings(
 					attackType,
-					0.07,
-					0.3,
+					0.07 * lowLand,
+					0.3 * lowLand,
 					'bldFood',
 					defender,
 					attacker,
@@ -942,8 +965,8 @@ const attack = async (req: Request, res: Response) => {
 				)
 				destroyBuildings(
 					attackType,
-					0.07,
-					0.6,
+					0.07 * lowLand,
+					0.6 * lowLand,
 					'bldWiz',
 					defender,
 					attacker,
@@ -952,8 +975,8 @@ const attack = async (req: Request, res: Response) => {
 				)
 				destroyBuildings(
 					attackType,
-					0.11,
-					0.6,
+					0.11 * lowLand,
+					0.6 * lowLand,
 					'bldDef',
 					defender,
 					attacker,
@@ -962,8 +985,8 @@ const attack = async (req: Request, res: Response) => {
 				) // towers more likely to be taken, since they are encountered first
 				destroyBuildings(
 					attackType,
-					0.1,
-					0.0,
+					0.1 * lowLand,
+					0.0 * lowLand,
 					'freeLand',
 					defender,
 					attacker,
@@ -1295,7 +1318,8 @@ const attack = async (req: Request, res: Response) => {
 				DR_RATE + Math.round((defender.bldDef / defender.land) * 100) / 100
 
 			// console.log('adjusted DR', adjustedDR)
-			defender.diminishingReturns = defender.diminishingReturns + adjustedDR
+			defender.diminishingReturns =
+				defender.diminishingReturns + adjustedDR / lowLand
 
 			if (attacker.diminishingReturns > 0) {
 				attacker.diminishingReturns -= DR_RATE

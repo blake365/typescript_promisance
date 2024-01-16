@@ -633,8 +633,12 @@ const magicAttack = async (req: Request, res: Response) => {
 
 		let clan = null
 		if (attacker.clanId !== 0) {
-			clan = await Clan.findOne({ id: attacker.clanId })
+			clan = await Clan.findOneOrFail({
+				where: { id: attacker.clanId },
+				relations: ['relation'],
+			})
 		}
+
 		// console.log('food:', empire.food, 'cash:', empire.cash, empire.turns, empire.runes)
 		if (attacker.trpWiz === 0) {
 			return res.json({
@@ -833,7 +837,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					fight_cost(base),
-					fight_cast(attacker, defender)
+					fight_cast(attacker, defender, clan)
 				)
 			} else if (spell === 'spy') {
 				console.log('spy start')

@@ -8,6 +8,8 @@ import {
 } from './general'
 import { createNewsEvent } from '../../util/helpers'
 import { getNetworth } from '../actions/actions'
+import { getRepository } from 'typeorm'
+import { TURNS_PROTECTION } from '../../config/conifg'
 
 export const fight_cost = (baseCost: number) => {
 	return Math.ceil(22.5 * baseCost)
@@ -37,7 +39,40 @@ const destroyBuildings = async (
 	return loss
 }
 
-export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
+export const fight_cast = async (
+	empire: Empire,
+	enemyEmpire: Empire,
+	clan: any
+) => {
+	const { totalLand, empireCount } = await getRepository(Empire)
+		.createQueryBuilder('empire')
+		.select('SUM(empire.land)', 'totalLand')
+		.addSelect('COUNT(empire.id)', 'empireCount')
+		.where('empire.turnsUsed > :turnsUsed AND empire.mode != :demo', {
+			turnsUsed: TURNS_PROTECTION,
+			demo: 'demo',
+		})
+		.getRawOne()
+
+	let war = false
+	if (clan) {
+		let relations = clan.relation.map((relation) => {
+			if (relation.clanRelationFlags === 'war') {
+				return relation.c_id2
+			}
+		})
+		// check if clan is at war
+		if (relations.includes(enemyEmpire.clanId)) {
+			console.log('clan is at war')
+			// clan is at war with defender
+			war = true
+		}
+	}
+
+	console.log(totalLand, empireCount)
+	const avgLand = totalLand / empireCount
+	console.log(avgLand)
+
 	if (getPower_self(empire) < 50) {
 		// spell failed to cast
 		let wizloss = getWizLoss_enemy(empire)
@@ -57,7 +92,19 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 	}
 
 	if (getPower_enemy(empire, enemyEmpire) >= 2.2) {
+		let returnText = ''
+		if (empire.networth > enemyEmpire.networth * 2 && !war) {
+			// the attacker is ashamed, troops desert
+			returnText +=
+				'Your army is ashamed to fight such a weak opponent, many desert... '
+			empire.trpArm = Math.round(0.97 * empire.trpArm)
+			empire.trpLnd = Math.round(0.97 * empire.trpLnd)
+			empire.trpFly = Math.round(0.97 * empire.trpFly)
+			empire.trpSea = Math.round(0.97 * empire.trpSea)
+			empire.trpWiz = Math.round(0.97 * empire.trpWiz)
+		}
 		// spell casts successfully
+
 		let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.05 + 1))
 		let eloss = randomIntFromInterval(
 			0,
@@ -76,6 +123,20 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 		empire.trpWiz -= uloss
 		enemyEmpire.trpWiz -= eloss
+
+		let lowLand = 1
+		if (
+			enemyEmpire.land < avgLand * 0.75 &&
+			empire.land > enemyEmpire.land * 2 &&
+			empire.land > avgLand &&
+			!war
+		) {
+			// the defender is being "low landed"
+			returnText += `Your ${
+				eraArray[empire.era].trpwiz
+			} are ashamed to attack an opponent with so little land, their effectiveness dropped... `
+			lowLand = 0.5
+		}
 
 		let bldLoss = 0
 		bldLoss += await destroyBuildings('bldCash', 0.05, enemyEmpire)
@@ -98,7 +159,7 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		enemyEmpire.defTotal++
 		enemyEmpire.networth = getNetworth(enemyEmpire)
 
-		let returnText = `${bldLoss.toLocaleString()} acres of land were captured from ${
+		returnText += `${bldLoss.toLocaleString()} acres of land were captured from ${
 			enemyEmpire.name
 		}. /n 
 			You killed ${eloss.toLocaleString()} ${eraArray[enemyEmpire.era].trpwiz}. /n
@@ -108,6 +169,7 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			result: 'success',
 			message: returnText,
 			wizloss: uloss,
+			fight: true,
 		}
 
 		let content = `${empire.name} attacked you with ${
@@ -172,6 +234,7 @@ export const fight_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			result: 'fail',
 			message: returnText,
 			wizloss: uloss,
+			fight: true,
 		}
 
 		let content = `
