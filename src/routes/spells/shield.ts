@@ -83,7 +83,7 @@ export const shield_cast = async (empire: Empire) => {
 					result: 'success',
 					message: `Your ${eraArray[empire.era].trpwiz} cast ${
 						eraArray[empire.era].spell_shield
-					}. /n Your shield is has been renewed to 24 hours.`,
+					}. /n Your shield has been renewed to 24 hours.`,
 				}
 				return result
 			} else {

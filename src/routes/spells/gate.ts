@@ -80,7 +80,7 @@ export const gate_cast = async (empire: Empire) => {
 					result: 'success',
 					message: `Your ${eraArray[empire.era].trpwiz} cast ${
 						eraArray[empire.era].spell_gate
-					}. /n Your time gate is has been renewed to 12 hours.`,
+					}. /n Your time gate has been renewed to 12 hours.`,
 				}
 				return result
 			} else {
