@@ -9,7 +9,7 @@ import {
 import { createNewsEvent } from '../../util/helpers'
 import { getNetworth } from '../actions/actions'
 import { getRepository } from 'typeorm'
-import { TURNS_PROTECTION } from '../../config/conifg'
+import { DR_RATE, TURNS_PROTECTION } from '../../config/conifg'
 
 export const fight_cost = (baseCost: number) => {
 	return Math.ceil(22.5 * baseCost)
@@ -20,7 +20,7 @@ const destroyBuildings = async (
 	pcloss: number,
 	enemyEmpire: Empire
 ) => {
-	pcloss *= 0.55
+	pcloss *= 0.66
 	let loss = 0
 
 	if (enemyEmpire[type] > 0) {
@@ -103,6 +103,17 @@ export const fight_cast = async (
 			empire.trpSea = Math.round(0.97 * empire.trpSea)
 			empire.trpWiz = Math.round(0.97 * empire.trpWiz)
 		}
+
+		if (empire.networth < enemyEmpire.networth * 0.2 && !war) {
+			// the empire is fearful, troops desert
+			returnText +=
+				'Your army is fearful of fighting such a strong opponent, many desert... '
+			empire.trpArm = Math.round(0.98 * empire.trpArm)
+			empire.trpLnd = Math.round(0.98 * empire.trpLnd)
+			empire.trpFly = Math.round(0.98 * empire.trpFly)
+			empire.trpSea = Math.round(0.98 * empire.trpSea)
+			empire.trpWiz = Math.round(0.98 * empire.trpWiz)
+		}
 		// spell casts successfully
 
 		let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.05 + 1))
@@ -139,14 +150,14 @@ export const fight_cast = async (
 		}
 
 		let bldLoss = 0
-		bldLoss += await destroyBuildings('bldCash', 0.05, enemyEmpire)
-		bldLoss += await destroyBuildings('bldPop', 0.07, enemyEmpire)
-		bldLoss += await destroyBuildings('bldTrp', 0.07, enemyEmpire)
-		bldLoss += await destroyBuildings('bldCost', 0.07, enemyEmpire)
-		bldLoss += await destroyBuildings('bldFood', 0.08, enemyEmpire)
-		bldLoss += await destroyBuildings('bldWiz', 0.07, enemyEmpire)
-		bldLoss += await destroyBuildings('bldDef', 0.11, enemyEmpire)
-		bldLoss += await destroyBuildings('freeLand', 0.1, enemyEmpire)
+		bldLoss += await destroyBuildings('bldCash', 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings('bldPop', 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings('bldTrp', 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings('bldCost', 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings('bldFood', 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings('bldWiz', 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings('bldDef', 0.11 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings('freeLand', 0.1 * lowLand, enemyEmpire)
 
 		enemyEmpire.land -= bldLoss
 		empire.land += bldLoss
@@ -157,7 +168,17 @@ export const fight_cast = async (
 		empire.offSucc++
 		empire.offTotal++
 		enemyEmpire.defTotal++
+		enemyEmpire.diminishingReturns =
+			enemyEmpire.diminishingReturns + DR_RATE / lowLand
 		enemyEmpire.networth = getNetworth(enemyEmpire)
+
+		if (empire.diminishingReturns > 0) {
+			empire.diminishingReturns -= DR_RATE
+		}
+
+		if (empire.diminishingReturns < 0) {
+			empire.diminishingReturns = 0
+		}
 
 		returnText += `${bldLoss.toLocaleString()} acres of land were captured from ${
 			enemyEmpire.name
@@ -225,6 +246,14 @@ export const fight_cast = async (
 		empire.offTotal++
 		enemyEmpire.defTotal++
 		enemyEmpire.defSucc++
+		enemyEmpire.diminishingReturns = enemyEmpire.diminishingReturns + DR_RATE
+		if (empire.diminishingReturns > 0) {
+			empire.diminishingReturns -= DR_RATE
+		}
+
+		if (empire.diminishingReturns < 0) {
+			empire.diminishingReturns = 0
+		}
 
 		let returnText = `Your attack was repelled by ${enemyEmpire.name}. /n 
 			You killed ${eloss.toLocaleString()} ${eraArray[enemyEmpire.era].trpwiz}. /n

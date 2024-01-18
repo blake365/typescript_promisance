@@ -481,8 +481,6 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 		const jackpotTracker = await Lottery.findOne({ ticket: 0 })
 		// console.log(jackpotTracker)
 		if (!jackpotTracker) {
-			jackpot += LOTTERY_JACKPOT
-
 			for (let i = 0; i < allTickets.length; i++) {
 				jackpot += Number(allTickets[i].cash)
 			}
@@ -490,7 +488,6 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 			for (let i = 0; i < allTickets.length; i++) {
 				jackpot += Number(allTickets[i].cash)
 			}
-			jackpot += LOTTERY_JACKPOT
 		}
 
 		// console.log('jackpot', jackpot)
@@ -521,7 +518,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 			// create jackpot entry as ticket 0
 			const ticket = new Lottery()
 			ticket.empire_id = 0
-			ticket.cash = jackpot
+			ticket.cash = jackpot + LOTTERY_JACKPOT
 			ticket.ticket = 0
 			await ticket.save()
 
