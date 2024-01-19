@@ -31,6 +31,7 @@ import {
 	PVTM_TRPFLY,
 	PVTM_TRPLND,
 	PVTM_TRPSEA,
+	MAX_ATTACKS,
 } from '../config/conifg'
 
 import { getNetworth } from './actions/actions'
@@ -833,12 +834,20 @@ const magicAttack = async (req: Request, res: Response) => {
 				)
 			} else if (spell === 'fight') {
 				console.log('fight start')
-				spellTurns = await attackSpell(
-					attacker,
-					clan,
-					fight_cost(base),
-					fight_cast(attacker, defender, clan)
-				)
+				if (attacker.attacks >= MAX_ATTACKS) {
+					returnText =
+						'You have reached the max number of attacks. Wait a while before attacking.'
+					return res.json({
+						error: returnText,
+					})
+				} else {
+					spellTurns = await attackSpell(
+						attacker,
+						clan,
+						fight_cost(base),
+						fight_cast(attacker, defender, clan)
+					)
+				}
 			} else if (spell === 'spy') {
 				console.log('spy start')
 				spellTurns = await attackSpell(

@@ -63,7 +63,7 @@ const buyTicket = async (req: Request, res: Response) => {
 
 		const ticket = new Lottery()
 		ticket.empire_id = empireId
-		ticket.cash = ticketCost * 25
+		ticket.cash = ticketCost * 10
 		ticket.ticket = allTickets.length + 1
 		await ticket.save()
 
