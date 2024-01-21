@@ -14,7 +14,6 @@ import user from '../middleware/user'
 import { Not, Raw } from 'typeorm'
 import { createNewsEvent } from '../util/helpers'
 import User from '../entity/User'
-import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
 
 interface ReturnObject {
@@ -32,123 +31,139 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 		return res.status(500).json({ error: 'Empire ID mismatch' })
 	}
 
-	// console.log(req.body)
-	if (action !== 'buy') {
-		return res.json({ error: 'Something went wrong' })
+	try {
+		// console.log(req.body)
+		if (action !== 'buy') {
+			return res.json({ error: 'Something went wrong' })
+		}
+
+		if (buy < 1) {
+			return res.status(500).json({ error: 'Invalid purchase amount' })
+		}
+
+		const buyer = await Empire.findOne({ id: empireId })
+		const seller = await Empire.findOne({ id: item.empire_id })
+		const itemBought = await Market.findOne({ id: item.id })
+
+		let amount: number = buy
+		let cost: number = item.price * buy
+
+		if (cost > buyer.cash) {
+			return res
+				.status(500)
+				.json({ error: 'Not enough money to make purchase' })
+		}
+		if (type !== itemBought.type) {
+			return res.status(500).json({ error: 'Invalid purchase' })
+		}
+		if (amount > itemBought.amount) {
+			itemBought.remove()
+			return res.status(500).json({ error: 'Invalid purchase' })
+		}
+
+		let itemName: string
+		// add bought item to empire
+		if (itemBought.type === 0) {
+			buyer.trpArm += amount
+			itemBought.amount -= amount
+			itemName = eraArray[seller.era].trparm
+		} else if (itemBought.type === 1) {
+			buyer.trpLnd += amount
+			itemBought.amount -= amount
+			itemName = eraArray[seller.era].trplnd
+		} else if (itemBought.type === 2) {
+			buyer.trpFly += amount
+			itemBought.amount -= amount
+			itemName = eraArray[seller.era].trpfly
+		} else if (itemBought.type === 3) {
+			buyer.trpSea += amount
+			itemBought.amount -= amount
+			itemName = eraArray[seller.era].trpsea
+		} else if (itemBought.type === 4) {
+			buyer.food += amount
+			itemBought.amount -= amount
+			itemName = eraArray[seller.era].food
+		} else if (itemBought.type === 5) {
+			buyer.runes += amount
+			itemBought.amount -= amount
+			itemName = eraArray[seller.era].runes
+		}
+
+		// deduct cost from buyer cash
+		buyer.cash -= cost
+
+		// add cost to seller cash
+		seller.bank += cost
+
+		buyer.networth = getNetworth(buyer)
+		// seller.networth = getNetworth(seller)
+
+		buyer.lastAction = new Date()
+
+		if (buyer.peakFood < buyer.food) {
+			buyer.peakFood = buyer.food
+		}
+		if (buyer.peakRunes < buyer.runes) {
+			buyer.peakRunes = buyer.runes
+		}
+		if (buyer.peakNetworth < buyer.networth) {
+			buyer.peakNetworth = buyer.networth
+		}
+		if (buyer.peakTrpArm < buyer.trpArm) {
+			buyer.peakTrpArm = buyer.trpArm
+		}
+		if (buyer.peakTrpLnd < buyer.trpLnd) {
+			buyer.peakTrpLnd = buyer.trpLnd
+		}
+		if (buyer.peakTrpFly < buyer.trpFly) {
+			buyer.peakTrpFly = buyer.trpFly
+		}
+		if (buyer.peakTrpSea < buyer.trpSea) {
+			buyer.peakTrpSea = buyer.trpSea
+		}
+
+		if (seller.peakCash < seller.cash + seller.bank) {
+			seller.peakCash = seller.cash + seller.bank
+		}
+
+		await buyer.save()
+		await seller.save()
+		await itemBought.save()
+
+		// await awardAchievements(buyer)
+		await takeSnapshot(buyer)
+		await takeSnapshot(seller)
+
+		// create news entry
+		let content: string = `You sold ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}. The money was deposited into the bank.`
+		let pubContent: string = `${buyer.name} purchased ${itemName} from the public market.`
+
+		// create news event for seller that goods have been purchased
+		await createNewsEvent(
+			content,
+			pubContent,
+			buyer.id,
+			buyer.name,
+			seller.id,
+			seller.name,
+			'market',
+			'success'
+		)
+
+		if (item.amount - buy <= 0) {
+			await Market.delete({ id: item.id })
+		}
+		if (itemBought.amount <= 0) {
+			await itemBought.remove()
+		}
+
+		return res.json({
+			success: `Purchased ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}`,
+		})
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({ error: 'Something went wrong' })
 	}
-
-	if (buy < 1) {
-		return res.status(500).json({ error: 'Invalid purchase amount' })
-	}
-
-	const buyer = await Empire.findOne({ id: empireId })
-	const seller = await Empire.findOne({ id: item.empire_id })
-	const itemBought = await Market.findOne({ id: item.id })
-
-	let amount: number = buy
-	let cost: number = item.price * buy
-
-	if (cost > buyer.cash) {
-		return res.status(500).json({ error: 'Not enough money to make purchase' })
-	}
-	if (type !== itemBought.type) {
-		return res.status(500).json({ error: 'Invalid purchase' })
-	}
-
-	let itemName: string
-	// add bought item to empire
-	if (itemBought.type === 0) {
-		buyer.trpArm += amount
-		itemBought.amount -= amount
-		itemName = eraArray[seller.era].trparm
-	} else if (itemBought.type === 1) {
-		buyer.trpLnd += amount
-		itemBought.amount -= amount
-		itemName = eraArray[seller.era].trplnd
-	} else if (itemBought.type === 2) {
-		buyer.trpFly += amount
-		itemBought.amount -= amount
-		itemName = eraArray[seller.era].trpfly
-	} else if (itemBought.type === 3) {
-		buyer.trpSea += amount
-		itemBought.amount -= amount
-		itemName = eraArray[seller.era].trpsea
-	} else if (itemBought.type === 4) {
-		buyer.food += amount
-		itemBought.amount -= amount
-		itemName = eraArray[seller.era].food
-	} else if (itemBought.type === 5) {
-		buyer.runes += amount
-		itemBought.amount -= amount
-		itemName = eraArray[seller.era].runes
-	}
-
-	// deduct cost from buyer cash
-	buyer.cash -= cost
-
-	// add cost to seller cash
-	seller.bank += cost
-
-	buyer.networth = getNetworth(buyer)
-	// seller.networth = getNetworth(seller)
-
-	buyer.lastAction = new Date()
-
-	if (buyer.peakFood < buyer.food) {
-		buyer.peakFood = buyer.food
-	}
-	if (buyer.peakRunes < buyer.runes) {
-		buyer.peakRunes = buyer.runes
-	}
-	if (buyer.peakNetworth < buyer.networth) {
-		buyer.peakNetworth = buyer.networth
-	}
-	if (buyer.peakTrpArm < buyer.trpArm) {
-		buyer.peakTrpArm = buyer.trpArm
-	}
-	if (buyer.peakTrpLnd < buyer.trpLnd) {
-		buyer.peakTrpLnd = buyer.trpLnd
-	}
-	if (buyer.peakTrpFly < buyer.trpFly) {
-		buyer.peakTrpFly = buyer.trpFly
-	}
-	if (buyer.peakTrpSea < buyer.trpSea) {
-		buyer.peakTrpSea = buyer.trpSea
-	}
-
-	if (seller.peakCash < seller.cash + seller.bank) {
-		seller.peakCash = seller.cash + seller.bank
-	}
-
-	await buyer.save()
-	await seller.save()
-	await itemBought.save()
-
-	// await awardAchievements(buyer)
-	await takeSnapshot(buyer)
-	await takeSnapshot(seller)
-
-	// create news entry
-	let content: string = `You sold ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}. The money was deposited into the bank.`
-	let pubContent: string = `${buyer.name} purchased ${itemName} from the public market.`
-
-	// create news event for seller that goods have been purchased
-	await createNewsEvent(
-		content,
-		pubContent,
-		buyer.id,
-		buyer.name,
-		seller.id,
-		seller.name,
-		'market',
-		'success'
-	)
-
-	if (item.amount - buy <= 0) {
-		await Market.delete({ id: item.id })
-	}
-
-	return res.json({ success: 'item purchased' })
 }
 
 // const pubBuy = async (req: Request, res: Response) => {
@@ -433,7 +448,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 			type: 0,
 			empire_id: Not(empireId),
 			amount: Not(0),
-			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '10 minutes'`),
 		},
 		order: {
 			price: 'ASC',
