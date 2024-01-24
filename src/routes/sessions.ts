@@ -1,7 +1,7 @@
 // get session by empireId
 
 import { Request, Response, Router } from 'express'
-import { Not, Raw } from 'typeorm'
+import { Not } from 'typeorm'
 import Session from '../entity/Session'
 
 // READ
@@ -9,20 +9,19 @@ const getSession = async (req: Request, res: Response) => {
 	const { id } = req.params
 
 	try {
-		const session = await Session.find({
+		const session = await Session.findOne({
 			where: {
 				empire_id: id,
-				createdAt: Raw((alias) => `${alias} > NOW() - INTERVAL '1 hour'`),
 				time: Not(0),
 			},
-			order: {
-				createdAt: 'DESC',
-			},
-			take: 1,
-			// cache: 30000,
 		})
-
-		return res.json(session)
+		// console.log(session)
+		// check if session is older than 1 hour
+		if (session && Date.now() - session.createdAt.getTime() < 3600000) {
+			return res.json({ result: true })
+		} else {
+			return res.json({ result: false })
+		}
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json(error)

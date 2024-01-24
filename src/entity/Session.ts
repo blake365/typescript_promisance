@@ -31,6 +31,7 @@ export default class Session extends Model {
 	})
 	user_id: number
 
+	@Index()
 	@Column({
 		type: 'int',
 		default: 0,

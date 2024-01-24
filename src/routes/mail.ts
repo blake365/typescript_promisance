@@ -3,7 +3,7 @@ import ClanMessage from '../entity/ClanMessage'
 import { Router, Request, Response } from 'express'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
-import { Not, Any, getConnection } from 'typeorm'
+import { getConnection } from 'typeorm'
 import User from '../entity/User'
 import { containsOnlySymbols } from './actions/actions'
 
@@ -77,6 +77,7 @@ const getMessages = async (req: Request, res: Response) => {
 		return res.status(401).json({ message: 'Unauthorized' })
 	}
 
+	// console.log('conversationId', conversationId)
 	try {
 		const messages = await EmpireMessage.find({
 			where: { conversationId: conversationId },
@@ -84,12 +85,13 @@ const getMessages = async (req: Request, res: Response) => {
 		})
 
 		if (
+			messages.length > 8 &&
 			messages[0].empireIdDestination !== empireId &&
 			messages[0].empireIdSource !== empireId
 		) {
 			return res.status(401).json({ message: 'Unauthorized' })
 		}
-
+		// console.log(messages)
 		res.status(200).json(messages)
 	} catch (error) {
 		res.status(500).json({ message: error.message })
