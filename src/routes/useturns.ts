@@ -96,7 +96,7 @@ function calcCorruption(empire: Empire): number {
 	let corruption = 0
 	if (empire.cash > empire.networth * 110) {
 		let multiples = Math.floor(empire.cash / empire.networth) - 1
-		corruption = Math.round(multiples * empire.networth * 0.001)
+		corruption = Math.round(multiples * empire.networth * 0.001 * 0.5)
 	}
 	return corruption
 }
@@ -283,6 +283,7 @@ export const useTurn = async (
 		let troubleFood = false
 		let troubleLoan = false
 		let troubleCash = false
+		let troubleCashMinor = false
 		empire.networth = getNetworth(empire)
 
 		// size bonus penalty
@@ -378,6 +379,10 @@ export const useTurn = async (
 		if (empire.cash <= 0) {
 			trouble |= 1 // turns trouble cash
 			troubleCash = true
+		}
+
+		if (empire.cash <= 0 && empire.loan > loanMax / 2) {
+			troubleCashMinor = true
 		}
 
 		//more loan stuff
@@ -658,6 +663,15 @@ export const useTurn = async (
 				statsArray.push(current)
 				break
 			}
+		} else if (troubleCashMinor) {
+			message[
+				'desertion'
+			] = `Your loan is growing quickly. Turns have been stopped to allow you to make adjustments.`
+			current['messages'] = message
+			empire.networth = getNetworth(empire)
+			await empire.save()
+			statsArray.push(current)
+			break
 		} else {
 			current['messages'] = message
 			current['result'] = turnResult

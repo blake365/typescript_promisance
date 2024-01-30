@@ -167,15 +167,15 @@ const RACE_GHOUL = {
 	mod_offense: 0,
 	mod_defense: 8,
 	mod_buildrate: -8,
-	mod_expenses: 10,
+	mod_expenses: 9,
 	mod_magic: -12,
-	mod_industry: 10,
+	mod_industry: 9,
 	mod_income: 0,
 	mod_explore: -6,
 	mod_market: -8,
-	mod_foodcon: 4,
+	mod_foodcon: 3,
 	mod_runepro: -6,
-	mod_foodpro: 8,
+	mod_foodpro: 7,
 }
 
 const RACE_MINOTAUR = {
