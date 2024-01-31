@@ -9,7 +9,7 @@ import morgan from 'morgan'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import { ToadScheduler, SimpleIntervalJob, AsyncTask } from 'toad-scheduler'
-
+import passport from 'passport'
 import authRoutes from './routes/auth'
 import empireRoutes from './routes/empire'
 import useTurns from './routes/useturns'
@@ -85,8 +85,8 @@ app.use(
 		optionsSuccessStatus: 200,
 	})
 )
-
 app.use(express.static('public'))
+app.use(passport.initialize())
 
 app.get('/', (_, res) => res.send('hello world'))
 app.get('/api/', (_, res) => res.send('hello api'))

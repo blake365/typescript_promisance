@@ -3,7 +3,8 @@ import { validate, isEmpty } from 'class-validator'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import cookie from 'cookie'
-
+import passport from 'passport'
+import GoogleStrategy from 'passport-google-oauth20'
 import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
@@ -357,6 +358,26 @@ const forgotUsername = async (req: Request, res: Response) => {
 	}
 }
 
+passport.use(
+	new GoogleStrategy(
+		{
+			clientID: process.env.GOOGLE_CLIENT_ID,
+			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+			callbackURL: 'http://localhost:5001/api/auth/auth/google/callback',
+		},
+		function (accessToken, refreshToken, profile, cb) {
+			console.log(profile, cb)
+			// search for existing user using profile info
+
+			// if user exists, return user and login
+
+			// if user does not exist, create new user and login
+
+			// return user
+		}
+	)
+)
+
 const router = Router()
 router.post('/register', register)
 router.post('/demo', demoAccount)
@@ -366,5 +387,68 @@ router.get('/logout', user, auth, logout)
 router.post('/forgot-password', forgotPassword)
 router.post('/confirm-token', confirmToken)
 router.post('/forgot-username', forgotUsername)
+router.get(
+	'/auth/google',
+	passport.authenticate('google', { scope: ['profile', 'email'] })
+)
+router.get('/auth/google/callback', async function (req, res) {
+	// The request user will now be the authenticated user,
+	// you can add this user to your database if it doesn't exist.
+	console.log('hello there callback')
+	console.log(req)
+	const { id, displayName, emails } = req.body
+	const email = emails[0].value
+
+	const user = await User.findOne({ email })
+	if (!user) {
+		// make a new user
+		const empires = []
+
+		const user = new User({ email, username: displayName, empires })
+		await user.save()
+	}
+
+	let username = user?.username
+	// Log the user in and redirect to home.
+	const token = jwt.sign({ username }, process.env.JWT_SECRET!)
+
+	const data = token
+	const time = 3600
+
+	try {
+		res.set(
+			'Set-Cookie',
+			cookie.serialize('token', token, {
+				// httpOnly: true,
+				domain:
+					process.env.NODE_ENV === 'production' ? '.neopromisance.com' : '',
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'lax',
+				maxAge: time,
+				path: '/',
+			})
+		)
+	} catch (error) {
+		console.log(error)
+	}
+
+	const session = new Session()
+	session.data = data
+	session.time = time
+	session.user_id = user.id
+	if (user?.empires?.length > 0) {
+		session.empire_id = user.empires[0].id
+	}
+	session.role = 'user'
+	await session.save()
+
+	user.lastIp =
+		<string>req.connection.remoteAddress ||
+		<string>req.headers['x-forwarded-for']
+
+	await user.save()
+
+	return res.json(user)
+})
 
 export default router
