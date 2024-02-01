@@ -54,6 +54,11 @@ export default class User extends Model {
 	})
 	role: string
 
+	@Column({
+		default: 'email',
+	})
+	method: string
+
 	@Column({ default: '' })
 	comment: string
 

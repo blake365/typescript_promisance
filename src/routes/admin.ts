@@ -27,6 +27,7 @@ import { raceArray } from '../config/races'
 import { eraArray } from '../config/eras'
 import ClanRelation from '../entity/ClanRelation'
 import Session from '../entity/Session'
+import EmpireSnapshot from '../entity/EmpireSnapshot'
 
 // READ
 const getEmpires = async (req: Request, res: Response) => {
@@ -753,6 +754,14 @@ const resetGame = async (req: Request, res: Response) => {
 				await session.remove()
 			})
 			console.log('sessions removed')
+		}
+
+		let snapshots = await EmpireSnapshot.find()
+		if (snapshots.length > 0) {
+			snapshots.forEach(async (snapshot) => {
+				await snapshot.remove()
+			})
+			console.log('snapshots removed')
 		}
 
 		return res.json({ message: 'Game reset' })

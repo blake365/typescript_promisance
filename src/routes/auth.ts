@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import cookie from 'cookie'
 import passport from 'passport'
-import GoogleStrategy from 'passport-google-oauth20'
+import passportGoogle from 'passport-google-oauth20'
 import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
@@ -12,6 +12,7 @@ import Session from '../entity/Session'
 import { makeId } from '../util/helpers'
 import ResetToken from '../entity/ResetToken'
 import { sendSESEmail } from '../util/mail'
+const GoogleStrategy = passportGoogle.Strategy
 
 const mapErrors = (errors: Object[]) => {
 	return errors.reduce((prev: any, err: any) => {
@@ -363,20 +364,50 @@ passport.use(
 		{
 			clientID: process.env.GOOGLE_CLIENT_ID,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-			callbackURL: 'http://localhost:5001/api/auth/auth/google/callback',
+			callbackURL:
+				process.env.NODE_ENV === 'production'
+					? 'https://api.neopromisance.com/api/auth/auth/google/callback'
+					: 'http://localhost:5001/api/auth/auth/google/callback',
 		},
-		function (accessToken, refreshToken, profile, cb) {
-			console.log(profile, cb)
-			// search for existing user using profile info
+		async function verify(accessToken, refreshToken, profile, cb) {
+			try {
+				// console.log('email', email)
+				// console.log('profile', profile)
+				let existingUser = await User.findOne({ username: profile.displayName })
+				// if user exists return the user
+				if (existingUser) {
+					console.log('Found existing user...')
+					return cb(null, existingUser)
+				}
 
-			// if user exists, return user and login
-
-			// if user does not exist, create new user and login
-
-			// return user
+				console.log('Creating new user...')
+				// if user does not exist create a new user
+				const newUser = new User({
+					method: 'google',
+					username: profile.displayName,
+					password: makeId(10),
+					empires: [],
+					email: profile.emails[0].value,
+				})
+				await newUser.save()
+				return cb(null, newUser)
+			} catch (error) {
+				console.error('Error in /auth/google:', error)
+				return cb(error, false)
+			}
 		}
 	)
 )
+
+passport.serializeUser((user, done) => {
+	console.log('serializing user...')
+	done(null, user)
+})
+
+passport.deserializeUser((user: any, done) => {
+	console.log('deserializing user...')
+	done(null, user)
+})
 
 const router = Router()
 router.post('/register', register)
@@ -391,64 +422,74 @@ router.get(
 	'/auth/google',
 	passport.authenticate('google', { scope: ['profile', 'email'] })
 )
-router.get('/auth/google/callback', async function (req, res) {
-	// The request user will now be the authenticated user,
-	// you can add this user to your database if it doesn't exist.
-	console.log('hello there callback')
-	console.log(req)
-	const { id, displayName, emails } = req.body
-	const email = emails[0].value
+router.get('/auth/google/callback', function (req, res, next) {
+	passport.authenticate('google', async function (err, gUser) {
+		console.log('hello')
+		// console.log(user)
+		if (err) {
+			console.log('Error', err)
+			return next(err)
+		}
+		if (!gUser) {
+			console.log('No user')
+			return res.redirect(
+				process.env.NODE_ENV === 'production'
+					? 'https://www.neopromisance.com/login'
+					: 'http://localhost:5173/login'
+			)
+		} else {
+			console.log('user found')
+			const user = await User.findOne(
+				{ username: gUser.username },
+				{ relations: ['empires'] }
+			)
 
-	const user = await User.findOne({ email })
-	if (!user) {
-		// make a new user
-		const empires = []
+			let username = gUser.username
+			const token = jwt.sign({ username }, process.env.JWT_SECRET!)
 
-		const user = new User({ email, username: displayName, empires })
-		await user.save()
-	}
+			const data = token
+			const time = 3600
+			// console.log(token)
+			try {
+				res.set(
+					'Set-Cookie',
+					cookie.serialize('token', token, {
+						// httpOnly: true,
+						domain:
+							process.env.NODE_ENV === 'production' ? '.neopromisance.com' : '',
+						secure: process.env.NODE_ENV === 'production',
+						sameSite: 'lax',
+						maxAge: time,
+						path: '/',
+					})
+				)
+			} catch (error) {
+				console.log(error)
+			}
 
-	let username = user?.username
-	// Log the user in and redirect to home.
-	const token = jwt.sign({ username }, process.env.JWT_SECRET!)
+			const session = new Session()
+			session.data = data
+			session.time = time
+			session.user_id = user.id
+			if (user?.empires?.length > 0) {
+				session.empire_id = user.empires[0].id
+			}
+			session.role = 'user'
+			await session.save()
 
-	const data = token
-	const time = 3600
+			user.lastIp =
+				<string>req.connection.remoteAddress ||
+				<string>req.headers['x-forwarded-for']
 
-	try {
-		res.set(
-			'Set-Cookie',
-			cookie.serialize('token', token, {
-				// httpOnly: true,
-				domain:
-					process.env.NODE_ENV === 'production' ? '.neopromisance.com' : '',
-				secure: process.env.NODE_ENV === 'production',
-				sameSite: 'lax',
-				maxAge: time,
-				path: '/',
-			})
-		)
-	} catch (error) {
-		console.log(error)
-	}
+			await user.save()
 
-	const session = new Session()
-	session.data = data
-	session.time = time
-	session.user_id = user.id
-	if (user?.empires?.length > 0) {
-		session.empire_id = user.empires[0].id
-	}
-	session.role = 'user'
-	await session.save()
-
-	user.lastIp =
-		<string>req.connection.remoteAddress ||
-		<string>req.headers['x-forwarded-for']
-
-	await user.save()
-
-	return res.json(user)
+			return res.redirect(
+				process.env.NODE_ENV === 'production'
+					? 'https://www.neopromisance.com/app/'
+					: 'http://localhost:5173/app/'
+			)
+		}
+	})(req, res, next)
 })
 
 export default router
