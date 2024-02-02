@@ -373,7 +373,9 @@ passport.use(
 			try {
 				// console.log('email', email)
 				// console.log('profile', profile)
-				let existingUser = await User.findOne({ username: profile.displayName })
+				let existingUser = await User.findOne({
+					email: profile.emails[0].value,
+				})
 				// if user exists return the user
 				if (existingUser) {
 					console.log('Found existing user...')

@@ -307,24 +307,3 @@ if (process.env.NODE_ENV === 'development') {
 	// scheduler.addSimpleIntervalJob(checkLottery)
 	scheduler.addSimpleIntervalJob(gameActive)
 }
-// console.log('gameOn', gameOn)
-// if (!gameOn) {
-// 	console.log('game is off')
-// 	scheduler.stopById('id_10')
-// 	scheduler.stopById('id_6')
-// 	scheduler.stopById('id_5')
-// 	scheduler.stopById('id_3')
-// 	scheduler.stopById('id_2')
-// 	scheduler.stopById('id_4')
-// 	scheduler.stopById('id_7')
-// } else {
-// 	console.log('game is on')
-// 	scheduler.startById('id_10')
-// 	scheduler.startById('id_6')
-// 	scheduler.startById('id_5')
-// 	scheduler.startById('id_3')
-// 	scheduler.startById('id_2')
-// 	scheduler.startById('id_4')
-// 	scheduler.startById('id_7')
-// }
-// console.log(scheduler.getById('id_1').getStatus());
