@@ -125,11 +125,11 @@ const createEmpire = async (req: Request, res: Response) => {
 			createdAt = now
 		}
 
-		let effectCatchUp = 5760
+		let effectCatchUp = 4320
 		if (daysRaw > 0) {
-			effectCatchUp = Math.floor(5760 - days * 1440)
+			effectCatchUp = Math.floor(4320 - Math.round(daysRaw * 1440))
 		} else if (daysRaw < 0) {
-			effectCatchUp = Math.floor(5760 + Math.abs(days * 1440))
+			effectCatchUp = Math.floor(4320 + Math.abs(Math.round(daysRaw * 1440)))
 		}
 
 		if (effectCatchUp < 0) {
