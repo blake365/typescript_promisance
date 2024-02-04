@@ -99,6 +99,11 @@ app.get('/api/time', (_, res) =>
 	})
 )
 
+app.get('/api/perpetual/hello', (req, res) => {
+	console.log(req.url)
+	res.send('hello perpetual')
+})
+
 app.use('/api/auth', authRoutes)
 app.use('/api/empire', empireRoutes)
 app.use('/api/useturns', useTurns)
@@ -121,7 +126,6 @@ app.use('/api/lottery', lottery)
 app.use('/api/cron', cron)
 app.use('/api/archives', archive)
 app.use('/api/snapshots', snapshots)
-// app.use('/api/send', testMail)
 
 app.get('/debug-sentry', function mainHandler(req, res) {
 	throw new Error('My first Sentry error!')

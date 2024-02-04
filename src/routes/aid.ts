@@ -16,7 +16,6 @@ import {
 } from '../config/conifg'
 import { getNetworth } from './actions/actions'
 import User from '../entity/User'
-import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
 
 // send aid to another empire
@@ -120,12 +119,10 @@ const sendAid = async (req: Request, res: Response) => {
 			}
 		}
 
-		if (sender.clanId !== receiver.clanId) {
-			if (sender.networth < receiver.networth * 0.33) {
-				return res
-					.status(400)
-					.json({ error: 'Cannot send aid to such a large empire' })
-			}
+		if (receiver.networth > sender.networth * 2) {
+			return res
+				.status(400)
+				.json({ error: 'Cannot send aid to such a large empire' })
 		}
 
 		let aidTurns = useTurnInternal('aid', turns, sender, clan, true)
