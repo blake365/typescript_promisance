@@ -27,6 +27,7 @@ export default class EmpireEffect extends Model {
 	})
 	empireEffectValue: number
 
+	@Index()
 	@Column({
 		type: 'int',
 		default: 0,

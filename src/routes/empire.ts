@@ -855,10 +855,44 @@ const getAchievements = async (req: Request, res: Response) => {
 	}
 }
 
+const nameChange = async (req: Request, res: Response) => {
+	const { uuid } = req.params
+	const { name } = req.body
+
+	const user: User = res.locals.user
+
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
+
+	if (name.trim() === '') {
+		return res.status(400).json({ error: 'Name must not be empty' })
+	}
+
+	try {
+		const empire = await Empire.findOneOrFail({ uuid })
+
+		if (empire.changeName < 1) {
+			if (!containsOnlySymbols(name)) {
+				empire.name = filter.clean(name)
+			} else {
+				empire.name = name
+			}
+			empire.changeName++
+			await empire.save()
+			return res.status(201).json(empire)
+		} else {
+			return res.status(400).json({ error: 'Name change already used' })
+		}
+	} catch (error) {
+		console.log(error)
+		return res.status(404).json({ error: 'error changing name' })
+	}
+}
+
 const router = Router()
 
 router.post('/', user, auth, createEmpire)
-
 router.get('/', getEmpires)
 router.get('/scores', getScores)
 router.get('/:uuid', user, auth, findOneEmpire)
@@ -875,6 +909,7 @@ router.post('/:uuid/profile', user, auth, updateProfile)
 router.post('/:uuid/icon', user, auth, updateIcon)
 router.post('/:uuid/bonus', user, auth, bonusTurns)
 router.post('/:uuid/changeRace', user, auth, changeRace)
+router.post('/:uuid/nameChange', user, auth, nameChange)
 
 // router.put('/give/resources', giveResources)
 // router.put('/give/turns', giveTurns)

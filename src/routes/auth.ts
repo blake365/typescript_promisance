@@ -87,7 +87,7 @@ const login = async (req: Request, res: Response) => {
 					domain:
 						process.env.NODE_ENV === 'production' ? '.neopromisance.com' : '',
 					secure: process.env.NODE_ENV === 'production',
-					sameSite: 'lax',
+					sameSite: 'strict',
 					maxAge: time,
 					path: '/',
 				})
@@ -130,7 +130,7 @@ const logout = async (_: Request, res: Response) => {
 			// httpOnly: true,
 			domain: process.env.NODE_ENV === 'production' ? '.neopromisance.com' : '',
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'lax',
+			sameSite: 'strict',
 			expires: new Date(0),
 			path: '/',
 		})
@@ -226,7 +226,7 @@ const demoAccount = async (req: Request, res: Response) => {
 				domain:
 					process.env.NODE_ENV === 'production' ? '.neopromisance.com' : '',
 				secure: process.env.NODE_ENV === 'production',
-				sameSite: 'lax',
+				sameSite: 'strict',
 				maxAge: time,
 				path: '/',
 			})
@@ -460,7 +460,7 @@ router.get('/auth/google/callback', function (req, res, next) {
 						domain:
 							process.env.NODE_ENV === 'production' ? '.neopromisance.com' : '',
 						secure: process.env.NODE_ENV === 'production',
-						sameSite: 'lax',
+						sameSite: 'strict',
 						maxAge: time,
 						path: '/',
 					})

@@ -6,6 +6,7 @@ import {
 	ManyToOne,
 	JoinColumn,
 } from 'typeorm'
+import { Length } from 'class-validator'
 
 import Model from './Model'
 import User from './User'
@@ -317,8 +318,15 @@ export default class Empire extends Model {
 	})
 	mktPerSea: number
 
-	@Column()
+	@Column({ unique: true })
+	@Length(3, 255, { message: 'Must be at least 3 characters long' })
 	name: string
+
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	changeName: number
 
 	@Column('bigint', {
 		transformer: {

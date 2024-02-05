@@ -28,6 +28,7 @@ import { eraArray } from '../config/eras'
 import ClanRelation from '../entity/ClanRelation'
 import Session from '../entity/Session'
 import EmpireSnapshot from '../entity/EmpireSnapshot'
+import Lottery from '../entity/Lottery'
 
 // READ
 const getEmpires = async (req: Request, res: Response) => {
@@ -762,6 +763,14 @@ const resetGame = async (req: Request, res: Response) => {
 				await snapshot.remove()
 			})
 			console.log('snapshots removed')
+		}
+
+		let lotto = await Lottery.find()
+		if (lotto.length > 0) {
+			lotto.forEach(async (lottery) => {
+				await lottery.remove()
+			})
+			console.log('lottery tickets removed')
 		}
 
 		return res.json({ message: 'Game reset' })
