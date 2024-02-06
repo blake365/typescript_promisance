@@ -98,8 +98,8 @@ const getMessages = async (req: Request, res: Response) => {
 		return res.status(401).json({ message: 'Unauthorized' })
 	}
 
-	console.log('conversationId', conversationId)
-	console.log('empireId', empireId)
+	// console.log('conversationId', conversationId)
+	// console.log('empireId', empireId)
 	try {
 		let messages = await EmpireMessage.find({
 			where: { conversationId: conversationId },
@@ -111,7 +111,7 @@ const getMessages = async (req: Request, res: Response) => {
 			// try again with different conversationId
 			// split conversationId into sender (empireid) and receiver (empireid)
 			const reverseId = reverseConversationId(conversationId, empireId)
-			console.log('reverseId', reverseId)
+			// console.log('reverseId', reverseId)
 
 			messages = await EmpireMessage.find({
 				where: { conversationId: reverseId },
