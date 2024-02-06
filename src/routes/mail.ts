@@ -68,6 +68,27 @@ const getConversations = async (req: Request, res: Response) => {
 	}
 }
 
+function reverseConversationId(conversationId, participantId) {
+	// Convert conversationId to string to manipulate it easily
+	const conversationIdStr = conversationId.toString()
+
+	// Check if the participantId is present in the conversationId
+	if (conversationIdStr.includes(participantId.toString())) {
+		// Split the conversationId into an array of strings
+		const idArray = conversationIdStr.split(participantId.toString())
+
+		// Reverse the array and join it back to get the reversed conversationId
+		const reversedConversationId = idArray
+			.reverse()
+			.join(participantId.toString())
+
+		return Number(reversedConversationId)
+	} else {
+		// If participantId is not found in conversationId, return an error message or handle accordingly
+		throw new Error('Participant not found in conversationId')
+	}
+}
+
 const getMessages = async (req: Request, res: Response) => {
 	const { conversationId, empireId } = req.body
 
@@ -77,15 +98,29 @@ const getMessages = async (req: Request, res: Response) => {
 		return res.status(401).json({ message: 'Unauthorized' })
 	}
 
-	// console.log('conversationId', conversationId)
+	console.log('conversationId', conversationId)
+	console.log('empireId', empireId)
 	try {
-		const messages = await EmpireMessage.find({
+		let messages = await EmpireMessage.find({
 			where: { conversationId: conversationId },
 			order: { createdAt: 'ASC' },
 		})
 
+		// console.log(messages)
+		if (messages.length < 1) {
+			// try again with different conversationId
+			// split conversationId into sender (empireid) and receiver (empireid)
+			const reverseId = reverseConversationId(conversationId, empireId)
+			console.log('reverseId', reverseId)
+
+			messages = await EmpireMessage.find({
+				where: { conversationId: reverseId },
+				order: { createdAt: 'ASC' },
+			})
+		}
+
 		if (
-			messages.length > 8 &&
+			messages.length > 0 &&
 			messages[0].empireIdDestination !== empireId &&
 			messages[0].empireIdSource !== empireId
 		) {
