@@ -484,10 +484,12 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 			for (let i = 0; i < allTickets.length; i++) {
 				jackpot += Number(allTickets[i].cash)
 			}
+			jackpot += LOTTERY_JACKPOT
 		} else {
 			for (let i = 0; i < allTickets.length; i++) {
 				jackpot += Number(allTickets[i].cash)
 			}
+			jackpot += jackpotTracker.cash
 		}
 
 		// console.log('jackpot', jackpot)
@@ -518,7 +520,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 			// create jackpot entry as ticket 0
 			const ticket = new Lottery()
 			ticket.empire_id = 0
-			ticket.cash = jackpot + LOTTERY_JACKPOT
+			ticket.cash = jackpot
 			ticket.ticket = 0
 			await ticket.save()
 
