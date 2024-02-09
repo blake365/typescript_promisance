@@ -657,11 +657,14 @@ const findOneEmpire = async (req: Request, res: Response) => {
 }
 
 const getEmpireEffects = async (req: Request, res: Response) => {
-	const { empireId } = req.body
-
+	const { empireId, clanId } = req.body
+	// console.log(req.body)
 	const user: User = res.locals.user
 
-	if (user?.empires[0]?.id !== empireId) {
+	// console.log(user.empires[0])
+	if (clanId && user?.empires[0]?.clanId !== clanId) {
+		return res.status(403).json({ error: 'unauthorized' })
+	} else if (!clanId && user?.empires[0]?.id !== empireId) {
 		return res.status(403).json({ error: 'unauthorized' })
 	}
 
@@ -673,7 +676,6 @@ const getEmpireEffects = async (req: Request, res: Response) => {
 		effectAge = Math.floor(effectAge)
 		// console.log(effectAge)
 		// console.log(effectValue)
-
 		if (effectAge > effectValue) {
 			return false
 		} else {
