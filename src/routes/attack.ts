@@ -194,6 +194,8 @@ export const destroyBuildings = async (
 	buildLoss: buildLoss,
 	buildGain: buildGain
 ) => {
+	// console.log(attackType)
+
 	if (
 		attackType === 'trplnd' ||
 		attackType === 'trpfly' ||
@@ -202,17 +204,20 @@ export const destroyBuildings = async (
 		if (attackType === 'trpfly') {
 			// air strikes destroy more, take more land, but gain fewer buildings
 			pcloss *= 1.25
-			pcgain *= 0.72
+			pcgain *= 0.92
 		} else if (type === 'bldDef' || type === 'bldWiz') {
 			// towers are even more likely to be destroyed by land/sea attacks (and more likely to be destroyed)
 			pcloss *= 1.3
-			pcgain *= 0.7
+			pcgain *= 0.88
 		} else {
 			// while land/sea attacks simply have a higher chance of destroying the buildings stolen
-			pcgain *= 0.9
+			pcgain *= 0.96
 		}
 	} else if (attackType === 'pillage') {
 	}
+
+	// console.log(pcgain)
+	// console.log(pcloss)
 
 	let loss = Math.min(
 		getRandomInt(

@@ -227,7 +227,7 @@ export const fight_cast = async (
 		let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.08 + 1))
 		let eloss = randomIntFromInterval(
 			0,
-			Math.round(enemyEmpire.trpWiz * 0.4 + 1)
+			Math.round(enemyEmpire.trpWiz * 0.04 + 1)
 		)
 
 		if (uloss > empire.trpWiz) {
