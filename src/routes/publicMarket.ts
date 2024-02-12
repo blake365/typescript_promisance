@@ -448,7 +448,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 			type: 0,
 			empire_id: Not(empireId),
 			amount: Not(0),
-			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '10 minutes'`),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
 		},
 		order: {
 			price: 'ASC',
