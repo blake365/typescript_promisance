@@ -487,9 +487,11 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 			jackpot += LOTTERY_JACKPOT
 		} else {
 			for (let i = 0; i < allTickets.length; i++) {
-				jackpot += Number(allTickets[i].cash)
+				if (allTickets[i].ticket != 0) {
+					jackpot += Number(allTickets[i].cash)
+				}
 			}
-			jackpot += jackpotTracker.cash
+			jackpot += Number(jackpotTracker.cash)
 		}
 
 		// console.log('jackpot', jackpot)

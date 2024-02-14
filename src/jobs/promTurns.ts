@@ -434,28 +434,31 @@ export const cleanDemoAccounts = new AsyncTask(
 		console.log('checking lottery')
 
 		const allTickets = await Lottery.find()
-
+		console.log(allTickets)
 		let jackpot = 0
 		const jackpotTracker = await Lottery.findOne({ ticket: 0 })
-		// console.log(jackpotTracker)
+		console.log(jackpotTracker)
 		if (!jackpotTracker) {
-			jackpot += LOTTERY_JACKPOT
-
 			for (let i = 0; i < allTickets.length; i++) {
 				jackpot += Number(allTickets[i].cash)
 			}
+			jackpot += LOTTERY_JACKPOT
 		} else {
 			for (let i = 0; i < allTickets.length; i++) {
-				jackpot += Number(allTickets[i].cash)
+				if (allTickets[i].ticket != 0) {
+					jackpot += Number(allTickets[i].cash)
+				}
 			}
+			jackpot += Number(jackpotTracker.cash)
 		}
 
-		// console.log('jackpot', jackpot)
+		console.log('jackpot', jackpot)
 
 		const totalTickets = allTickets.length
 		if (totalTickets < 1) return
 		// console.log('total tickets', totalTickets)
-		const ticketsToDraw = Math.ceil(totalTickets * 1.2)
+		let ticketsToDraw = Math.ceil(totalTickets * 1.35)
+		if (ticketsToDraw < 15) ticketsToDraw = 15
 		// console.log('tickets to draw', ticketsToDraw)
 		const winningTicket = Math.ceil(Math.random() * ticketsToDraw)
 		// console.log('winning ticket', winningTicket)
@@ -502,7 +505,7 @@ export const cleanDemoAccounts = new AsyncTask(
 				'fail'
 			)
 		} else {
-			// console.log('winner', winner)
+			console.log('winner', winner)
 			// console.log(jackpot)
 			const empire = await Empire.findOne({ id: winner.empire_id })
 			// console.log(empire)
