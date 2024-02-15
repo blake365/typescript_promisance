@@ -24,6 +24,7 @@ const destroyBuildings = async (
 	let loss = 0
 
 	if (enemyEmpire[type] > 0) {
+		console.log(enemyEmpire[type])
 		loss = randomIntFromInterval(
 			enemyEmpire[type] * 0.01,
 			Math.ceil(pcloss * enemyEmpire[type] + 2)
@@ -152,7 +153,7 @@ export const fight_cast = async (
 		let bldLoss = 0
 		bldLoss += await destroyBuildings('bldCash', 0.07 * lowLand, enemyEmpire)
 		bldLoss += await destroyBuildings('bldPop', 0.07 * lowLand, enemyEmpire)
-		bldLoss += await destroyBuildings('bldTrp', 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings('bldTroop', 0.07 * lowLand, enemyEmpire)
 		bldLoss += await destroyBuildings('bldCost', 0.07 * lowLand, enemyEmpire)
 		bldLoss += await destroyBuildings('bldFood', 0.07 * lowLand, enemyEmpire)
 		bldLoss += await destroyBuildings('bldWiz', 0.07 * lowLand, enemyEmpire)
