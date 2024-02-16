@@ -761,6 +761,54 @@ const updateEmpireFavorite = async (req: Request, res: Response) => {
 	}
 }
 
+const reorderFavorites = async (req: Request, res: Response) => {
+	const { uuid } = req.params
+	const { favorites } = req.body
+
+	const user: User = res.locals.user
+
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
+
+	try {
+		const empire = await Empire.findOneOrFail({ uuid })
+
+		empire.favorites = favorites
+
+		await empire.save()
+		console.log('favorite updated')
+		return res.status(201).json(empire)
+	} catch (error) {
+		console.log(error)
+		return res.status(404).json({ empire: 'empire not found' })
+	}
+}
+
+const setFavSize = async (req: Request, res: Response) => {
+	const { uuid } = req.params
+	const { favSize } = req.body
+
+	const user: User = res.locals.user
+
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
+
+	try {
+		const empire = await Empire.findOneOrFail({ uuid })
+
+		empire.favSize = favSize
+
+		await empire.save()
+		console.log('favorite size updated')
+		return res.status(201).json(empire)
+	} catch (error) {
+		console.log(error)
+		return res.status(404).json({ empire: 'empire not found' })
+	}
+}
+
 const bonusTurns = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 
@@ -907,6 +955,8 @@ router.post('/:uuid/tax', user, auth, updateTax)
 router.post('/:uuid/industry', user, auth, updateIndustry)
 router.post('/otherEmpires', user, auth, getOtherEmpires)
 router.post('/:uuid/favorite', user, auth, updateEmpireFavorite)
+router.post('/:uuid/favorites/order', user, auth, reorderFavorites)
+router.post('/:uuid/favorites/size', user, auth, setFavSize)
 router.post('/:uuid/profile', user, auth, updateProfile)
 router.post('/:uuid/icon', user, auth, updateIcon)
 router.post('/:uuid/bonus', user, auth, bonusTurns)

@@ -481,6 +481,9 @@ export default class Empire extends Model {
 	@Column({ type: 'simple-array', default: '', nullable: true })
 	favorites: string[]
 
+	@Column({ type: 'boolean', default: false })
+	favSize: boolean
+
 	@Column({ type: 'varchar', nullable: true, length: 1000 })
 	profile: string
 
