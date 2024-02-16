@@ -745,11 +745,29 @@ const updateEmpireFavorite = async (req: Request, res: Response) => {
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
 
+		// select a column
+
 		if (empire.favorites && empire.favorites.includes(favorite)) {
 			empire.favorites = empire.favorites.filter((f) => f !== favorite)
+			if (
+				empire.favColumns.column1.includes(favorite) ||
+				empire.favColumns.column2.includes(favorite)
+			) {
+				empire.favColumns.column1 = empire.favColumns.column1.filter(
+					(f) => f !== favorite
+				)
+				empire.favColumns.column2 = empire.favColumns.column2.filter(
+					(f) => f !== favorite
+				)
+			}
 		} else {
 			if (empire.favorites === null) empire.favorites = []
 			empire.favorites.push(favorite)
+			if (empire.favColumns.column1.length > empire.favColumns.column2.length) {
+				empire.favColumns.column2.push(favorite)
+			} else {
+				empire.favColumns.column1.push(favorite)
+			}
 		}
 
 		await empire.save()
@@ -778,6 +796,32 @@ const reorderFavorites = async (req: Request, res: Response) => {
 
 		await empire.save()
 		console.log('favorite updated')
+		return res.status(201).json(empire)
+	} catch (error) {
+		console.log(error)
+		return res.status(404).json({ empire: 'empire not found' })
+	}
+}
+
+const reorderColFavorites = async (req: Request, res: Response) => {
+	const { uuid } = req.params
+	const { favorites } = req.body
+
+	const user: User = res.locals.user
+
+	if (user.empires[0].uuid !== uuid) {
+		return res.status(403).json({ error: 'unauthorized' })
+	}
+
+	console.log(favorites)
+
+	try {
+		const empire = await Empire.findOneOrFail({ uuid })
+
+		empire.favColumns = { column1: favorites[0], column2: favorites[1] }
+
+		await empire.save()
+		console.log('favorite col updated')
 		return res.status(201).json(empire)
 	} catch (error) {
 		console.log(error)
@@ -956,6 +1000,7 @@ router.post('/:uuid/industry', user, auth, updateIndustry)
 router.post('/otherEmpires', user, auth, getOtherEmpires)
 router.post('/:uuid/favorite', user, auth, updateEmpireFavorite)
 router.post('/:uuid/favorites/order', user, auth, reorderFavorites)
+router.post('/:uuid/favorites/orderColumns', user, auth, reorderColFavorites)
 router.post('/:uuid/favorites/size', user, auth, setFavSize)
 router.post('/:uuid/profile', user, auth, updateProfile)
 router.post('/:uuid/icon', user, auth, updateIcon)

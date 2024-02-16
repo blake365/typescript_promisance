@@ -481,6 +481,9 @@ export default class Empire extends Model {
 	@Column({ type: 'simple-array', default: '', nullable: true })
 	favorites: string[]
 
+	@Column({ type: 'json', default: { column1: [], column2: [] } })
+	favColumns: { column1: string[]; column2: string[] }
+
 	@Column({ type: 'boolean', default: false })
 	favSize: boolean
 
