@@ -25,6 +25,7 @@ import ClanRelation from '../entity/ClanRelation'
 import ClanMessage from '../entity/ClanMessage'
 import EmpireMessage from '../entity/EmpireMessage'
 import { concatenateIntegers } from './mail'
+import verify from '../middleware/verify'
 
 const Filter = require('bad-words')
 const filter = new Filter()
@@ -304,12 +305,6 @@ const updateTax = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { tax } = req.body
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
-
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
 		empire.tax = tax
@@ -323,14 +318,6 @@ const updateTax = async (req: Request, res: Response) => {
 
 const updateProfile = async (req: Request, res: Response) => {
 	const { empireId, type, profile } = req.body
-
-	console.log(req.body)
-
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
 
 	try {
 		const empire = await Empire.findOneOrFail({ id: empireId })
@@ -353,12 +340,6 @@ const updateProfile = async (req: Request, res: Response) => {
 const updateIcon = async (req: Request, res: Response) => {
 	const { empireId, type, icon } = req.body
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
-
 	try {
 		const empire = await Empire.findOneOrFail({ id: empireId })
 
@@ -377,13 +358,7 @@ const updateIndustry = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { indArmy, indFly, indLnd, indSea } = req.body
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
-
-	console.log(req.body)
+	// console.log(req.body)
 	if (indArmy + indFly + indLnd + indSea !== 100) {
 		return res.status(500).json({ error: 'Must add up to 100' })
 	}
@@ -423,12 +398,6 @@ const changeRace = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { race } = req.body
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
-
 	console.log(race)
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
@@ -464,13 +433,6 @@ const changeRace = async (req: Request, res: Response) => {
 const bank = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	let { depositAmt, withdrawAmt, type, loanAmt, repayAmt } = req.body
-
-	// console.log(req.body)
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
@@ -553,12 +515,6 @@ const bank = async (req: Request, res: Response) => {
 const deleteEmpire = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
-
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
 		if (empire.clanId !== 0) {
@@ -615,12 +571,6 @@ const deleteEmpire = async (req: Request, res: Response) => {
 // FIND ONE
 const findOneEmpire = async (req: Request, res: Response) => {
 	const { uuid } = req.params
-
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
 
 	try {
 		const empire = await Empire.findOneOrFail(
@@ -706,12 +656,6 @@ const addEmpireEffect = async (req: Request, res: Response) => {
 	// const {uuid} = req.params
 	const { empireId, effectName, effectValue } = req.body
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
-
 	let effectOwnerId = empireId
 	let empireEffectName = effectName
 	let empireEffectValue = effectValue
@@ -735,12 +679,6 @@ const addEmpireEffect = async (req: Request, res: Response) => {
 const updateEmpireFavorite = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { favorite } = req.body
-
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
@@ -783,12 +721,6 @@ const reorderFavorites = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { favorites } = req.body
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
-
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
 
@@ -806,14 +738,6 @@ const reorderFavorites = async (req: Request, res: Response) => {
 const reorderColFavorites = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { favorites } = req.body
-
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
-
-	console.log(favorites)
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
@@ -833,12 +757,6 @@ const setFavSize = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { favSize } = req.body
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
-
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
 
@@ -855,14 +773,7 @@ const setFavSize = async (req: Request, res: Response) => {
 
 const bonusTurns = async (req: Request, res: Response) => {
 	const { uuid } = req.params
-
 	const { empireId } = req.body
-
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
 
 	function isOld(createdAt, effectValue) {
 		let effectAge =
@@ -953,12 +864,6 @@ const nameChange = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { name } = req.body
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].uuid !== uuid) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
-
 	if (name.trim() === '') {
 		return res.status(400).json({ error: 'Name must not be empty' })
 	}
@@ -989,28 +894,29 @@ const router = Router()
 router.post('/', user, auth, createEmpire)
 router.get('/', getEmpires)
 router.get('/scores', getScores)
-router.get('/:uuid', user, auth, findOneEmpire)
+router.get('/:uuid', user, auth, verify, findOneEmpire)
 router.get('/:uuid/achievements', getAchievements)
 router.post('/effects', user, auth, getEmpireEffects)
-router.post('/effects/new', user, auth, addEmpireEffect)
-// router.put('/:uuid', user, auth, updateEmpire)
-router.post('/:uuid/bank', user, auth, bank)
-router.post('/:uuid/tax', user, auth, updateTax)
-router.post('/:uuid/industry', user, auth, updateIndustry)
+router.post('/effects/new', user, auth, verify, addEmpireEffect)
+router.post('/:uuid/bank', user, auth, verify, bank)
+router.post('/:uuid/tax', user, auth, verify, updateTax)
+router.post('/:uuid/industry', user, auth, verify, updateIndustry)
 router.post('/otherEmpires', user, auth, getOtherEmpires)
-router.post('/:uuid/favorite', user, auth, updateEmpireFavorite)
-router.post('/:uuid/favorites/order', user, auth, reorderFavorites)
-router.post('/:uuid/favorites/orderColumns', user, auth, reorderColFavorites)
-router.post('/:uuid/favorites/size', user, auth, setFavSize)
-router.post('/:uuid/profile', user, auth, updateProfile)
-router.post('/:uuid/icon', user, auth, updateIcon)
-router.post('/:uuid/bonus', user, auth, bonusTurns)
-router.post('/:uuid/changeRace', user, auth, changeRace)
-router.post('/:uuid/nameChange', user, auth, nameChange)
-
-// router.put('/give/resources', giveResources)
-// router.put('/give/turns', giveTurns)
-
-router.delete('/:uuid', user, auth, deleteEmpire)
+router.post('/:uuid/favorite', user, auth, verify, updateEmpireFavorite)
+router.post('/:uuid/favorites/order', user, auth, verify, reorderFavorites)
+router.post(
+	'/:uuid/favorites/orderColumns',
+	user,
+	auth,
+	verify,
+	reorderColFavorites
+)
+router.post('/:uuid/favorites/size', user, auth, verify, setFavSize)
+router.post('/:uuid/profile', user, auth, verify, updateProfile)
+router.post('/:uuid/icon', user, auth, verify, updateIcon)
+router.post('/:uuid/bonus', user, auth, verify, bonusTurns)
+router.post('/:uuid/changeRace', user, auth, verify, changeRace)
+router.post('/:uuid/nameChange', user, auth, verify, nameChange)
+router.delete('/:uuid', user, auth, verify, deleteEmpire)
 
 export default router

@@ -9,12 +9,10 @@ import {
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
-
 import { useTurnInternal } from './useturns'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
 import User from '../entity/User'
-import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire

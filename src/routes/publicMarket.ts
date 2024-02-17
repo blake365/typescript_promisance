@@ -3,6 +3,12 @@ import {
 	PUBMKT_MAXFOOD,
 	PUBMKT_MAXRUNES,
 	PUBMKT_MAXSELL,
+	PVTM_FOOD,
+	PVTM_RUNES,
+	PVTM_TRPARM,
+	PVTM_TRPFLY,
+	PVTM_TRPLND,
+	PVTM_TRPSEA,
 } from '../config/conifg'
 import Empire from '../entity/Empire'
 import { getNetworth } from './actions/actions'
@@ -273,6 +279,14 @@ const pubSell = async (req: Request, res: Response) => {
 	}
 
 	console.log('public market sale')
+	const basePrices = [
+		PVTM_TRPARM,
+		PVTM_TRPLND,
+		PVTM_TRPFLY,
+		PVTM_TRPSEA,
+		PVTM_FOOD,
+		PVTM_RUNES,
+	]
 
 	const empire = await Empire.findOne({ id: empireId })
 	// console.log(empire.networth)
@@ -284,6 +298,12 @@ const pubSell = async (req: Request, res: Response) => {
 		priceFood,
 		priceRunes,
 	]
+
+	priceArray.forEach((price, index) => {
+		if (price < basePrices[index] * 0.25 || price > basePrices[index] * 2) {
+			return res.status(500).json({ error: 'Invalid price' })
+		}
+	})
 
 	let sellArray = [sellArm, sellLnd, sellFly, sellSea, sellFood, sellRunes]
 	let trpArray = [
@@ -611,12 +631,25 @@ const editPrice = async (req: Request, res: Response) => {
 		return res.status(500).json({ error: 'Empire ID mismatch' })
 	}
 
+	const prices = [
+		PVTM_TRPARM,
+		PVTM_TRPLND,
+		PVTM_TRPFLY,
+		PVTM_TRPSEA,
+		PVTM_FOOD,
+		PVTM_RUNES,
+	]
+
 	try {
 		const item = await Market.findOne({ id: itemId })
 		const empire = await Empire.findOne({ id: empireId })
 
 		if (item.empire_id !== empire.id) {
 			return res.status(500).json({ error: 'Empire ID mismatch' })
+		}
+
+		if (price < prices[item.type] * 0.25 || price > prices[item.type] * 4) {
+			return res.status(500).json({ error: 'Invalid price' })
 		}
 
 		item.amount = Math.round(item.amount * 0.9)

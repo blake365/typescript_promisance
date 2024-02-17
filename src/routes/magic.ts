@@ -1,5 +1,4 @@
 import { Request, Response, Router } from 'express'
-import { raceArray } from '../config/races'
 import { eraArray } from '../config/eras'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
@@ -108,7 +107,7 @@ const magic = async (req: Request, res: Response) => {
 	// handle errors
 	// add break if spell check is false
 
-	const updateEmpire = async (empire, spellRes, turns) => {
+	const updateEmpire = async (empire: Empire, spellRes: any, turns: number) => {
 		empire.cash =
 			empire.cash + spellRes.withdraw + spellRes.money - spellRes.loanpayed
 		if (empire.cash < 0) {
