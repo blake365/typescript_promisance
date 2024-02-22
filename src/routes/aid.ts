@@ -214,7 +214,11 @@ const sendAid = async (req: Request, res: Response) => {
 		resultArray.push(aidTurns)
 
 		sender.cash =
-			sender.cash + spellRes.withdraw + spellRes.money - spellRes.loanpayed
+			sender.cash +
+			Math.round(spellRes.withdraw / 2) +
+			spellRes.withdraw +
+			spellRes.money -
+			spellRes.loanpayed
 
 		if (sender.cash < 0) {
 			sender.cash = 0
@@ -223,6 +227,7 @@ const sendAid = async (req: Request, res: Response) => {
 		sender.income += spellRes.income
 		sender.expenses += spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+		sender.bank -= Math.round(spellRes.withdraw / 2)
 		sender.bank += spellRes.bankInterest
 		sender.loan -= spellRes.loanpayed + spellRes.loanInterest
 		sender.trpArm += spellRes.trpArm

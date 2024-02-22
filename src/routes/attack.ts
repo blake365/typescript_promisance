@@ -690,7 +690,7 @@ const attack = async (req: Request, res: Response) => {
 
 			attacker.cash =
 				attacker.cash +
-				attackRes.withdraw +
+				Math.round(attackRes.withdraw / 2) +
 				attackRes.money -
 				attackRes.loanpayed
 
@@ -702,6 +702,7 @@ const attack = async (req: Request, res: Response) => {
 			attacker.expenses +=
 				attackRes.expenses + attackRes.wartax + attackRes.corruption
 
+			attacker.bank -= Math.round(attackRes.withdraw / 2)
 			attacker.bank += attackRes.bankInterest
 			attacker.loan -= attackRes.loanpayed + attackRes.loanInterest
 			attacker.trpArm += attackRes.trpArm

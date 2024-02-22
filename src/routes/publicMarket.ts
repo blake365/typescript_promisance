@@ -349,14 +349,17 @@ const pubSell = async (req: Request, res: Response) => {
 		// console.log(index)
 		if (item < 1) {
 			console.log('no items for sale')
-		} else if (index === 4 && item > (trpArray[index] * PUBMKT_MAXFOOD) / 100) {
+		} else if (
+			index === 4 &&
+			item > Math.floor((trpArray[index] * PUBMKT_MAXFOOD) / 100)
+		) {
 			console.log('too much food for sale')
 			returnArray[
 				index
 			].error = `You can't sell that many ${itemsEraArray[index]}.`
 		} else if (
 			index === 5 &&
-			item > (trpArray[index] * PUBMKT_MAXRUNES) / 100
+			item > Math.floor((trpArray[index] * PUBMKT_MAXRUNES) / 100)
 		) {
 			console.log('too much runes for sale')
 			returnArray[

@@ -62,6 +62,9 @@ export default class User extends Model {
 	@Column({ default: '' })
 	comment: string
 
+	@Column({ default: false })
+	emailSubscriber: boolean
+
 	@Column({ default: '' })
 	dateFormat: string
 

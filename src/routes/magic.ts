@@ -109,7 +109,10 @@ const magic = async (req: Request, res: Response) => {
 
 	const updateEmpire = async (empire: Empire, spellRes: any, turns: number) => {
 		empire.cash =
-			empire.cash + spellRes.withdraw + spellRes.money - spellRes.loanpayed
+			empire.cash +
+			Math.round(spellRes.withdraw / turns) +
+			spellRes.money -
+			spellRes.loanpayed
 		if (empire.cash < 0) {
 			empire.cash = 0
 		}
@@ -117,6 +120,7 @@ const magic = async (req: Request, res: Response) => {
 		empire.income += spellRes.income
 		empire.expenses += spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+		empire.bank -= Math.round(spellRes.withdraw / turns)
 		empire.bank += spellRes.bankInterest
 		empire.loan -= spellRes.loanpayed + spellRes.loanInterest
 		empire.trpArm += spellRes.trpArm
@@ -529,7 +533,11 @@ const attackSpell = async (
 		// cast the spell and get result
 
 		attacker.cash =
-			attacker.cash + spellRes.withdraw + spellRes.money - spellRes.loanpayed
+			attacker.cash +
+			Math.round(spellRes.withdraw / 2) +
+			spellRes.withdraw +
+			spellRes.money -
+			spellRes.loanpayed
 		if (attacker.cash < 0) {
 			attacker.cash = 0
 		}
@@ -537,6 +545,7 @@ const attackSpell = async (
 		attacker.expenses +=
 			spellRes.expenses + spellRes.wartax + spellRes.corruption
 
+		attacker.bank -= Math.round(spellRes.withdraw / 2)
 		attacker.bank += spellRes.bankInterest
 		attacker.loan -= spellRes.loanpayed + spellRes.loanInterest
 		attacker.trpArm += spellRes.trpArm
