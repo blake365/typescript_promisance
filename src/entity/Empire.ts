@@ -34,6 +34,13 @@ export default class Empire extends Model {
 	})
 	clanId: number
 
+	@Index()
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	game_id: number
+
 	@ManyToOne(() => Clan, (clan) => clan.empires)
 	clan: Clan
 

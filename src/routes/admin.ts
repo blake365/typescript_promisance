@@ -7,8 +7,7 @@ import EmpireMessage from '../entity/EmpireMessage'
 import Clan from '../entity/Clan'
 import ClanHistory from '../entity/ClanHistory'
 import EmpireHistory from '../entity/EmpireHistory'
-import { MoreThan, Not } from 'typeorm'
-
+import Game from '../entity/Game'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import RoundHistory from '../entity/RoundHistory'
@@ -780,6 +779,76 @@ const resetGame = async (req: Request, res: Response) => {
 	}
 }
 
+const createGame = async (req: Request, res: Response) => {
+	if (!res.locals.user || res.locals.user.role !== 'admin') {
+		return res.status(401).json({
+			error: 'Not authorized',
+		})
+	}
+
+	// request body should have game details object from form
+	const game = {
+		name: req.body.name,
+		version: req.body.version,
+		roundName: req.body.roundName,
+		roundStart: req.body.roundStart,
+		roundEnd: req.body.roundEnd,
+		roundDescription: req.body.roundDescription,
+		empiresPerUser: req.body.empiresPerUser,
+		turnsProtections: req.body.turnsProtection,
+		turnsInitial: req.body.turnsInitial,
+		turnsMax: req.body.turnsMax,
+		turnsStored: req.body.turnsStored,
+		turnsDemo: req.body.turnsDemo,
+		turnsFreq: req.body.turnsFreq,
+		turnsCount: req.body.turnsCount,
+		turnsUnstore: req.body.turnsUnstore,
+		lotteryMaxTickets: req.body.lotteryMaxTickets,
+		lotteryJackpot: req.body.lotteryJackpot,
+		buildCost: req.body.buildCost,
+		bankSaveRate: req.body.bankSaveRate,
+		bankLoanRate: req.body.bankLoanRate,
+		pubMktStart: req.body.pubMktStart,
+		pubMktMaxTime: req.body.pubMktMaxTime,
+		pubMktMinSell: req.body.pubMktMinSell,
+		pubMktMaxSell: req.body.pubMktMaxSell,
+		pubMktMinFood: req.body.pubMktMinFood,
+		pubMktMaxFood: req.body.pubMktMaxFood,
+		pubMktMinRune: req.body.pubMktMinRune,
+		pubMktMaxRune: req.body.pubMktMaxRune,
+		clanEnable: req.body.clanEnable,
+		clanSize: req.body.clanSize,
+		clanMinJoin: req.body.clanMinJoin,
+		clanMinRejoin: req.body.clanMinRejoin,
+		clanMaxWar: req.body.clanMaxWar,
+		pvtmMaxSell: req.body.pvtmMaxSell,
+		pvtmShopBonus: req.body.pvtmShopBonus,
+		pvtmTrpArm: req.body.pvtmTrpArm,
+		pvtmTrpLnd: req.body.pvtmTrpLnd,
+		pvtmTrpFly: req.body.pvtmTrpFly,
+		pvtmTrpSea: req.body.pvtmTrpSea,
+		pvtmFood: req.body.pvtmTrpWiz,
+		pvtmRunes: req.body.pvtmRunes,
+		industryMult: req.body.industryMult,
+		maxAttacks: req.body.maxAttacks,
+		maxSpells: req.body.maxSpells,
+		drRate: req.body.drRate,
+		baseLuck: req.body.baseLuck,
+		aidEnable: req.body.aidEnable,
+		aidMaxCredits: req.body.aidMaxCredits,
+		aidDelay: req.body.aidDelay,
+		allowMagicRegress: req.body.allowMagicRegress,
+	}
+
+	try {
+		await Game.create(game)
+		return res.json({ message: 'Game created' })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
 const router = Router()
 
 router.get('/empires', user, auth, getEmpires)
@@ -813,5 +882,6 @@ router.post('/updatemail/:uuid', user, auth, updateMail)
 router.delete('/deletemail/:uuid', user, auth, deleteMail)
 
 router.post('/resetgame', user, auth, resetGame)
+router.post('/creategame', user, auth, createGame)
 
 export default router
