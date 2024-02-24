@@ -216,7 +216,6 @@ const sendAid = async (req: Request, res: Response) => {
 		sender.cash =
 			sender.cash +
 			Math.round(spellRes.withdraw / 2) +
-			spellRes.withdraw +
 			spellRes.money -
 			spellRes.loanpayed
 

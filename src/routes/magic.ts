@@ -535,7 +535,6 @@ const attackSpell = async (
 		attacker.cash =
 			attacker.cash +
 			Math.round(spellRes.withdraw / 2) +
-			spellRes.withdraw +
 			spellRes.money -
 			spellRes.loanpayed
 		if (attacker.cash < 0) {
