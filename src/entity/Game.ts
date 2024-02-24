@@ -147,7 +147,7 @@ export default class Game extends Model {
 	@Column({ default: 1600 })
 	pvtmRunes: number
 
-	@Column({ type: 'double precision', default: 2.5 })
+	@Column({ type: 'double precision', default: 2.7 })
 	industryMult: number
 
 	@Column({ default: 30 })

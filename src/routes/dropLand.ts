@@ -116,8 +116,7 @@ const drop = async (req: Request, res: Response) => {
 			if (!turnRes?.messages?.desertion) {
 				resultArray.push(turnRes)
 				// add value to empire.key
-				empire.cash =
-					empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
+				empire.cash = empire.cash + turnRes.money - turnRes.loanpayed
 
 				empire.income += turnRes.income
 				empire.expenses +=
@@ -155,8 +154,7 @@ const drop = async (req: Request, res: Response) => {
 				await empire.save()
 			} else {
 				resultArray.push(turnRes)
-				empire.cash =
-					empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
+				empire.cash = empire.cash + turnRes.money - turnRes.loanpayed
 
 				empire.income += turnRes.income
 				empire.expenses +=

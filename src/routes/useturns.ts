@@ -783,8 +783,8 @@ export const useTurnInternal = (
 		let withdraw = 0
 		let bankInterest = 0
 
-		// console.log('money:', empire.cash)
-		// console.log('bank:', empire.bank)
+		console.log('money:', empire.cash)
+		console.log('bank:', empire.bank)
 		// savings interest
 		if (empire.turnsUsed > TURNS_PROTECTION) {
 			let bankMax = empire.networth * 100
@@ -801,13 +801,14 @@ export const useTurnInternal = (
 			}
 		}
 
-		// console.log('withdraw:', withdraw)
-		// console.log('money:', empire.cash)
-		// console.log('bank:', empire.bank)
+		console.log('withdraw after:', withdraw)
+		console.log('money after :', empire.cash)
+		console.log('bank after:', empire.bank)
 		// withdraw not accumulating in condensed view?
 		current['bankInterest'] = bankInterest
 		current['withdraw'] = withdraw
 
+		console.log(current['withdraw'])
 		// loan interest
 		let loanMax = empire.networth * 50
 		let loanRate = BANK_LOANRATE + size

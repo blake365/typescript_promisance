@@ -134,9 +134,10 @@ const build = async (req: Request, res: Response) => {
 						resultArray.push(turnRes)
 						break
 					} else if (!turnRes?.messages?.desertion) {
+						console.log(turnRes)
 						empire.cash =
 							empire.cash +
-							turnRes.withdraw +
+							// turnRes.withdraw +
 							turnRes.money -
 							turnRes.loanpayed -
 							buildAmount * buildCost
@@ -223,8 +224,7 @@ const build = async (req: Request, res: Response) => {
 					} else {
 						resultArray.push(turnRes)
 						// add value to empire.key
-						empire.cash =
-							empire.cash + turnRes.withdraw + turnRes.money - turnRes.loanpayed
+						empire.cash = empire.cash + turnRes.money - turnRes.loanpayed
 
 						if (empire.cash < 0) {
 							empire.cash = 0

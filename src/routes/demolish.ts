@@ -135,7 +135,7 @@ const demolish = async (req: Request, res: Response) => {
 					// add value to empire.key
 					empire.cash =
 						empire.cash +
-						turnRes.withdraw +
+						// turnRes.withdraw +
 						turnRes.money -
 						turnRes.loanpayed +
 						demoAmount * demolishCost
@@ -220,7 +220,7 @@ const demolish = async (req: Request, res: Response) => {
 					// add value to empire.key
 					empire.cash =
 						empire.cash +
-						turnRes.withdraw +
+						// turnRes.withdraw +
 						turnRes.money -
 						turnRes.loanpayed +
 						turnRes.loanInterest
