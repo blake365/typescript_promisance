@@ -1,13 +1,18 @@
-import { Entity, Column, Index, PrimaryGeneratedColumn } from 'typeorm'
+import { Entity, Column, Index, PrimaryGeneratedColumn, OneToMany } from 'typeorm'
 import Model from './Model'
-
-// import Empire from './Empire'
+import Empire from './Empire'
 
 @Entity('game')
 export default class Game extends Model {
 	@Index()
 	@PrimaryGeneratedColumn()
 	game_id: number
+
+	@OneToMany(() => Empire, (empire) => empire.game)
+	empires: Empire[]
+
+	@Column()
+	isActive: boolean
 
 	@Column()
 	name: string

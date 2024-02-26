@@ -26,6 +26,7 @@ import ClanMessage from '../entity/ClanMessage'
 import EmpireMessage from '../entity/EmpireMessage'
 import { concatenateIntegers } from './mail'
 import verify from '../middleware/verify'
+import { attachGame } from '../middleware/game'
 
 const Filter = require('bad-words')
 const filter = new Filter()
@@ -41,6 +42,7 @@ const filter = new Filter()
 //CREATE
 const createEmpire = async (req: Request, res: Response) => {
 	let { name, race } = req.body
+	const { turnsFreq, turnsCount } = res.locals.game
 
 	console.log(req.body)
 	const user: User = res.locals.user
@@ -65,7 +67,7 @@ const createEmpire = async (req: Request, res: Response) => {
 	let daysRaw = diff / (1000 * 3600 * 24)
 	let days = Math.floor(diff / (1000 * 3600 * 24))
 	console.log(days)
-	let turnsElapsed = ((days * 24 * 60) / TURNS_FREQ) * TURNS_COUNT
+	let turnsElapsed = ((days * 24 * 60) / turnsFreq) * turnsCount
 	console.log(turnsElapsed)
 	let turnsToAdd = turnsElapsed
 	if (turnsToAdd > TURNS_MAXIMUM) {
@@ -891,7 +893,7 @@ const nameChange = async (req: Request, res: Response) => {
 
 const router = Router()
 
-router.post('/', user, auth, createEmpire)
+router.post('/', user, auth, attachGame, createEmpire)
 router.get('/', getEmpires)
 router.get('/scores', getScores)
 router.get('/:uuid', user, auth, verify, findOneEmpire)
