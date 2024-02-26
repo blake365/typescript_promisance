@@ -24,3 +24,5 @@ const getGames = async (req: Request, res: Response) => {
 const router = Router()
 
 router.get('/', user, auth, getGames)
+
+export default router
