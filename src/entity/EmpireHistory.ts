@@ -12,7 +12,7 @@ export default class EmpireHistory extends Model {
 
 	@Index()
 	@PrimaryGeneratedColumn()
-	empireHistory_id: number
+	id: number
 
 	@Index()
 	@Column()

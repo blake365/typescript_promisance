@@ -1,4 +1,4 @@
-import { Entity, Column, Index, PrimaryGeneratedColumn, OneToMany } from 'typeorm'
+import { Entity, Column, Index, PrimaryGeneratedColumn, OneToMany, Generated } from 'typeorm'
 import Model from './Model'
 import Empire from './Empire'
 
@@ -11,25 +11,25 @@ export default class Game extends Model {
 	@OneToMany(() => Empire, (empire) => empire.game)
 	empires: Empire[]
 
-	@Column()
+	@Column({ default: true })
 	isActive: boolean
 
 	@Column()
 	name: string
 
-	@Column()
+	@Column({ default: 1 })
 	version: number
 
-	@Column()
+	@Column({ default: 'Round 1' })
 	roundName: string
 
-	@Column()
+	@Column({ default: () => 'CURRENT_TIMESTAMP' })
 	roundStart: Date
 
-	@Column()
+	@Column({ default: () => 'CURRENT_TIMESTAMP' })
 	roundEnd: Date
 
-	@Column()
+	@Column({ default: '' })
 	roundDescription: string
 
 	@Column({ default: 1 })
