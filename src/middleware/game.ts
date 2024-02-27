@@ -11,6 +11,6 @@ export const attachGame = async (req: Request, res: Response, next: NextFunction
     next()
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ error: 'Internal Server Error' })
+    return res.status(500).json({ error: 'Error finding specified game.' })
   }
 }

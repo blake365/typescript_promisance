@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 
 import user from '../middleware/user'
+import { isAdmin } from '../middleware/admin'
 import auth from '../middleware/auth'
 import Game from '../entity/Game'
 
@@ -18,11 +19,19 @@ const getGames = async (req: Request, res: Response) => {
     return x
   }, { gamesUserIsIn: [], gamesUserNotIn: [] })
 
-  return res.json({ data: { gamesUserIsIn, gamesUserNotIn } })
+  return res.json({ gamesUserIsIn, gamesUserNotIn })
+}
+
+const createGame = async (req: Request, res: Response) => {
+  const game: any = await Game.create(req.body)
+  await game.save()
+
+  return res.json(game)
 }
 
 const router = Router()
 
 router.get('/', user, auth, getGames)
+router.post('/', isAdmin, createGame)
 
 export default router
