@@ -705,6 +705,7 @@ const useTurns = async (req: Request, res: Response) => {
 	// const user = res.locals.user
 	// const empireId = res.locals.user.empire.empireId
 	// console.log(type, turns, empireId, condensed)
+
 	const response = await useTurn(type, turns, empireId, condensed)
 
 	return res.json(response)
@@ -1042,6 +1043,7 @@ export const useTurnInternal = (
 
 const router = Router()
 
+// game middleware needed, pass query param
 router.post('/', user, auth, useTurns)
 
 export default router
