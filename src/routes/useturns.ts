@@ -23,14 +23,14 @@ import {
 } from '../config/conifg'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
-import { awardAchievements } from './actions/achievements'
+// import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
 
 function calcProvisions(empire: Empire) {
 	let production =
 		10 * empire.freeLand +
 		empire.bldFood *
-			85 *
+			75 *
 			Math.sqrt(1 - (0.75 * empire.bldFood) / Math.max(empire.land, 1))
 
 	production *=
@@ -42,12 +42,11 @@ function calcProvisions(empire: Empire) {
 	let foodpro = Math.round(production)
 
 	let consumption =
-		empire.trpArm * 0.05 * 0.7 +
-		empire.trpLnd * 0.03 * 0.7 +
-		empire.trpFly * 0.02 * 0.7 +
-		empire.trpSea * 0.01 * 0.7 +
-		empire.peasants * 0.01 * 0.7 +
-		empire.trpWiz * 0.2 * 0.7
+		empire.trpArm * 0.0166 +
+		empire.trpLnd * 0.025 +
+		empire.trpFly * 0.0333 +
+		empire.trpSea * 0.025 +
+		empire.trpWiz * 0.17
 
 	consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
 
@@ -66,12 +65,12 @@ function calcFinances(pci: number, empire: Empire, size: number) {
 	// let loan = Math.round(empire.loan / 200)
 
 	let expenses = Math.round(
-		empire.trpArm * 0.5 * 0.8 +
-			empire.trpLnd * 1.25 * 0.8 +
-			empire.trpFly * 2 * 0.8 +
-			empire.trpSea * 3.5 * 0.8 +
-			empire.land * 4 * 0.8 +
-			empire.trpWiz * 0.5 * 0.8
+		empire.trpArm * 0.13 +
+			empire.trpLnd * 0.5 +
+			empire.trpFly * 1.5 +
+			empire.trpSea * 3 +
+			empire.land * 3.2 +
+			empire.trpWiz * 0.53
 	)
 
 	// console.log(empire.loan)
@@ -167,8 +166,8 @@ function calculateRunes(empire: Empire, runeMultiplier: number): number {
 	if (empire.bldWiz / empire.land > 0.15) {
 		runes = Math.round(
 			getRandomInt(
-				Math.round(empire.bldWiz * 1.15),
-				Math.round(empire.bldWiz * 1.55)
+				Math.round(empire.bldWiz * 1.1),
+				Math.round(empire.bldWiz * 1.4)
 			) * runeMultiplier
 		)
 	} else {

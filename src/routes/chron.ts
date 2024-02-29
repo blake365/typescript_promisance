@@ -1,4 +1,4 @@
-import { MoreThan, Not, getConnection, getRepository } from 'typeorm'
+import { getConnection, getRepository } from 'typeorm'
 // import ClanInvite from '../entity/ClanInvite'
 import Empire from '../entity/Empire'
 import Market from '../entity/Market'
@@ -167,9 +167,9 @@ const promTurns = async (req: Request, res: Response) => {
 			.update(Empire)
 			.set({
 				// update available quantity on market
-				mktRunes: () => 'mkt_runes + (8 * (land + bld_cost)*0.9)',
+				mktRunes: () => 'mkt_runes + (6 * (land + bld_cost)*0.8)',
 			})
-			.where('mkt_runes / 200 < land + 2 * bld_cost AND id != 0')
+			.where('mkt_runes / 100 < land + 2 * bld_cost AND id != 0')
 			.execute()
 
 		// clan troop sharing

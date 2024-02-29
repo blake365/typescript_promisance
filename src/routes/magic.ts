@@ -36,9 +36,9 @@ import {
 import { getNetworth } from './actions/actions'
 import User from '../entity/User'
 
-import { awardAchievements } from './actions/achievements'
+// import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
-import { snapshot } from '../jobs/promTurns'
+// import { snapshot } from '../jobs/promTurns'
 // FIXED: internal turns not working
 
 const spellCheck = (empire: Empire, cost: number, turns: number) => {

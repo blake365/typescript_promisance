@@ -14,12 +14,12 @@ export function generalLog(number, base) {
 }
 
 // general
-export function calcSizeBonus({ networth }) {
-	let net = Math.max(networth, 1)
-	let size = Math.atan(generalLog(net, 1000) - 1) * 2.1 - 0.65
-	size = Math.round(Math.min(Math.max(0.5, size), 1.7) * 1000) / 1000
-	return size
-}
+// export function calcSizeBonus({ networth }) {
+// 	let net = Math.max(networth, 1)
+// 	let size = Math.atan(generalLog(net, 1000) - 1) * 2.1 - 0.65
+// 	size = Math.round(Math.min(Math.max(0.5, size), 1.7) * 1000) / 1000
+// 	return size
+// }
 
 // build
 
@@ -32,16 +32,16 @@ export function calcSizeBonus({ networth }) {
 // money
 
 // Magic
-export const baseCost = (empire: Empire) => {
-	return (
-		empire.land * 0.1 +
-		100 +
-		empire.bldWiz *
-			0.2 *
-			((100 - raceArray[empire.race].mod_runepro / 2) / 100) *
-			calcSizeBonus(empire)
-	)
-}
+// export const baseCost = (empire: Empire) => {
+// 	return (
+// 		empire.land * 0.1 +
+// 		100 +
+// 		empire.bldWiz *
+// 			0.2 *
+// 			((100 - raceArray[empire.race].mod_runepro / 2) / 100) *
+// 			calcSizeBonus(empire)
+// 	)
+// }
 
 export const getPower_self = (empire: Empire) => {
 	return (

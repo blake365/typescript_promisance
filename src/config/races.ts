@@ -182,16 +182,16 @@ const RACE_MINOTAUR = {
 	name: 'Minotaur',
 	mod_offense: 18,
 	mod_defense: 12,
-	mod_buildrate: -4,
-	mod_expenses: -14,
+	mod_buildrate: -6,
+	mod_expenses: -10,
 	mod_magic: -16,
-	mod_industry: 6,
+	mod_industry: 5,
 	mod_income: 14,
 	mod_explore: 12,
 	mod_market: -11,
-	mod_foodcon: -12,
+	mod_foodcon: -9,
 	mod_runepro: -10,
-	mod_foodpro: 5,
+	mod_foodpro: 4,
 }
 
 const RACE_VAMPIRE = {
