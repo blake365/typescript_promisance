@@ -1,14 +1,14 @@
-export const GAME_VERSION = 0.3
+export const GAME_VERSION = 0.4
 export const GAME_TITLE = 'NeoPromisance' + ' ' + GAME_VERSION // server title, may customize to liking
 
 export const DEFAULT_LANGUAGE = 'en-US' // Default language pack to use, also used when not logged in
 export const BASE_LANGUAGE = 'en-US' // Base language pack, used for anything not defined in current/default
 
-export const ROUND_START = new Date('2024-02-05T08:00:00') // Date and time of round start
-export const ROUND_END = new Date('2024-02-29T23:30:00') // Date and time of round end
+export const ROUND_START = new Date('2024-03-03T08:00:00') // Date and time of round start
+export const ROUND_END = new Date('2024-03-29T23:30:00') // Date and time of round end
 
-export const ROUND_NAME = 'February 2024 - Beta' // Name of round
-export const ROUND_DESCRIPTION = 'February 2024' // Description of round
+export const ROUND_NAME = 'March 2024 - Beta' // Name of round
+export const ROUND_DESCRIPTION = 'March 2024' // Description of round
 
 export const EMPIRES_PER_USER = 1 // How many empires can be owned at once by a particular user?
 export const TURNS_PROTECTION = 400 // Duration of protection
@@ -57,7 +57,7 @@ export const PUBMKT_MINRUNES = 0 // Same as MINSELL, except for runes
 export const PUBMKT_MAXRUNES = 90 // Same as MAXSELL, except for runes
 
 export const CLAN_ENABLE = true // Master enable for clans
-export const CLAN_SIZE = 10 // Maximum number of members per clan
+export const CLAN_SIZE = 3 // Maximum number of members per clan
 export const CLAN_MINJOIN = 72 // Empires can't leave clans until they've been a member for this many hours
 export const CLAN_MINREJOIN = 24 // Empires can't create/join a new clan until this many hours after they left
 export const CLAN_MINSHARE = 2 // Unsharing clan forces takes this many hours to take effect
@@ -78,8 +78,8 @@ export const PVTM_TRPSEA = 3000
 export const PVTM_FOOD = 30
 export const PVTM_RUNES = 1600
 
-export const INDUSTRY_MULT = 2.7 // Industry output multiplier
-export const MAX_ATTACKS = 30 // Maximum number of attacks
+export const INDUSTRY_MULT = 2.8 // Industry output multiplier
+export const MAX_ATTACKS = 40 // Maximum number of attacks
 export const MAX_SPELLS = 20 // Maximum number of attack spells
 export const DR_RATE = 1.5 // diminishing returns rate
 export const BASE_LUCK = 5 // base luck
