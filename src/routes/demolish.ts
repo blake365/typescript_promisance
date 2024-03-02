@@ -1,30 +1,21 @@
 import { Request, Response, Router } from 'express'
-import {
-	BUILD_COST,
-	PVTM_TRPARM,
-	PVTM_TRPLND,
-	PVTM_TRPFLY,
-	PVTM_TRPSEA,
-} from '../config/conifg'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
-
 import { useTurnInternal } from './useturns'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { calcSizeBonus, getNetworth } from './actions/actions'
 import User from '../entity/User'
-import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
+import { attachGame } from '../middleware/game'
+import Game from '../entity/Game'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
-const getDemolishAmounts = (empire) => {
+const getDemolishAmounts = (empire: Empire, cost: number) => {
 	let size = calcSizeBonus(empire)
-	let demolishCost = Math.round(
-		((BUILD_COST + empire.land * 0.2) * (size / 3)) / 5
-	)
+	let demolishCost = Math.round(((cost + empire.land * 0.2) * (size / 3)) / 5)
 
 	let demolishRate = Math.round(
 		Math.min(
@@ -55,7 +46,7 @@ const demolish = async (req: Request, res: Response) => {
 		demoTroop,
 		demoWiz,
 	} = req.body
-
+	const game: Game = res.locals.game
 	if (type !== 'demolish') {
 		return res.json({ error: 'Something went wrong' })
 	}
@@ -76,7 +67,10 @@ const demolish = async (req: Request, res: Response) => {
 		})
 	}
 
-	const { canDemolish, demolishRate, demolishCost } = getDemolishAmounts(empire)
+	const { canDemolish, demolishRate, demolishCost } = getDemolishAmounts(
+		empire,
+		game.buildCost
+	)
 
 	let demoTotal =
 		demoCash + demoPop + demoCost + demoDef + demoFood + demoTroop + demoWiz
@@ -126,7 +120,7 @@ const demolish = async (req: Request, res: Response) => {
 					demoAmount = demolishRate
 				}
 				// use one turn
-				let oneTurn = useTurnInternal('demolish', 1, empire, clan, true)
+				let oneTurn = useTurnInternal('demolish', 1, empire, clan, true, game)
 				// console.log(oneTurn)
 				let turnRes = oneTurn[0]
 				// extract turn info from result and put individual object in result array
@@ -154,10 +148,10 @@ const demolish = async (req: Request, res: Response) => {
 					empire.trpFly += turnRes.trpFly
 					empire.trpSea += turnRes.trpSea
 					empire.indyProd +=
-						turnRes.trpArm * PVTM_TRPARM +
-						turnRes.trpLnd * PVTM_TRPLND +
-						turnRes.trpFly * PVTM_TRPFLY +
-						turnRes.trpSea * PVTM_TRPSEA
+						turnRes.trpArm * game.pvtmTrpArm +
+						turnRes.trpLnd * game.pvtmTrpLnd +
+						turnRes.trpFly * game.pvtmTrpFly +
+						turnRes.trpSea * game.pvtmTrpSea
 
 					empire.food += turnRes.food
 					empire.foodpro += turnRes.foodpro
@@ -241,10 +235,10 @@ const demolish = async (req: Request, res: Response) => {
 					empire.trpSea += turnRes.trpSea
 
 					empire.indyProd +=
-						turnRes.trpArm * PVTM_TRPARM +
-						turnRes.trpLnd * PVTM_TRPLND +
-						turnRes.trpFly * PVTM_TRPFLY +
-						turnRes.trpSea * PVTM_TRPSEA
+						turnRes.trpArm * game.pvtmTrpArm +
+						turnRes.trpLnd * game.pvtmTrpLnd +
+						turnRes.trpFly * game.pvtmTrpFly +
+						turnRes.trpSea * game.pvtmTrpSea
 
 					empire.food += turnRes.food
 					empire.foodpro += turnRes.foodpro
@@ -314,6 +308,6 @@ const demolish = async (req: Request, res: Response) => {
 
 const router = Router()
 
-router.post('/', user, auth, demolish)
+router.post('/', user, auth, attachGame, demolish)
 
 export default router

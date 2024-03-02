@@ -1,11 +1,4 @@
 import { Request, Response, Router } from 'express'
-import {
-	BUILD_COST,
-	PVTM_TRPARM,
-	PVTM_TRPLND,
-	PVTM_TRPFLY,
-	PVTM_TRPSEA,
-} from '../config/conifg'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
@@ -15,14 +8,15 @@ import user from '../middleware/user'
 import auth from '../middleware/auth'
 import { calcSizeBonus, getNetworth } from './actions/actions'
 import User from '../entity/User'
-import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
+import { attachGame } from '../middleware/game'
+import Game from '../entity/Game'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
-const getBuildAmounts = (empire: Empire) => {
+const getBuildAmounts = (empire: Empire, cost: number) => {
 	let size = calcSizeBonus(empire)
-	let buildCost = Math.round((BUILD_COST + empire.land * 0.2) * (size / 3))
+	let buildCost = Math.round((cost + empire.land * 0.2) * (size / 3))
 
 	let buildRate = Math.round(empire.land * 0.015 + 4)
 
@@ -53,6 +47,8 @@ const build = async (req: Request, res: Response) => {
 		bldWiz,
 	} = req.body
 
+	const game = res.locals.game
+
 	if (type !== 'build') {
 		return res.json({ error: 'Something went wrong' })
 	}
@@ -73,7 +69,10 @@ const build = async (req: Request, res: Response) => {
 		})
 	}
 
-	const { canBuild, buildRate, buildCost } = getBuildAmounts(empire)
+	const { canBuild, buildRate, buildCost } = getBuildAmounts(
+		empire,
+		game.buildCost
+	)
 
 	let buildTotal =
 		bldCash + bldPop + bldCost + bldDef + bldFood + bldTroop + bldWiz
@@ -127,7 +126,7 @@ const build = async (req: Request, res: Response) => {
 						buildAmount = buildRate
 					}
 					// use one turn
-					let oneTurn = useTurnInternal('build', 1, empire, clan, true)
+					let oneTurn = useTurnInternal('build', 1, empire, clan, true, game)
 					// console.log(oneTurn)
 					let turnRes = oneTurn[0]
 					if (turnRes?.messages?.error) {
@@ -164,10 +163,10 @@ const build = async (req: Request, res: Response) => {
 						empire.trpSea += turnRes.trpSea
 
 						empire.indyProd +=
-							turnRes.trpArm * PVTM_TRPARM +
-							turnRes.trpLnd * PVTM_TRPLND +
-							turnRes.trpFly * PVTM_TRPFLY +
-							turnRes.trpSea * PVTM_TRPSEA
+							turnRes.trpArm * game.pvtmTrpArm +
+							turnRes.trpLnd * game.pvtmTrpLnd +
+							turnRes.trpFly * game.pvtmTrpFly +
+							turnRes.trpSea * game.pvtmTrpSea
 
 						empire.food += turnRes.food
 						empire.foodpro += turnRes.foodpro
@@ -241,10 +240,10 @@ const build = async (req: Request, res: Response) => {
 						empire.trpFly += turnRes.trpFly
 						empire.trpSea += turnRes.trpSea
 						empire.indyProd +=
-							turnRes.trpArm * PVTM_TRPARM +
-							turnRes.trpLnd * PVTM_TRPLND +
-							turnRes.trpFly * PVTM_TRPFLY +
-							turnRes.trpSea * PVTM_TRPSEA
+							turnRes.trpArm * game.pvtmTrpArm +
+							turnRes.trpLnd * game.pvtmTrpLnd +
+							turnRes.trpFly * game.pvtmTrpFly +
+							turnRes.trpSea * game.pvtmTrpSea
 
 						empire.food += turnRes.food
 						empire.foodpro += turnRes.foodpro
@@ -316,6 +315,6 @@ const build = async (req: Request, res: Response) => {
 const router = Router()
 
 // needs user and auth middleware
-router.post('/', user, auth, build)
+router.post('/', user, auth, attachGame, build)
 
 export default router

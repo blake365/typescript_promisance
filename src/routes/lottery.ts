@@ -3,7 +3,6 @@ import Empire from '../entity/Empire'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { Not } from 'typeorm'
-
 import {
 	TURNS_PROTECTION,
 	LOTTERY_MAXTICKETS,

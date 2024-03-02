@@ -42,13 +42,24 @@ const filter = new Filter()
 //CREATE
 const createEmpire = async (req: Request, res: Response) => {
 	let { name, race } = req.body
-	const { turnsFreq, turnsCount } = res.locals.game
-
+	console.log(res.locals.game)
+	const {
+		turnsFreq,
+		turnsCount,
+		turnsInitial,
+		turnsMax,
+		roundStart,
+		empiresPerUser,
+		maxAttacks,
+		maxSpells,
+		turnsDemo,
+		game_id,
+	} = res.locals.game
 	console.log(req.body)
 	const user: User = res.locals.user
 
 	let mode = 'normal'
-	let turns: number = TURNS_INITIAL
+	let turns: number = turnsInitial
 	let storedturns: number = 0
 	let mktArm: number = 999999999999
 	let mktLnd: number = 999999999999
@@ -62,17 +73,17 @@ const createEmpire = async (req: Request, res: Response) => {
 	// if more than 1 day, add turns that would have been gained to initial turns
 	// if greater than max turns, add to stored turns up to 100 stored turns
 	let now = new Date()
-	let roundStart = new Date(ROUND_START)
-	let diff = now.getTime() - roundStart.getTime()
+	let roundStartDate = new Date(roundStart)
+	let diff = now.getTime() - roundStartDate.getTime()
 	let daysRaw = diff / (1000 * 3600 * 24)
 	let days = Math.floor(diff / (1000 * 3600 * 24))
 	console.log(days)
 	let turnsElapsed = ((days * 24 * 60) / turnsFreq) * turnsCount
 	console.log(turnsElapsed)
 	let turnsToAdd = turnsElapsed
-	if (turnsToAdd > TURNS_MAXIMUM) {
-		turns = TURNS_MAXIMUM
-		storedturns += turnsToAdd - TURNS_MAXIMUM
+	if (turnsToAdd > turnsMax) {
+		turns = turnsMax
+		storedturns += turnsToAdd - turnsMax
 		if (storedturns > 100) {
 			storedturns = 100
 		}
@@ -80,7 +91,7 @@ const createEmpire = async (req: Request, res: Response) => {
 		turns += turnsToAdd
 	}
 
-	if (user.empires.length > EMPIRES_PER_USER) {
+	if (user.empires.length > empiresPerUser) {
 		return res.status(400).json({ error: 'Max empires per user reached' })
 	}
 
@@ -97,9 +108,9 @@ const createEmpire = async (req: Request, res: Response) => {
 
 		if (user.role === 'demo') {
 			mode = 'demo'
-			turns = TURNS_DEMO
-			attacks = MAX_ATTACKS - 10
-			spells = MAX_SPELLS - 5
+			turns = turnsDemo
+			attacks = Math.round(maxAttacks * 0.2)
+			spells = Math.round(maxSpells * 0.2)
 			empire = new Empire({
 				name,
 				race,
@@ -113,17 +124,26 @@ const createEmpire = async (req: Request, res: Response) => {
 				mktSea,
 				attacks,
 				spells,
+				game_id: game_id,
 			})
 		} else {
-			empire = new Empire({ name, race, user, mode, turns, storedturns })
+			empire = new Empire({
+				name,
+				race,
+				user,
+				mode,
+				turns,
+				storedturns,
+				game_id: game_id,
+			})
 		}
 
 		await empire.save()
 
 		let createdAt = null
-		if (now.getTime() - roundStart.getTime() < 0) {
+		if (now.getTime() - roundStartDate.getTime() < 0) {
 			// round hasn't started yet
-			createdAt = roundStart
+			createdAt = roundStartDate
 		} else {
 			createdAt = now
 		}

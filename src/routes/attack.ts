@@ -7,21 +7,13 @@ import { useTurnInternal } from './useturns'
 import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
 import { createNewsEvent } from '../util/helpers'
-import {
-	DR_RATE,
-	MAX_ATTACKS,
-	TURNS_PROTECTION,
-	PVTM_TRPARM,
-	PVTM_TRPLND,
-	PVTM_TRPFLY,
-	PVTM_TRPSEA,
-} from '../config/conifg'
 import { cauchyRandom, gaussianRandom, getNetworth } from './actions/actions'
 import Clan from '../entity/Clan'
 import User from '../entity/User'
 // import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
 import { getRepository } from 'typeorm'
+import { attachGame } from '../middleware/game'
 
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
@@ -324,7 +316,7 @@ const attack = async (req: Request, res: Response) => {
 	// console.log(req.body)
 	// console.log(req.params)
 	const { attackType, defenderId, number, empireId } = req.body
-
+	const game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
@@ -350,12 +342,16 @@ const attack = async (req: Request, res: Response) => {
 		// console.log(attacker)
 		const defender = await Empire.findOneOrFail({ id: defenderId })
 
+		if (attacker.game_id !== defender.game_id) {
+			return res.status(403).json({ error: 'Unauthorized' })
+		}
+
 		const { totalLand, empireCount } = await getRepository(Empire)
 			.createQueryBuilder('empire')
 			.select('SUM(empire.land)', 'totalLand')
 			.addSelect('COUNT(empire.id)', 'empireCount')
 			.where('empire.turnsUsed > :turnsUsed AND empire.mode != :demo', {
-				turnsUsed: TURNS_PROTECTION,
+				turnsUsed: game.turnsProtection,
 				demo: 'demo',
 			})
 			.getRawOne()
@@ -364,7 +360,7 @@ const attack = async (req: Request, res: Response) => {
 		const avgLand = totalLand / empireCount
 		console.log(avgLand)
 
-		if (attacker.attacks >= MAX_ATTACKS) {
+		if (attacker.attacks >= game.maxAttacks) {
 			canAttack = false
 			returnText =
 				'You have reached the max number of attacks. Wait a while before attacking.'
@@ -381,7 +377,7 @@ const attack = async (req: Request, res: Response) => {
 			})
 		}
 
-		if (attacker.turnsUsed <= TURNS_PROTECTION) {
+		if (attacker.turnsUsed <= game.turnsProtection) {
 			canAttack = false
 			returnText = 'You cannot attack while in protection.'
 			return res.json({
@@ -389,7 +385,7 @@ const attack = async (req: Request, res: Response) => {
 			})
 		}
 
-		if (defender.turnsUsed <= TURNS_PROTECTION) {
+		if (defender.turnsUsed <= game.turnsProtection) {
 			canAttack = false
 			returnText = 'You cannot attack such a young empire.'
 			return res.json({
@@ -682,7 +678,7 @@ const attack = async (req: Request, res: Response) => {
 				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
 			}
 
-			let attackTurns = useTurnInternal(type, 2, attacker, clan, true)
+			let attackTurns = useTurnInternal(type, 2, attacker, clan, true, game)
 
 			let attackRes = attackTurns[0]
 			attackTurns = attackTurns[0]
@@ -711,10 +707,10 @@ const attack = async (req: Request, res: Response) => {
 			attacker.trpSea += attackRes.trpSea
 
 			attacker.indyProd +=
-				attackRes.trpArm * PVTM_TRPARM +
-				attackRes.trpLnd * PVTM_TRPLND +
-				attackRes.trpFly * PVTM_TRPFLY +
-				attackRes.trpSea * PVTM_TRPSEA
+				attackRes.trpArm * game.pvtmTrpArm +
+				attackRes.trpLnd * game.pvtmTrpLnd +
+				attackRes.trpFly * game.pvtmTrpFly +
+				attackRes.trpSea * game.pvtmTrpSea
 
 			attacker.food += attackRes.food
 			if (attacker.food < 0) {
@@ -1321,14 +1317,14 @@ const attack = async (req: Request, res: Response) => {
 			}
 
 			let adjustedDR =
-				DR_RATE + Math.round((defender.bldDef / defender.land) * 100) / 100
+				game.drRate + Math.round((defender.bldDef / defender.land) * 100) / 100
 
 			// console.log('adjusted DR', adjustedDR)
 			defender.diminishingReturns =
 				defender.diminishingReturns + adjustedDR / lowLand
 
 			if (attacker.diminishingReturns > 0) {
-				attacker.diminishingReturns -= DR_RATE
+				attacker.diminishingReturns -= game.drRate
 			}
 
 			if (attacker.diminishingReturns < 0) {
@@ -1398,6 +1394,6 @@ const attack = async (req: Request, res: Response) => {
 
 const router = Router()
 
-router.post('/', user, auth, attack)
+router.post('/', user, auth, attachGame, attack)
 
 export default router

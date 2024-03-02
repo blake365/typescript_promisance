@@ -1,11 +1,4 @@
 import { Request, Response, Router } from 'express'
-import {
-	BUILD_COST,
-	PVTM_TRPARM,
-	PVTM_TRPLND,
-	PVTM_TRPFLY,
-	PVTM_TRPSEA,
-} from '../config/conifg'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
@@ -14,30 +7,10 @@ import user from '../middleware/user'
 import auth from '../middleware/auth'
 import User from '../entity/User'
 import { takeSnapshot } from './actions/snaps'
+import Game from '../entity/Game'
+import { attachGame } from '../middleware/game'
 
-// FIXED?: created new turn function for use in loops that is not async use returned values to update empire
-
-interface oneTurn {
-	withdraw?: number
-	income?: number
-	expenses?: number
-	wartax?: number
-	loanpayed?: number
-	loanInterest?: number
-	money?: number
-	trpArm?: number
-	trpLnd?: number
-	trpFly?: number
-	trpSea?: number
-	foodpro?: number
-	foodcon?: number
-	food?: number
-	peasants?: number
-	runes?: number
-	trpWiz?: number
-}
-
-const getDropAmounts = (empire) => {
+const getDropAmounts = (empire: Empire) => {
 	let dropRate = Math.max(
 		Math.ceil(
 			((empire.land * 0.02 + 2) *
@@ -63,7 +36,7 @@ const getDropAmounts = (empire) => {
 const drop = async (req: Request, res: Response) => {
 	// request will have object with type of building and number to build
 	const { type, empireId, drop } = req.body
-
+	const game: Game = res.locals.game
 	if (type !== 'drop') {
 		return res.json({ error: 'Something went wrong' })
 	}
@@ -109,7 +82,7 @@ const drop = async (req: Request, res: Response) => {
 				dropAmount = dropRate
 			}
 			// use one turn
-			let oneTurn = useTurnInternal('drop', 1, empire, clan, true)
+			let oneTurn = useTurnInternal('drop', 1, empire, clan, true, game)
 			// console.log(oneTurn)
 			let turnRes = oneTurn[0]
 			// extract turn info from result and put individual object in result array
@@ -128,10 +101,10 @@ const drop = async (req: Request, res: Response) => {
 				empire.trpFly += turnRes.trpFly
 				empire.trpSea += turnRes.trpSea
 				empire.indyProd +=
-					turnRes.trpArm * PVTM_TRPARM +
-					turnRes.trpLnd * PVTM_TRPLND +
-					turnRes.trpFly * PVTM_TRPFLY +
-					turnRes.trpSea * PVTM_TRPSEA
+					turnRes.trpArm * game.pvtmTrpArm +
+					turnRes.trpLnd * game.pvtmTrpLnd +
+					turnRes.trpFly * game.pvtmTrpFly +
+					turnRes.trpSea * game.pvtmTrpSea
 
 				empire.food += turnRes.food
 				empire.foodpro += turnRes.foodpro
@@ -167,10 +140,10 @@ const drop = async (req: Request, res: Response) => {
 				empire.trpSea += turnRes.trpSea
 
 				empire.indyProd +=
-					turnRes.trpArm * PVTM_TRPARM +
-					turnRes.trpLnd * PVTM_TRPLND +
-					turnRes.trpFly * PVTM_TRPFLY +
-					turnRes.trpSea * PVTM_TRPSEA
+					turnRes.trpArm * game.pvtmTrpArm +
+					turnRes.trpLnd * game.pvtmTrpLnd +
+					turnRes.trpFly * game.pvtmTrpFly +
+					turnRes.trpSea * game.pvtmTrpSea
 
 				empire.food += turnRes.food
 				empire.foodpro += turnRes.foodpro
@@ -203,6 +176,6 @@ const drop = async (req: Request, res: Response) => {
 
 const router = Router()
 
-router.post('/', user, auth, drop)
+router.post('/', user, auth, attachGame, drop)
 
 export default router

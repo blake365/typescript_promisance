@@ -7,16 +7,11 @@ import Clan from '../entity/Clan'
 
 import { eraArray } from '../config/eras'
 import { createNewsEvent } from '../util/helpers'
-import {
-	TURNS_PROTECTION,
-	PVTM_TRPARM,
-	PVTM_TRPLND,
-	PVTM_TRPFLY,
-	PVTM_TRPSEA,
-} from '../config/conifg'
+
 import { getNetworth } from './actions/actions'
 import User from '../entity/User'
 import { takeSnapshot } from './actions/snaps'
+import { attachGame } from '../middleware/game'
 
 // send aid to another empire
 const sendAid = async (req: Request, res: Response) => {
@@ -32,7 +27,7 @@ const sendAid = async (req: Request, res: Response) => {
 		trpFly,
 		type,
 	} = req.body
-
+	const game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
@@ -53,7 +48,7 @@ const sendAid = async (req: Request, res: Response) => {
 		})
 		.filter((item) => item.value > 0)
 
-	console.log(sentItems)
+	// console.log(sentItems)
 
 	const turns = 2
 	let resultArray = []
@@ -61,6 +56,10 @@ const sendAid = async (req: Request, res: Response) => {
 	try {
 		const sender = await Empire.findOneOrFail({ id: empireId })
 		const receiver = await Empire.findOneOrFail({ id: receiverId })
+
+		if (sender.game_id !== receiver.game_id) {
+			return res.status(400).json({ error: 'Unauthorized' })
+		}
 
 		let shipsNeeded = Math.round(sender.trpSea * 0.02)
 		if (shipsNeeded < 10000) {
@@ -88,8 +87,8 @@ const sendAid = async (req: Request, res: Response) => {
 		}
 
 		if (
-			sender.turnsUsed < TURNS_PROTECTION ||
-			receiver.turnsUsed < TURNS_PROTECTION
+			sender.turnsUsed < game.turnsProtection ||
+			receiver.turnsUsed < game.turnsProtection
 		) {
 			return res
 				.status(400)
@@ -128,7 +127,7 @@ const sendAid = async (req: Request, res: Response) => {
 				.json({ error: 'Cannot send aid to such a large empire' })
 		}
 
-		let aidTurns = useTurnInternal('aid', turns, sender, clan, true)
+		let aidTurns = useTurnInternal('aid', turns, sender, clan, true, game)
 		let spellRes = aidTurns[0]
 		// console.log('spell res', spellRes)
 		aidTurns = aidTurns[0]
@@ -238,10 +237,10 @@ const sendAid = async (req: Request, res: Response) => {
 		sender.trpSea += spellRes.trpSea
 
 		sender.indyProd +=
-			spellRes.trpArm * PVTM_TRPARM +
-			spellRes.trpLnd * PVTM_TRPLND +
-			spellRes.trpFly * PVTM_TRPFLY +
-			spellRes.trpSea * PVTM_TRPSEA
+			spellRes.trpArm * game.pvtmTrpArm +
+			spellRes.trpLnd * game.pvtmTrpLnd +
+			spellRes.trpFly * game.pvtmTrpFly +
+			spellRes.trpSea * game.pvtmTrpSea
 
 		sender.food += spellRes.food
 
@@ -309,6 +308,6 @@ const sendAid = async (req: Request, res: Response) => {
 
 const router = Router()
 
-router.post('/', user, auth, sendAid)
+router.post('/', user, auth, attachGame, sendAid)
 
 export default router

@@ -1,6 +1,7 @@
 import { Request, Response, Router } from 'express'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
+import Game from '../entity/Game'
 import {
 	calcPCI,
 	calcSizeBonus,
@@ -10,21 +11,12 @@ import {
 // import Empire from '../entity/Empire'
 import { raceArray } from '../config/races'
 import { eraArray } from '../config/eras'
-import {
-	BANK_LOANRATE,
-	BANK_SAVERATE,
-	BASE_LUCK,
-	INDUSTRY_MULT,
-	PVTM_TRPARM,
-	PVTM_TRPFLY,
-	PVTM_TRPLND,
-	PVTM_TRPSEA,
-	TURNS_PROTECTION,
-} from '../config/conifg'
+
 import user from '../middleware/user'
 import auth from '../middleware/auth'
 // import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
+import { attachGame } from '../middleware/game'
 
 function calcProvisions(empire: Empire) {
 	let production =
@@ -100,12 +92,16 @@ function calcCorruption(empire: Empire): number {
 	return corruption
 }
 
-function IndyOutput(empire: Empire, indMultiplier: number) {
+function IndyOutput(
+	empire: Empire,
+	indMultiplier: number,
+	configMultiplier: number
+) {
 	let trparm = Math.ceil(
 		empire.bldTroop *
 			(empire.indArmy / 100) *
 			1.2 *
-			INDUSTRY_MULT *
+			configMultiplier *
 			indMultiplier *
 			((100 +
 				raceArray[empire.race].mod_industry +
@@ -116,7 +112,7 @@ function IndyOutput(empire: Empire, indMultiplier: number) {
 		empire.bldTroop *
 			(empire.indLnd / 100) *
 			0.6 *
-			INDUSTRY_MULT *
+			configMultiplier *
 			indMultiplier *
 			((100 +
 				raceArray[empire.race].mod_industry +
@@ -127,7 +123,7 @@ function IndyOutput(empire: Empire, indMultiplier: number) {
 		empire.bldTroop *
 			(empire.indFly / 100) *
 			0.3 *
-			INDUSTRY_MULT *
+			configMultiplier *
 			indMultiplier *
 			((100 +
 				raceArray[empire.race].mod_industry +
@@ -138,7 +134,7 @@ function IndyOutput(empire: Empire, indMultiplier: number) {
 		empire.bldTroop *
 			(empire.indSea / 100) *
 			0.2 *
-			INDUSTRY_MULT *
+			configMultiplier *
 			indMultiplier *
 			((100 +
 				raceArray[empire.race].mod_industry +
@@ -244,7 +240,8 @@ export const useTurn = async (
 	type: string,
 	turns: number,
 	empireId: number,
-	condensed: boolean
+	condensed: boolean,
+	game: Game
 ) => {
 	let taken: number = 0
 	let overall = {}
@@ -288,7 +285,7 @@ export const useTurn = async (
 		// size bonus penalty
 		let size = calcSizeBonus(empire)
 
-		let luck = BASE_LUCK / size
+		let luck = game.baseLuck / size
 		let lucky = Math.random() * 100 <= luck
 
 		if (empire.health < 0) {
@@ -305,14 +302,14 @@ export const useTurn = async (
 		let withdraw = 0
 
 		// savings interest
-		if (empire.turnsUsed > TURNS_PROTECTION) {
+		if (empire.turnsUsed > game.turnsProtection) {
 			let bankMax = empire.networth * 100
 			if (empire.bank > bankMax) {
 				withdraw = empire.bank - bankMax
 				empire.bank -= withdraw
 				empire.cash += withdraw
 			} else {
-				let saveRate = BANK_SAVERATE - size
+				let saveRate = game.bankSaveRate - size
 				let bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
 				empire.bank = Math.min(empire.bank + bankInterest, bankMax)
 			}
@@ -323,7 +320,7 @@ export const useTurn = async (
 
 		// loan interest
 		let loanMax = empire.networth * 50
-		let loanRate = BANK_LOANRATE + size
+		let loanRate = game.bankLoanRate + size
 		let loanInterest = Math.round(empire.loan * (loanRate / 52 / 100))
 		empire.loan += loanInterest
 		current['loanInterest'] = loanInterest
@@ -449,7 +446,11 @@ export const useTurn = async (
 			indMultiplier = 0.66
 		}
 
-		let { trparm, trplnd, trpfly, trpsea } = IndyOutput(empire, indMultiplier)
+		let { trparm, trplnd, trpfly, trpsea } = IndyOutput(
+			empire,
+			indMultiplier,
+			game.industryMult
+		)
 
 		empire.trpArm += trparm
 		empire.trpLnd += trplnd
@@ -457,10 +458,10 @@ export const useTurn = async (
 		empire.trpSea += trpsea
 
 		empire.indyProd +=
-			trparm * PVTM_TRPARM +
-			trplnd * PVTM_TRPLND +
-			trpfly * PVTM_TRPFLY +
-			trpsea * PVTM_TRPSEA
+			trparm * game.pvtmTrpArm +
+			trplnd * game.pvtmTrpLnd +
+			trpfly * game.pvtmTrpFly +
+			trpsea * game.pvtmTrpSea
 
 		current['trpArm'] = trparm
 		current['trpLnd'] = trplnd
@@ -704,8 +705,9 @@ const useTurns = async (req: Request, res: Response) => {
 	// const user = res.locals.user
 	// const empireId = res.locals.user.empire.empireId
 	// console.log(type, turns, empireId, condensed)
+	const game = res.locals.game
 
-	const response = await useTurn(type, turns, empireId, condensed)
+	const response = await useTurn(type, turns, empireId, condensed, game)
 
 	return res.json(response)
 }
@@ -716,7 +718,8 @@ export const useTurnInternal = (
 	turns: number,
 	empire: Empire,
 	clan: Clan,
-	condensed: boolean
+	condensed: boolean,
+	game: Game
 ) => {
 	let taken: number = 0
 	let overall = {}
@@ -786,14 +789,14 @@ export const useTurnInternal = (
 		console.log('money:', empire.cash)
 		console.log('bank:', empire.bank)
 		// savings interest
-		if (empire.turnsUsed > TURNS_PROTECTION) {
+		if (empire.turnsUsed > game.turnsProtection) {
 			let bankMax = empire.networth * 100
 			if (empire.bank > bankMax) {
 				withdraw = empire.bank - bankMax
 				empire.bank -= withdraw
 				empire.cash += withdraw
 			} else {
-				let saveRate = BANK_SAVERATE - size
+				let saveRate = game.bankSaveRate - size
 				bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
 				if (empire.bank + bankInterest > bankMax) {
 					bankInterest = bankMax - empire.bank
@@ -811,7 +814,7 @@ export const useTurnInternal = (
 		console.log(current['withdraw'])
 		// loan interest
 		let loanMax = empire.networth * 50
-		let loanRate = BANK_LOANRATE + size
+		let loanRate = game.bankLoanRate + size
 		let loanInterest = Math.round(empire.loan * (loanRate / 52 / 100))
 		empire.loan += loanInterest
 		current['loanInterest'] = loanInterest
@@ -910,7 +913,11 @@ export const useTurnInternal = (
 		// industry
 		let indMultiplier = 1
 
-		let { trparm, trplnd, trpfly, trpsea } = IndyOutput(empire, indMultiplier)
+		let { trparm, trplnd, trpfly, trpsea } = IndyOutput(
+			empire,
+			indMultiplier,
+			game.industryMult
+		)
 
 		// empire.trpArm += trparm
 		// empire.trpLnd += trplnd
@@ -1043,6 +1050,6 @@ export const useTurnInternal = (
 const router = Router()
 
 // game middleware needed, pass query param
-router.post('/', user, auth, useTurns)
+router.post('/', user, auth, attachGame, useTurns)
 
 export default router
