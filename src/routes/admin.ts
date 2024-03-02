@@ -28,6 +28,10 @@ import ClanRelation from '../entity/ClanRelation'
 import Session from '../entity/Session'
 import EmpireSnapshot from '../entity/EmpireSnapshot'
 import Lottery from '../entity/Lottery'
+import { QueryBuilder, getConnection } from 'typeorm'
+import { get } from 'http'
+import ClanMessage from '../entity/ClanMessage'
+import EmpireIntel from '../entity/EmpireIntel'
 
 // READ
 const getEmpires = async (req: Request, res: Response) => {
@@ -708,70 +712,62 @@ const resetGame = async (req: Request, res: Response) => {
 
 		console.log('round history added')
 
-		let clanMessages = await EmpireMessage.find()
-		if (clanMessages.length > 0) {
-			clanMessages.forEach(async (message) => {
-				await message.remove()
-			})
-			console.log('clan messages removed')
-		}
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(ClanMessage)
+			.execute()
 
-		let messages = await EmpireMessage.find()
-		if (messages.length > 0) {
-			messages.forEach(async (message) => {
-				await message.remove()
-			})
-			console.log('messages removed')
-		}
+		console.log('clan messages removed')
 
-		let markets = await Market.find()
-		if (markets.length > 0) {
-			markets.forEach(async (market) => {
-				await market.remove()
-			})
-			console.log('market items removed')
-		}
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(EmpireMessage)
+			.execute()
 
-		let news = await EmpireNews.find()
-		if (news.length > 0) {
-			news.forEach(async (news) => {
-				await news.remove()
-			})
-			console.log('news removed')
-		}
+		console.log('empire messages removed')
 
-		let clanRelation = await ClanRelation.find()
-		if (clanRelation.length > 0) {
-			clanRelation.forEach(async (relation) => {
-				await relation.remove()
-			})
-			console.log('clan relations removed')
-		}
+		await getConnection().createQueryBuilder().delete().from(Market).execute()
 
-		let sessions = await Session.find()
-		if (sessions.length > 0) {
-			sessions.forEach(async (session) => {
-				await session.remove()
-			})
-			console.log('sessions removed')
-		}
+		console.log('market items removed')
 
-		let snapshots = await EmpireSnapshot.find()
-		if (snapshots.length > 0) {
-			snapshots.forEach(async (snapshot) => {
-				await snapshot.remove()
-			})
-			console.log('snapshots removed')
-		}
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(EmpireNews)
+			.execute()
 
-		let lotto = await Lottery.find()
-		if (lotto.length > 0) {
-			lotto.forEach(async (lottery) => {
-				await lottery.remove()
-			})
-			console.log('lottery tickets removed')
-		}
+		console.log('news removed')
 
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(ClanRelation)
+			.execute()
+		console.log('clan relations removed')
+
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(EmpireIntel)
+			.execute()
+		console.log('empire intel removed')
+
+		await getConnection().createQueryBuilder().delete().from(Session).execute()
+		console.log('sessions removed')
+
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(EmpireSnapshot)
+			.execute()
+		console.log('snapshots removed')
+
+		await getConnection().createQueryBuilder().delete().from(Lottery).execute()
+		console.log('lottery tickets removed')
+
+		console.log('game reset')
 		return res.json({ message: 'Game reset' })
 	} catch (error) {
 		console.log(error)

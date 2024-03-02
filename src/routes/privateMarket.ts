@@ -16,7 +16,6 @@ import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { takeSnapshot } from './actions/snaps'
-import { awardAchievements } from './actions/achievements'
 
 const getCost = (empire: Empire, base) => {
 	let cost = base
@@ -190,11 +189,11 @@ const sell = async (req: Request, res: Response) => {
 	const empire = await Empire.findOne({ id: empireId })
 
 	let priceArray = [
-		getValue(empire, PVTM_TRPARM, 0.32),
-		getValue(empire, PVTM_TRPLND, 0.34),
-		getValue(empire, PVTM_TRPFLY, 0.36),
-		getValue(empire, PVTM_TRPSEA, 0.38),
-		PVTM_FOOD * 0.4,
+		getValue(empire, PVTM_TRPARM, 0.38),
+		getValue(empire, PVTM_TRPLND, 0.4),
+		getValue(empire, PVTM_TRPFLY, 0.42),
+		getValue(empire, PVTM_TRPSEA, 0.44),
+		PVTM_FOOD * 0.3,
 		PVTM_RUNES * 0.2,
 	]
 

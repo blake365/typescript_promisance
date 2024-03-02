@@ -300,7 +300,7 @@ const pubSell = async (req: Request, res: Response) => {
 	]
 
 	priceArray.forEach((price, index) => {
-		if (price < basePrices[index] * 0.25 || price > basePrices[index] * 2) {
+		if (price < basePrices[index] * 0.33 || price > basePrices[index] * 2) {
 			return res.status(500).json({ error: 'Invalid price' })
 		}
 	})

@@ -119,7 +119,10 @@ const sendAid = async (req: Request, res: Response) => {
 			}
 		}
 
-		if (receiver.networth > sender.networth * 2) {
+		if (
+			receiver.networth > sender.networth * 2 &&
+			receiver.clanId !== sender.clanId
+		) {
 			return res
 				.status(400)
 				.json({ error: 'Cannot send aid to such a large empire' })
