@@ -30,6 +30,9 @@ export default class Clan extends Model {
 	@Column({ unique: true })
 	clanName: string
 
+	@Column({ type: 'int', default: 1 })
+	game_id: number
+
 	@Exclude()
 	@Length(3, 255, { message: 'Must be at least 3 characters long' })
 	@Column()

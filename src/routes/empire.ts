@@ -196,11 +196,28 @@ const createEmpire = async (req: Request, res: Response) => {
 }
 
 // READ
-const getEmpires = async (_: Request, res: Response) => {
+const getEmpires = async (req: Request, res: Response) => {
+	const { gameId } = req.query
+
 	try {
 		const empires = await Empire.find({
+			select: [
+				'empireId',
+				'id',
+				'name',
+				'networth',
+				'empireId',
+				'race',
+				'era',
+				'land',
+				'rank',
+				'mode',
+				'turnsUsed',
+				'diminishingReturns',
+			],
+			where: { game_id: gameId },
 			order: {
-				id: 'DESC',
+				networth: 'DESC',
 			},
 		})
 		return res.json(empires)
@@ -214,6 +231,7 @@ const getEmpires = async (_: Request, res: Response) => {
 const getOtherEmpires = async (req: Request, res: Response) => {
 	// console.log('get other empires')
 	// console.log(req.body)
+	const { gameId } = req.query
 	const empire_id = res.locals.user.empires[0].id
 	// console.log(res.locals.user)
 	// console.log(empire_id)
@@ -239,7 +257,7 @@ const getOtherEmpires = async (req: Request, res: Response) => {
 			'turnsUsed',
 			'diminishingReturns',
 		],
-		where: { empireId: Not(empire_id) },
+		where: { empireId: Not(empire_id), game_id: gameId },
 		order: {
 			networth: 'DESC',
 		},
@@ -251,7 +269,8 @@ const getOtherEmpires = async (req: Request, res: Response) => {
 }
 
 // GET EMPIRE LIST FOR SCORES
-const getScores = async (_: Request, res: Response) => {
+const getScores = async (req: Request, res: Response) => {
+	const { gameId } = req.query
 	try {
 		const empires = await Empire.find({
 			select: [
@@ -276,6 +295,7 @@ const getScores = async (_: Request, res: Response) => {
 				'defSucc',
 				'defTotal',
 			],
+			where: { game_id: gameId },
 			order: {
 				rank: 'ASC',
 			},
@@ -298,7 +318,7 @@ const getScores = async (_: Request, res: Response) => {
 								'empireIdAgent1',
 								'empireIdAgent2',
 							],
-							where: { id: empire.clanId },
+							where: { id: empire.clanId, game_id: gameId },
 							relations: ['relation'],
 						})
 
