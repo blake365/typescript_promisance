@@ -40,7 +40,8 @@ export async function createNewsEvent(
 	empireIdDestination: number,
 	destinationName: string,
 	type: string,
-	result: string
+	result: string,
+	gameId: number
 ) {
 	// create news events
 	let newsItem = new EmpireNews()
@@ -52,6 +53,7 @@ export async function createNewsEvent(
 	newsItem.destinationName = destinationName
 	newsItem.type = type
 	newsItem.result = result
+	newsItem.game_id = gameId
 	// console.log(newsItem)
 	await newsItem.save()
 }

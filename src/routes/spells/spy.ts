@@ -90,7 +90,8 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			enemyEmpire.id,
 			enemyEmpire.name,
 			'spell',
-			'fail'
+			'fail',
+			empire.game_id
 		)
 
 		return result
@@ -121,7 +122,8 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			enemyEmpire.id,
 			enemyEmpire.name,
 			'spell',
-			'success'
+			'success',
+			empire.game_id
 		)
 
 		return result

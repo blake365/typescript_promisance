@@ -25,4 +25,10 @@ export default class Lottery extends Model {
 		default: 0,
 	})
 	ticket: number
+
+	@Column({
+		type: 'int',
+		default: 1,
+	})
+	game_id: number
 }

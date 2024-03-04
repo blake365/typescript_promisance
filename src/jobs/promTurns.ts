@@ -290,7 +290,8 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 			destinationId,
 			destinationName,
 			'market',
-			'fail'
+			'fail',
+			empire.game_id
 		)
 
 		await empire.save()
@@ -502,7 +503,8 @@ export const cleanDemoAccounts = new AsyncTask(
 				destinationId,
 				destinationName,
 				'lottery',
-				'fail'
+				'fail',
+				ticket.game_id
 			)
 		} else {
 			console.log('winner', winner)
@@ -532,7 +534,8 @@ export const cleanDemoAccounts = new AsyncTask(
 				destinationId,
 				destinationName,
 				'lottery',
-				'success'
+				'success',
+				empire.game_id
 			)
 
 			// remove all tickets

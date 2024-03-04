@@ -320,7 +320,8 @@ const thirtyMinUpdate = async (req: Request, res: Response) => {
 				destinationId,
 				destinationName,
 				'market',
-				'fail'
+				'fail',
+				empire.game_id
 			)
 
 			await empire.save()
@@ -544,7 +545,8 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 				destinationId,
 				destinationName,
 				'lottery',
-				'fail'
+				'fail',
+				ticket.game_id
 			)
 		} else {
 			// console.log('winner', winner)
@@ -574,7 +576,8 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 				destinationId,
 				destinationName,
 				'lottery',
-				'success'
+				'success',
+				empire.game_id
 			)
 
 			// remove all tickets

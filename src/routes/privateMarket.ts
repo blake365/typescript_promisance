@@ -1,14 +1,4 @@
 import { Request, Response, Router } from 'express'
-import {
-	PVTM_FOOD,
-	PVTM_MAXSELL,
-	PVTM_RUNES,
-	PVTM_SHOPBONUS,
-	PVTM_TRPARM,
-	PVTM_TRPFLY,
-	PVTM_TRPLND,
-	PVTM_TRPSEA,
-} from '../config/conifg'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import { getNetworth } from './actions/actions'
@@ -16,13 +6,15 @@ import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { takeSnapshot } from './actions/snaps'
+import { attachGame } from '../middleware/game'
+import Game from '../entity/Game'
 
-const getCost = (empire: Empire, base) => {
+const getCost = (empire: Empire, base: number, shopBonus: number) => {
 	let cost = base
 	let costBonus =
 		1 -
-		((1 - PVTM_SHOPBONUS) * (empire.bldCost / empire.land) +
-			PVTM_SHOPBONUS * (empire.bldCash / empire.land))
+		((1 - shopBonus) * (empire.bldCost / empire.land) +
+			shopBonus * (empire.bldCash / empire.land))
 
 	cost *= costBonus
 	cost *= 2 - (100 + raceArray[empire.race].mod_market) / 100
@@ -40,6 +32,7 @@ const buy = async (req: Request, res: Response) => {
 	const { type, empireId, buyArm, buyLnd, buyFly, buySea, buyFood, buyRunes } =
 		req.body
 
+	const game: Game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== parseInt(empireId)) {
@@ -53,12 +46,12 @@ const buy = async (req: Request, res: Response) => {
 	const empire = await Empire.findOne({ id: empireId })
 
 	let priceArray = [
-		getCost(empire, PVTM_TRPARM),
-		getCost(empire, PVTM_TRPLND),
-		getCost(empire, PVTM_TRPFLY),
-		getCost(empire, PVTM_TRPSEA),
-		PVTM_FOOD,
-		PVTM_RUNES,
+		getCost(empire, game.pvtmTrpArm, game.pvtmShopBonus),
+		getCost(empire, game.pvtmTrpLnd, game.pvtmShopBonus),
+		getCost(empire, game.pvtmTrpFly, game.pvtmShopBonus),
+		getCost(empire, game.pvtmTrpSea, game.pvtmShopBonus),
+		game.pvtmFood,
+		game.pvtmRunes,
 	]
 
 	console.log(priceArray)
@@ -146,12 +139,17 @@ const buy = async (req: Request, res: Response) => {
 	return res.json(shoppingResult)
 }
 
-const getValue = (emp, base, multiplier) => {
+const getValue = (
+	emp: Empire,
+	base: number,
+	multiplier: number,
+	shopBonus: number
+) => {
 	let cost = base * multiplier
 	let costBonus =
 		1 +
-		((1 - PVTM_SHOPBONUS) * (emp.bldCost / emp.land) +
-			PVTM_SHOPBONUS * (emp.bldCash / emp.land))
+		((1 - shopBonus) * (emp.bldCost / emp.land) +
+			shopBonus * (emp.bldCash / emp.land))
 
 	cost *= costBonus
 	cost /= 2 - (100 + raceArray[emp.race].mod_market) / 100
@@ -180,6 +178,7 @@ const sell = async (req: Request, res: Response) => {
 		return res.json({ error: 'Something went wrong' })
 	}
 
+	const game: Game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== parseInt(empireId)) {
@@ -189,12 +188,12 @@ const sell = async (req: Request, res: Response) => {
 	const empire = await Empire.findOne({ id: empireId })
 
 	let priceArray = [
-		getValue(empire, PVTM_TRPARM, 0.38),
-		getValue(empire, PVTM_TRPLND, 0.4),
-		getValue(empire, PVTM_TRPFLY, 0.42),
-		getValue(empire, PVTM_TRPSEA, 0.44),
-		PVTM_FOOD * 0.3,
-		PVTM_RUNES * 0.2,
+		getValue(empire, game.pvtmTrpArm, 0.38, game.pvtmShopBonus),
+		getValue(empire, game.pvtmTrpLnd, 0.4, game.pvtmShopBonus),
+		getValue(empire, game.pvtmTrpFly, 0.42, game.pvtmShopBonus),
+		getValue(empire, game.pvtmTrpSea, 0.44, game.pvtmShopBonus),
+		game.pvtmFood * 0.3,
+		game.pvtmRunes * 0.2,
 	]
 
 	let sellArray = [sellArm, sellLnd, sellFly, sellSea, sellFood, sellRunes]
@@ -212,10 +211,10 @@ const sell = async (req: Request, res: Response) => {
 		.reduce((partialSum, a) => partialSum + a, 0)
 
 	if (
-		sellArm > (empire.trpArm * PVTM_MAXSELL) / 10000 ||
-		sellLnd > (empire.trpLnd * PVTM_MAXSELL) / 10000 ||
-		sellFly > (empire.trpFly * PVTM_MAXSELL) / 10000 ||
-		sellSea > (empire.trpSea * PVTM_MAXSELL) / 10000 ||
+		sellArm > (empire.trpArm * game.pvtmMaxSell) / 10000 ||
+		sellLnd > (empire.trpLnd * game.pvtmMaxSell) / 10000 ||
+		sellFly > (empire.trpFly * game.pvtmMaxSell) / 10000 ||
+		sellSea > (empire.trpSea * game.pvtmMaxSell) / 10000 ||
 		sellFood > empire.food ||
 		sellRunes > empire.runes
 	) {
@@ -285,7 +284,7 @@ const sell = async (req: Request, res: Response) => {
 
 const router = Router()
 
-router.post('/buy', user, auth, buy)
-router.post('/sell', user, auth, sell)
+router.post('/buy', user, auth, attachGame, buy)
+router.post('/sell', user, auth, attachGame, sell)
 
 export default router

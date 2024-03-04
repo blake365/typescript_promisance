@@ -1,6 +1,5 @@
 // route to fetch individual empire news items
 // fetch all public news items
-
 import { Request, Response, Router } from 'express'
 import EmpireNews from '../entity/EmpireNews'
 import auth from '../middleware/auth'
@@ -32,7 +31,7 @@ const getEmpireNews = async (req: Request, res: Response) => {
 
 	const user: User = res.locals.user
 
-	console.log(user.empires[0].id)
+	// console.log(user.empires[0].id)
 
 	if (user.empires[0].id !== parseInt(id)) {
 		return res.status(403).json({ error: 'unauthorized' })
@@ -129,6 +128,8 @@ const searchNews = async (req: Request, res: Response) => {
 	console.log(req.body)
 	const { skip, take, view, empire, type } = req.body
 
+	const { gameId } = req.query
+
 	let searchType = ''
 	if (type) {
 		searchType = type
@@ -142,11 +143,13 @@ const searchNews = async (req: Request, res: Response) => {
 						public: view,
 						empireIdDestination: empire,
 						type: searchType,
+						game_id: gameId,
 					},
 					{
 						public: view,
 						empireIdSource: empire,
 						type: searchType,
+						game_id: gameId,
 					},
 				],
 				order: { createdAt: 'DESC' },
@@ -160,6 +163,7 @@ const searchNews = async (req: Request, res: Response) => {
 				where: {
 					public: view,
 					type: searchType,
+					game_id: gameId,
 				},
 				order: { createdAt: 'DESC' },
 				skip: skip,
@@ -173,10 +177,12 @@ const searchNews = async (req: Request, res: Response) => {
 					{
 						public: view,
 						empireIdDestination: empire,
+						game_id: gameId,
 					},
 					{
 						public: view,
 						empireIdSource: empire,
+						game_id: gameId,
 					},
 				],
 				order: { createdAt: 'DESC' },
@@ -189,6 +195,7 @@ const searchNews = async (req: Request, res: Response) => {
 			const news = await EmpireNews.find({
 				where: {
 					public: view,
+					game_id: gameId,
 				},
 				order: { createdAt: 'DESC' },
 				skip: skip,
@@ -255,6 +262,8 @@ const simpleNews = async (req: Request, res: Response) => {
 const scoresNews = async (req: Request, res: Response) => {
 	const { view, empire, take } = req.body
 
+	const { gameId } = req.query
+
 	try {
 		const news = await EmpireNews.find({
 			where: [
@@ -262,21 +271,25 @@ const scoresNews = async (req: Request, res: Response) => {
 					public: view,
 					empireIdDestination: empire,
 					type: 'attack',
+					game_id: gameId,
 				},
 				{
 					public: view,
 					empireIdDestination: empire,
 					type: 'spell',
+					game_id: gameId,
 				},
 				{
 					public: view,
 					empireIdSource: empire,
 					type: 'attack',
+					game_id: gameId,
 				},
 				{
 					public: view,
 					empireIdSource: empire,
 					type: 'spell',
+					game_id: gameId,
 				},
 			],
 			order: { createdAt: 'DESC' },

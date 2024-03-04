@@ -37,6 +37,13 @@ export default class EmpireNews extends Model {
 	})
 	empireIdSource: number
 
+	@Index()
+	@Column({
+		type: 'int',
+		default: 1,
+	})
+	game_id: number
+
 	@Column({ default: '' })
 	sourceName: string
 

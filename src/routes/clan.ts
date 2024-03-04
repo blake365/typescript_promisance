@@ -5,12 +5,13 @@ import user from '../middleware/user'
 import { Not } from 'typeorm'
 import EmpireEffect from '../entity/EmpireEffect'
 import Clan from '../entity/Clan'
-import { CLAN_SIZE, TURNS_PROTECTION } from '../config/conifg'
 import bcrypt from 'bcrypt'
 import { createNewsEvent } from '../util/helpers'
 import ClanRelation from '../entity/ClanRelation'
 import User from '../entity/User'
 import { containsOnlySymbols } from './actions/actions'
+import { attachGame } from '../middleware/game'
+import Game from '../entity/Game'
 
 const Filter = require('bad-words')
 const filter = new Filter()
@@ -18,6 +19,7 @@ const filter = new Filter()
 const createClan = async (req: Request, res: Response) => {
 	let { clanName, clanPassword, empireId } = req.body
 
+	const game: Game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
@@ -37,7 +39,7 @@ const createClan = async (req: Request, res: Response) => {
 			return res.status(400).json({ error: 'You are already in a clan' })
 		}
 
-		if (empire.turnsUsed < TURNS_PROTECTION) {
+		if (empire.turnsUsed < game.turnsProtection) {
 			return res.status(400).json({
 				error: 'You cannot create a clan while under new player protection',
 			})
@@ -52,12 +54,14 @@ const createClan = async (req: Request, res: Response) => {
 
 		const clanMembers = 1
 		const empireIdLeader = empireId
+		const game_id = game.game_id
 		let newClan: Clan = null
 		newClan = new Clan({
 			clanName,
 			clanPassword,
 			clanMembers,
 			empireIdLeader,
+			game_id,
 		})
 
 		await newClan.save()
@@ -67,7 +71,7 @@ const createClan = async (req: Request, res: Response) => {
 
 		// create effect
 		let empireEffectName = 'join clan'
-		let empireEffectValue = 3 * 60 * 24
+		let empireEffectValue = game.clanMinJoin * 60
 		let effectOwnerId = empire.id
 
 		let newEffect: EmpireEffect
@@ -91,6 +95,7 @@ const createClan = async (req: Request, res: Response) => {
 const joinClan = async (req: Request, res: Response) => {
 	let { clanName, clanPassword, empireId } = req.body
 
+	const game: Game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
@@ -125,7 +130,7 @@ const joinClan = async (req: Request, res: Response) => {
 				.json({ error: 'You cannot join a clan for 3 days after leaving one' })
 		}
 
-		if (empire.turnsUsed < TURNS_PROTECTION) {
+		if (empire.turnsUsed < game.turnsProtection) {
 			return res.status(400).json({
 				error: 'You cannot join a clan while under new player protection',
 			})
@@ -148,7 +153,7 @@ const joinClan = async (req: Request, res: Response) => {
 			return res.status(401).json({ password: 'Password is incorrect' })
 		}
 
-		if (clan.clanMembers >= CLAN_SIZE) {
+		if (clan.clanMembers >= game.clanSize) {
 			return res.status(400).json({ error: 'Clan is full' })
 		}
 
@@ -160,7 +165,7 @@ const joinClan = async (req: Request, res: Response) => {
 
 		// create effect
 		let empireEffectName = 'join clan'
-		let empireEffectValue = 3 * 60 * 24
+		let empireEffectValue = game.clanMinJoin * 60
 		let effectOwnerId = empire.id
 
 		let newEffect: EmpireEffect
@@ -184,84 +189,7 @@ const joinClan = async (req: Request, res: Response) => {
 const leaveClan = async (req: Request, res: Response) => {
 	let { empireId } = req.body
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(400).json({ error: 'unauthorized' })
-	}
-
-	try {
-		const empire = await Empire.findOneOrFail({
-			where: { id: empireId },
-		})
-
-		const effect = await EmpireEffect.findOne({
-			where: { effectOwnerId: empire.id, empireEffectName: 'join clan' },
-			order: { createdAt: 'DESC' },
-		})
-
-		let now = new Date()
-		let timeLeft = 0
-
-		if (effect) {
-			let effectAge =
-				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
-			timeLeft = effect.empireEffectValue - effectAge
-			// age in minutes
-			// console.log(effectAge)
-			effectAge = Math.floor(effectAge)
-		}
-
-		if (timeLeft > 0) {
-			return res
-				.status(400)
-				.json({ error: 'You cannot leave a clan for 3 days after joining' })
-		}
-
-		if (empire.clanId === 0) {
-			return res.status(400).json({ error: 'You are not in a clan' })
-		}
-
-		const clan = await Clan.findOneOrFail({
-			where: { id: empire.clanId },
-		})
-
-		if (clan.empireIdLeader === empire.id) {
-			return res.status(400).json({ error: 'Clan leader cannot leave' })
-		}
-
-		clan.clanMembers--
-		await clan.save()
-
-		empire.clanId = 0
-		await empire.save()
-
-		// create effect
-		let empireEffectName = 'leave clan'
-		let empireEffectValue = 3 * 60 * 24
-		let effectOwnerId = empire.id
-
-		let newEffect: EmpireEffect
-		newEffect = new EmpireEffect({
-			effectOwnerId,
-			empireEffectName,
-			empireEffectValue,
-		})
-		// console.log(effect)
-		await newEffect.save()
-
-		return res.json(empire)
-	} catch (err) {
-		console.log(err)
-		return res
-			.status(500)
-			.json({ error: 'Something went wrong when leaving clan' })
-	}
-}
-
-const disbandClan = async (req: Request, res: Response) => {
-	let { empireId, clanId } = req.body
-
+	const game: Game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
@@ -292,7 +220,86 @@ const disbandClan = async (req: Request, res: Response) => {
 
 		if (timeLeft > 0) {
 			return res.status(400).json({
-				error: 'You cannot disband a clan for 3 days after creating it',
+				error: `You cannot leave a clan for ${game.clanMinJoin} hours after joining`,
+			})
+		}
+
+		if (empire.clanId === 0) {
+			return res.status(400).json({ error: 'You are not in a clan' })
+		}
+
+		const clan = await Clan.findOneOrFail({
+			where: { id: empire.clanId },
+		})
+
+		if (clan.empireIdLeader === empire.id) {
+			return res.status(400).json({ error: 'Clan leader cannot leave' })
+		}
+
+		clan.clanMembers--
+		await clan.save()
+
+		empire.clanId = 0
+		await empire.save()
+
+		// create effect
+		let empireEffectName = 'leave clan'
+		let empireEffectValue = game.clanMinRejoin * 60
+		let effectOwnerId = empire.id
+
+		let newEffect: EmpireEffect
+		newEffect = new EmpireEffect({
+			effectOwnerId,
+			empireEffectName,
+			empireEffectValue,
+		})
+		// console.log(effect)
+		await newEffect.save()
+
+		return res.json(empire)
+	} catch (err) {
+		console.log(err)
+		return res
+			.status(500)
+			.json({ error: 'Something went wrong when leaving clan' })
+	}
+}
+
+const disbandClan = async (req: Request, res: Response) => {
+	let { empireId, clanId } = req.body
+
+	const game: Game = res.locals.game
+	const user: User = res.locals.user
+
+	if (user.empires[0].id !== empireId) {
+		return res.status(400).json({ error: 'unauthorized' })
+	}
+
+	try {
+		const empire = await Empire.findOneOrFail({
+			where: { id: empireId },
+		})
+
+		const effect = await EmpireEffect.findOne({
+			where: { effectOwnerId: empire.id, empireEffectName: 'join clan' },
+			order: { createdAt: 'DESC' },
+		})
+
+		let now = new Date()
+		let timeLeft = 0
+
+		if (effect) {
+			let effectAge =
+				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+			timeLeft = effect.empireEffectValue - effectAge
+			// age in minutes
+			// console.log(effectAge)
+			effectAge = Math.floor(effectAge)
+		}
+
+		if (timeLeft > 0) {
+			return res.status(400).json({
+				error: `You cannot disband a clan for ${game.clanMinJoin} hours after creating it`,
 			})
 		}
 
@@ -323,7 +330,7 @@ const disbandClan = async (req: Request, res: Response) => {
 
 		// create effect
 		let empireEffectName = 'leave clan'
-		let empireEffectValue = 3 * 60 * 24
+		let empireEffectValue = game.clanMinRejoin * 60
 		let effectOwnerId = empire.id
 
 		let newEffect: EmpireEffect
@@ -347,6 +354,7 @@ const disbandClan = async (req: Request, res: Response) => {
 const kickFromClan = async (req: Request, res: Response) => {
 	let { empireId } = req.body
 
+	const game: Game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
@@ -382,7 +390,7 @@ const kickFromClan = async (req: Request, res: Response) => {
 
 		// create effect
 		let empireEffectName = 'leave clan'
-		let empireEffectValue = 3 * 60 * 24
+		let empireEffectValue = game.clanMinRejoin * 60
 		let effectOwnerId = empire.id
 
 		let newEffect: EmpireEffect
@@ -405,7 +413,8 @@ const kickFromClan = async (req: Request, res: Response) => {
 			empire.id,
 			empire.name,
 			'clan',
-			'fail'
+			'fail',
+			empire.game_id
 		)
 
 		return res.json(empire)
@@ -500,10 +509,12 @@ const getClanMembers = async (req: Request, res: Response) => {
 }
 
 const getClans = async (req: Request, res: Response) => {
+	const { gameId } = req.query
+
 	try {
 		const clans = await Clan.find({
 			select: ['id', 'clanName', 'clanTitle', 'clanMembers', 'clanPic'],
-			where: { clanMembers: Not(0) },
+			where: { clanMembers: Not(0), game_id: gameId },
 		})
 
 		if (clans.length === 0) {
@@ -520,6 +531,8 @@ const getClans = async (req: Request, res: Response) => {
 }
 
 const getClansData = async (req: Request, res: Response) => {
+	const { gameId } = req.query
+
 	try {
 		const clans = await Clan.find({
 			select: [
@@ -535,7 +548,7 @@ const getClansData = async (req: Request, res: Response) => {
 				'enemies',
 				'peaceOffer',
 			],
-			where: { clanMembers: Not(0) },
+			where: { clanMembers: Not(0), game_id: gameId },
 			relations: ['relation'],
 		})
 
@@ -773,7 +786,8 @@ const declareWar = async (req: Request, res: Response) => {
 			enemyClan.empireIdLeader,
 			enemyLeader.name,
 			'war',
-			'success'
+			'success',
+			empire.game_id
 		)
 
 		return res.json(clan)
@@ -897,7 +911,8 @@ const offerPeace = async (req: Request, res: Response) => {
 				enemyClan.empireIdLeader,
 				enemyLeader.name,
 				'peace',
-				'success'
+				'success',
+				empire.game_id
 			)
 		} else if (myWarRelation.includes(enemyClanId)) {
 			// you are at war and have not offered peace yet, first offer
@@ -922,7 +937,8 @@ const offerPeace = async (req: Request, res: Response) => {
 				enemyClan.empireIdLeader,
 				enemyLeader.name,
 				'peace',
-				'shielded'
+				'shielded',
+				empire.game_id
 			)
 		}
 
@@ -937,11 +953,11 @@ const offerPeace = async (req: Request, res: Response) => {
 
 const router = Router()
 
-router.post('/create', user, auth, createClan)
-router.post('/join', user, auth, joinClan)
-router.post('/leave', user, auth, leaveClan)
-router.post('/disband', user, auth, disbandClan)
-router.post('/kick', user, auth, kickFromClan)
+router.post('/create', user, auth, attachGame, createClan)
+router.post('/join', user, auth, attachGame, joinClan)
+router.post('/leave', user, auth, attachGame, leaveClan)
+router.post('/disband', user, auth, attachGame, disbandClan)
+router.post('/kick', user, auth, attachGame, kickFromClan)
 router.post('/get', user, auth, getClan)
 router.post('/getMembers', user, auth, getClanMembers)
 router.get('/getClans', getClans)

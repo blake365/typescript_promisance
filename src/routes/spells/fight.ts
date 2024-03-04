@@ -216,7 +216,8 @@ export const fight_cast = async (
 			enemyEmpire.id,
 			enemyEmpire.name,
 			'spell',
-			'fail' // defense fails
+			'fail', // defense fails
+			empire.game_id
 		)
 
 		await empire.save()
@@ -291,7 +292,8 @@ export const fight_cast = async (
 			enemyEmpire.id,
 			enemyEmpire.name,
 			'spell',
-			'success' // defense succeeds
+			'success', // defense succeeds
+			empire.game_id
 		)
 
 		enemyEmpire.networth = getNetworth(enemyEmpire)

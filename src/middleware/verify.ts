@@ -2,8 +2,8 @@ import { NextFunction, Request, Response } from 'express'
 
 export default async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		console.log(req.params.uuid)
-		console.log(res.locals.user.empires[0].uuid)
+		// console.log(req.params.uuid)
+		// console.log(res.locals.user.empires[0].uuid)
 		if (res.locals.user.empires[0].uuid !== req.params.uuid) {
 			throw new Error()
 		}

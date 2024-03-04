@@ -1191,7 +1191,8 @@ const attack = async (req: Request, res: Response) => {
 					defender.id,
 					defender.name,
 					'attack',
-					'fail'
+					'fail',
+					attacker.game_id
 				)
 
 				// check for kill
@@ -1307,7 +1308,8 @@ const attack = async (req: Request, res: Response) => {
 					defender.id,
 					defender.name,
 					'attack',
-					'success'
+					'success',
+					attacker.game_id
 				)
 			}
 

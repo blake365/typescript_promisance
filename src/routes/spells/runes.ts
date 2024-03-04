@@ -61,7 +61,8 @@ export const runes_cast = async (empire: Empire, enemyEmpire: Empire) => {
 				enemyEmpire.id,
 				enemyEmpire.name,
 				'spell',
-				'shielded'
+				'shielded',
+				empire.game_id
 			)
 		} else {
 			let runes = Math.ceil(enemyEmpire.runes * 0.03)
@@ -92,7 +93,8 @@ export const runes_cast = async (empire: Empire, enemyEmpire: Empire) => {
 				enemyEmpire.id,
 				enemyEmpire.name,
 				'spell',
-				'fail'
+				'fail',
+				empire.game_id
 			)
 		}
 
@@ -138,7 +140,8 @@ export const runes_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			enemyEmpire.id,
 			enemyEmpire.name,
 			'spell',
-			'success'
+			'success',
+			empire.game_id
 		)
 
 		return result

@@ -1,26 +1,16 @@
 import { Request, Response, Router } from 'express'
-import {
-	PUBMKT_MAXFOOD,
-	PUBMKT_MAXRUNES,
-	PUBMKT_MAXSELL,
-	PVTM_FOOD,
-	PVTM_RUNES,
-	PVTM_TRPARM,
-	PVTM_TRPFLY,
-	PVTM_TRPLND,
-	PVTM_TRPSEA,
-} from '../config/conifg'
 import Empire from '../entity/Empire'
 import { getNetworth } from './actions/actions'
 import Market from '../entity/Market'
 import { eraArray } from '../config/eras'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
-
 import { Not, Raw } from 'typeorm'
 import { createNewsEvent } from '../util/helpers'
 import User from '../entity/User'
 import { takeSnapshot } from './actions/snaps'
+import { attachGame } from '../middleware/game'
+import Game from '../entity/Game'
 
 interface ReturnObject {
 	amount: number
@@ -31,6 +21,7 @@ interface ReturnObject {
 const pubBuyTwo = async (req: Request, res: Response) => {
 	const { empireId, action, type, buy, item } = req.body
 
+	const game: Game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
@@ -153,7 +144,8 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 			seller.id,
 			seller.name,
 			'market',
-			'success'
+			'success',
+			buyer.game_id
 		)
 
 		if (item.amount - buy <= 0) {
@@ -171,83 +163,6 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 		return res.status(500).json({ error: 'Something went wrong' })
 	}
 }
-
-// const pubBuy = async (req: Request, res: Response) => {
-// 	const { buyerId, sellerId, id, amount, cost } = req.body
-
-// 	const empire_id = res.locals.user.empires[0].id
-// 	if (empire_id !== buyerId) {
-// 		return res.status(500).json({ error: 'Empire ID mismatch' })
-// 	}
-
-// 	console.log('attempting purchase')
-
-// 	let item: string
-
-// 	// get db entries
-// 	let itemBought = await Market.findOneOrFail({ id })
-// 	let buyer = await Empire.findOneOrFail({ where: { id: buyerId } })
-// 	let seller = await Empire.findOneOrFail({ where: { id: sellerId } })
-
-// 	if (cost > buyer.cash) {
-// 		return res.status(500).json({ error: 'Not enough money to make purchase' })
-// 	}
-
-// 	// add bought item to empire
-// 	if (itemBought.type === 0) {
-// 		buyer.trpArm += amount
-// 		item = eraArray[seller.era].trparm
-// 	} else if (itemBought.type === 1) {
-// 		buyer.trpLnd += amount
-// 		item = eraArray[seller.era].trplnd
-// 	} else if (itemBought.type === 2) {
-// 		buyer.trpFly += amount
-// 		item = eraArray[seller.era].trpfly
-// 	} else if (itemBought.type === 3) {
-// 		buyer.trpSea += amount
-// 		item = eraArray[seller.era].trpsea
-// 	} else if (itemBought.type === 4) {
-// 		buyer.food += amount
-// 		item = eraArray[seller.era].food
-// 	}
-
-// 	// deduct cost from buyer cash
-// 	buyer.cash -= cost
-
-// 	// add cost to seller cash
-// 	seller.bank += cost
-
-// 	buyer.networth = getNetworth(buyer)
-// 	seller.networth = getNetworth(seller)
-
-// 	await buyer.save()
-// 	await seller.save()
-
-// 	// create news entry
-// 	let content: string = `You sold ${amount.toLocaleString()} ${item} for $${cost}`
-// 	let pubContent: string = `${
-// 		buyer.name
-// 	} (#{buyerId}) purchased ${amount.toLocaleString()} ${item} for $${cost} from ${
-// 		seller.name
-// 	} (#{sellerId}) `
-
-// 	// create news event for seller that goods have been purchased
-// 	await createNewsEvent(
-// 		content,
-// 		pubContent,
-// 		buyerId,
-// 		buyer.name,
-// 		sellerId,
-// 		seller.name,
-// 		'market',
-// 		'success'
-// 	)
-
-// 	// delete market entry
-// 	await Market.delete({ market_id: itemBought.id })
-
-// 	return res.json({ success: 'item purchased' })
-// }
 
 const pubSell = async (req: Request, res: Response) => {
 	// request will have object with number of each unit to sell and price
@@ -272,6 +187,7 @@ const pubSell = async (req: Request, res: Response) => {
 		return res.json({ error: 'Something went wrong' })
 	}
 
+	const game: Game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
@@ -280,12 +196,12 @@ const pubSell = async (req: Request, res: Response) => {
 
 	console.log('public market sale')
 	const basePrices = [
-		PVTM_TRPARM,
-		PVTM_TRPLND,
-		PVTM_TRPFLY,
-		PVTM_TRPSEA,
-		PVTM_FOOD,
-		PVTM_RUNES,
+		game.pvtmTrpArm,
+		game.pvtmTrpLnd,
+		game.pvtmTrpFly,
+		game.pvtmTrpSea,
+		game.pvtmFood,
+		game.pvtmRunes,
 	]
 
 	const empire = await Empire.findOne({ id: empireId })
@@ -351,7 +267,7 @@ const pubSell = async (req: Request, res: Response) => {
 			console.log('no items for sale')
 		} else if (
 			index === 4 &&
-			item > Math.floor((trpArray[index] * PUBMKT_MAXFOOD) / 100)
+			item > Math.floor((trpArray[index] * game.pubMktMaxFood) / 100)
 		) {
 			console.log('too much food for sale')
 			returnArray[
@@ -359,7 +275,7 @@ const pubSell = async (req: Request, res: Response) => {
 			].error = `You can't sell that many ${itemsEraArray[index]}.`
 		} else if (
 			index === 5 &&
-			item > Math.floor((trpArray[index] * PUBMKT_MAXRUNES) / 100)
+			item > Math.floor((trpArray[index] * game.pubMktMaxRunes) / 100)
 		) {
 			console.log('too much runes for sale')
 			returnArray[
@@ -368,7 +284,7 @@ const pubSell = async (req: Request, res: Response) => {
 		} else if (
 			index !== 4 &&
 			index !== 5 &&
-			item > (trpArray[index] * PUBMKT_MAXSELL) / 100
+			item > (trpArray[index] * game.pubMktMaxSell) / 100
 		) {
 			console.log('too many items for sale')
 			returnArray[
@@ -451,8 +367,8 @@ const getOtherItems = async (req: Request, res: Response) => {
 	// console.log(res.locals.user)
 	// console.log(empire_id)
 	const { empireId } = req.body
-	// console.log(req.body)
-
+	console.log(req.body)
+	const game: Game = res.locals.game
 	if (empire_id !== empireId) {
 		return res.status(500).json({ error: 'Empire ID mismatch' })
 	}
@@ -466,12 +382,15 @@ const getOtherItems = async (req: Request, res: Response) => {
 		runes: null,
 	}
 
+	const interval = `${game.pubMktStart} hours`
+	console.log(interval)
+
 	returnObject.arm = await Market.find({
 		where: {
 			type: 0,
 			empire_id: Not(empireId),
 			amount: Not(0),
-			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
 			price: 'ASC',
@@ -484,7 +403,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 			type: 1,
 			empire_id: Not(empireId),
 			amount: Not(0),
-			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
 			price: 'ASC',
@@ -497,7 +416,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 			type: 2,
 			empire_id: Not(empireId),
 			amount: Not(0),
-			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
 			price: 'ASC',
@@ -510,7 +429,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 			type: 3,
 			empire_id: Not(empireId),
 			amount: Not(0),
-			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
 			price: 'ASC',
@@ -523,7 +442,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 			type: 4,
 			empire_id: Not(empireId),
 			amount: Not(0),
-			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
 			price: 'ASC',
@@ -536,7 +455,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 			type: 5,
 			empire_id: Not(empireId),
 			amount: Not(0),
-			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '6 hours'`),
+			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
 			price: 'ASC',
@@ -628,6 +547,7 @@ const editPrice = async (req: Request, res: Response) => {
 	// change the price of an item but decrease the amount by 10%
 	const { itemId, empireId, price } = req.body
 
+	const game: Game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
@@ -635,12 +555,12 @@ const editPrice = async (req: Request, res: Response) => {
 	}
 
 	const prices = [
-		PVTM_TRPARM,
-		PVTM_TRPLND,
-		PVTM_TRPFLY,
-		PVTM_TRPSEA,
-		PVTM_FOOD,
-		PVTM_RUNES,
+		game.pvtmTrpArm,
+		game.pvtmTrpLnd,
+		game.pvtmTrpFly,
+		game.pvtmTrpSea,
+		game.pvtmFood,
+		game.pvtmRunes,
 	]
 
 	try {
@@ -651,7 +571,7 @@ const editPrice = async (req: Request, res: Response) => {
 			return res.status(500).json({ error: 'Empire ID mismatch' })
 		}
 
-		if (price < prices[item.type] * 0.25 || price > prices[item.type] * 4) {
+		if (price < prices[item.type] * 0.33 || price > prices[item.type] * 2) {
 			return res.status(500).json({ error: 'Invalid price' })
 		}
 
@@ -671,10 +591,10 @@ const router = Router()
 // needs user and auth middleware
 // router.post('/pubBuy', user, auth, pubBuy)
 router.post('/pubBuy2', user, auth, pubBuyTwo)
-router.post('/pubSell', user, auth, pubSell)
+router.post('/pubSell', user, auth, attachGame, pubSell)
 router.post('/pubSellMine', user, auth, getMyItems)
-router.post('/pubSellOthers', user, auth, getOtherItems)
+router.post('/pubSellOthers', user, auth, attachGame, getOtherItems)
 router.post('/pubRecall', user, auth, recallItem)
-router.post('/pubEditPrice', user, auth, editPrice)
+router.post('/pubEditPrice', user, auth, attachGame, editPrice)
 
 export default router

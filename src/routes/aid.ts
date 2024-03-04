@@ -207,7 +207,8 @@ const sendAid = async (req: Request, res: Response) => {
 				receiver.id,
 				receiver.name,
 				'aid',
-				'success'
+				'success',
+				sender.game_id
 			)
 		} else {
 			aidTurns['aid'] = 'Due to chaos and desertion, your shipment was not sent'
