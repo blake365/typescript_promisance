@@ -151,9 +151,9 @@ const postMessage = async (req: Request, res: Response) => {
 		destinationName = splitter[1]
 	}
 
-	if (sourceId === destinationId) {
-		return res.status(401).json({ message: 'Unauthorized' })
-	}
+	// if (sourceId === destinationId) {
+	// 	return res.status(401).json({ message: 'Unauthorized' })
+	// }
 
 	// if message only contains symbols, return message
 	if (!containsOnlySymbols(message)) {
