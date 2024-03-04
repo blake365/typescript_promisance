@@ -1,4 +1,3 @@
-import { PVTM_FOOD } from '../../config/conifg'
 import { eraArray } from '../../config/eras'
 import { raceArray } from '../../config/races'
 import Empire from '../../entity/Empire'
@@ -9,7 +8,7 @@ export const food_cost = (baseCost: number) => {
 	return Math.ceil(17.0 * baseCost)
 }
 
-export const food_cast = (empire: Empire) => {
+export const food_cast = (empire: Empire, pvtmFood) => {
 	if (getPower_self(empire) >= 30) {
 		let food = Math.round(
 			(empire.trpWiz *
@@ -22,7 +21,7 @@ export const food_cast = (empire: Empire) => {
 						((100 + raceArray[empire.race].mod_magic) / 100) *
 						Math.max(0.8, calcSizeBonus(empire))
 				)) /
-				PVTM_FOOD
+				pvtmFood
 		)
 
 		let result = {

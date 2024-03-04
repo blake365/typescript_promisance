@@ -2,7 +2,6 @@ import { eraArray } from '../../config/eras'
 import Empire from '../../entity/Empire'
 import { getPower_self, getWizLoss_self } from './general'
 import EmpireEffect from '../../entity/EmpireEffect'
-import { time } from 'console'
 
 export const regress_cost = (baseCost: number) => {
 	return Math.ceil(47.5 * baseCost)

@@ -1,10 +1,6 @@
 import { eraArray } from '../../config/eras'
 import Empire from '../../entity/Empire'
-import {
-	getPower_enemy,
-	getWizLoss_enemy,
-	randomIntFromInterval,
-} from './general'
+import { getPower_enemy, getWizLoss_enemy } from './general'
 import EmpireEffect from '../../entity/EmpireEffect'
 import { createNewsEvent } from '../../util/helpers'
 import { getNetworth } from '../actions/actions'

@@ -9,7 +9,6 @@ import {
 import { createNewsEvent } from '../../util/helpers'
 import { getNetworth } from '../actions/actions'
 import { getRepository } from 'typeorm'
-import { DR_RATE, TURNS_PROTECTION } from '../../config/conifg'
 
 export const fight_cost = (baseCost: number) => {
 	return Math.ceil(22.5 * baseCost)
@@ -43,14 +42,16 @@ const destroyBuildings = async (
 export const fight_cast = async (
 	empire: Empire,
 	enemyEmpire: Empire,
-	clan: any
+	clan: any,
+	turnsProtection: number,
+	drRate: number
 ) => {
 	const { totalLand, empireCount } = await getRepository(Empire)
 		.createQueryBuilder('empire')
 		.select('SUM(empire.land)', 'totalLand')
 		.addSelect('COUNT(empire.id)', 'empireCount')
 		.where('empire.turnsUsed > :turnsUsed AND empire.mode != :demo', {
-			turnsUsed: TURNS_PROTECTION,
+			turnsUsed: turnsProtection,
 			demo: 'demo',
 		})
 		.getRawOne()
@@ -170,11 +171,11 @@ export const fight_cast = async (
 		empire.offTotal++
 		enemyEmpire.defTotal++
 		enemyEmpire.diminishingReturns =
-			enemyEmpire.diminishingReturns + DR_RATE / lowLand
+			enemyEmpire.diminishingReturns + drRate / lowLand
 		enemyEmpire.networth = getNetworth(enemyEmpire)
 
 		if (empire.diminishingReturns > 0) {
-			empire.diminishingReturns -= DR_RATE
+			empire.diminishingReturns -= drRate
 		}
 
 		if (empire.diminishingReturns < 0) {
@@ -248,9 +249,9 @@ export const fight_cast = async (
 		empire.offTotal++
 		enemyEmpire.defTotal++
 		enemyEmpire.defSucc++
-		enemyEmpire.diminishingReturns = enemyEmpire.diminishingReturns + DR_RATE
+		enemyEmpire.diminishingReturns = enemyEmpire.diminishingReturns + drRate
 		if (empire.diminishingReturns > 0) {
-			empire.diminishingReturns -= DR_RATE
+			empire.diminishingReturns -= drRate
 		}
 
 		if (empire.diminishingReturns < 0) {

@@ -245,7 +245,7 @@ const magic = async (req: Request, res: Response) => {
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 					if (!spellRes?.messages?.desertion) {
-						let cast: Cast = food_cast(empire)
+						let cast: Cast = food_cast(empire, game.pvtmFood)
 						// console.log(cast)
 						if (cast.result === 'success') {
 							empire.food += cast.food
@@ -908,7 +908,13 @@ const magicAttack = async (req: Request, res: Response) => {
 						attacker,
 						clan,
 						fight_cost(base),
-						fight_cast(attacker, defender, clan),
+						fight_cast(
+							attacker,
+							defender,
+							clan,
+							game.turnsProtection,
+							game.drRate
+						),
 						game
 					)
 				}
