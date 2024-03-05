@@ -8,12 +8,17 @@ import {
 import EmpireEffect from '../../entity/EmpireEffect'
 import { createNewsEvent } from '../../util/helpers'
 import { getNetworth } from '../actions/actions'
+import Game from '../../entity/Game'
 
 export const steal_cost = (baseCost: number) => {
 	return Math.ceil(25.75 * baseCost)
 }
 
-export const steal_cast = async (empire: Empire, enemyEmpire: Empire) => {
+export const steal_cast = async (
+	empire: Empire,
+	enemyEmpire: Empire,
+	game: Game
+) => {
 	const enemyEffect = await EmpireEffect.findOne({
 		where: { effectOwnerId: enemyEmpire.id, empireEffectName: 'spell shield' },
 		order: { updatedAt: 'DESC' },
@@ -103,7 +108,7 @@ export const steal_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		empire.offSucc++
 		empire.offTotal++
 		enemyEmpire.defTotal++
-		enemyEmpire.networth = getNetworth(enemyEmpire)
+		enemyEmpire.networth = getNetworth(enemyEmpire, game)
 
 		await empire.save()
 		await enemyEmpire.save()

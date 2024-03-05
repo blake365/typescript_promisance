@@ -6,20 +6,7 @@ import user from '../middleware/user'
 import { containsOnlySymbols, getNetworth } from './actions/actions'
 import { Not } from 'typeorm'
 import EmpireEffect from '../entity/EmpireEffect'
-import {
-	EMPIRES_PER_USER,
-	MAX_ATTACKS,
-	MAX_SPELLS,
-	ROUND_START,
-	TURNS_COUNT,
-	TURNS_DEMO,
-	TURNS_FREQ,
-	TURNS_INITIAL,
-	TURNS_MAXIMUM,
-	TURNS_PROTECTION,
-	TURNS_STORED,
-	ROUND_END,
-} from '../config/conifg'
+
 import Clan from '../entity/Clan'
 import ClanRelation from '../entity/ClanRelation'
 import ClanMessage from '../entity/ClanMessage'
@@ -27,6 +14,7 @@ import EmpireMessage from '../entity/EmpireMessage'
 import { concatenateIntegers } from './mail'
 import verify from '../middleware/verify'
 import { attachGame } from '../middleware/game'
+import Game from '../entity/Game'
 
 const Filter = require('bad-words')
 const filter = new Filter()
@@ -42,7 +30,7 @@ const filter = new Filter()
 //CREATE
 const createEmpire = async (req: Request, res: Response) => {
 	let { name, race } = req.body
-	console.log(res.locals.game)
+	// console.log(res.locals.game)
 	const {
 		turnsFreq,
 		turnsCount,
@@ -55,7 +43,7 @@ const createEmpire = async (req: Request, res: Response) => {
 		turnsDemo,
 		game_id,
 	} = res.locals.game
-	console.log(req.body)
+	// console.log(req.body)
 	const user: User = res.locals.user
 
 	let mode = 'normal'
@@ -440,14 +428,15 @@ const changeRace = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { race } = req.body
 
+	const game: Game = res.locals.game
 	console.log(race)
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
 
-		if (empire.turnsUsed > TURNS_PROTECTION) {
-			if (race !== empire.race && empire.turns >= TURNS_MAXIMUM / 2) {
+		if (empire.turnsUsed > game.turnsProtection) {
+			if (race !== empire.race && empire.turns >= game.turnsMax / 2) {
 				empire.race = race
-				empire.turns -= Math.floor(TURNS_MAXIMUM / 2)
+				empire.turns -= Math.floor(game.turnsMax / 2)
 				empire.cash -= Math.floor(empire.cash * 0.25)
 				empire.food -= Math.floor(empire.food * 0.25)
 				empire.runes -= Math.floor(empire.runes * 0.25)
@@ -456,7 +445,7 @@ const changeRace = async (req: Request, res: Response) => {
 				empire.trpLnd -= Math.floor(empire.trpLnd * 0.1)
 				empire.trpFly -= Math.floor(empire.trpFly * 0.1)
 				empire.trpSea -= Math.floor(empire.trpSea * 0.1)
-				empire.networth = getNetworth(empire)
+				empire.networth = getNetworth(empire, game)
 				await empire.save()
 			}
 		} else {
@@ -475,6 +464,7 @@ const changeRace = async (req: Request, res: Response) => {
 const bank = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	let { depositAmt, withdrawAmt, type, loanAmt, repayAmt } = req.body
+	const game: Game = res.locals.game
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
@@ -503,7 +493,7 @@ const bank = async (req: Request, res: Response) => {
 			if (depositAmt !== 0 && depositAmt <= canSave) {
 				empire.cash -= depositAmt
 				empire.bank += depositAmt
-				empire.networth = getNetworth(empire)
+				empire.networth = getNetworth(empire, game)
 				depositResult = { action: 'deposit', amount: depositAmt }
 
 				await empire.save()
@@ -512,7 +502,7 @@ const bank = async (req: Request, res: Response) => {
 			if (withdrawAmt !== 0 && withdrawAmt <= empire.bank) {
 				empire.bank -= withdrawAmt
 				empire.cash += withdrawAmt
-				empire.networth = getNetworth(empire)
+				empire.networth = getNetworth(empire, game)
 
 				withdrawResult = { action: 'withdraw', amount: withdrawAmt }
 
@@ -524,7 +514,7 @@ const bank = async (req: Request, res: Response) => {
 			if (loanAmt !== 0 && loanAmt <= maxLoan - empire.loan) {
 				empire.cash += loanAmt
 				empire.loan += loanAmt
-				empire.networth = getNetworth(empire)
+				empire.networth = getNetworth(empire, game)
 				loanResult = { action: 'loan', amount: loanAmt }
 
 				await empire.save()
@@ -533,7 +523,7 @@ const bank = async (req: Request, res: Response) => {
 			if (repayAmt !== 0 && repayAmt <= empire.cash) {
 				empire.cash -= repayAmt
 				empire.loan -= repayAmt
-				empire.networth = getNetworth(empire)
+				empire.networth = getNetworth(empire, game)
 
 				repayResult = { action: 'repay', amount: repayAmt }
 
@@ -817,6 +807,8 @@ const bonusTurns = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { empireId } = req.body
 
+	const game: Game = res.locals.game
+
 	function isOld(createdAt, effectValue) {
 		let effectAge =
 			(Date.now().valueOf() - new Date(createdAt).getTime()) / 60000
@@ -855,11 +847,11 @@ const bonusTurns = async (req: Request, res: Response) => {
 		}
 		if (!receivedBonus) {
 			empire.turns += 10
-			if (empire.turns > TURNS_MAXIMUM) {
-				empire.storedturns += empire.turns - TURNS_MAXIMUM
-				empire.turns = TURNS_MAXIMUM
-				if (empire.storedturns > TURNS_STORED) {
-					empire.storedturns = TURNS_STORED
+			if (empire.turns > game.turnsMax) {
+				empire.storedturns += empire.turns - game.turnsMax
+				empire.turns = game.turnsMax
+				if (empire.storedturns > game.turnsStored) {
+					empire.storedturns = game.turnsStored
 				}
 			}
 
@@ -940,7 +932,7 @@ router.get('/:uuid', user, auth, verify, findOneEmpire)
 router.get('/:uuid/achievements', getAchievements)
 router.post('/effects', user, auth, getEmpireEffects)
 router.post('/effects/new', user, auth, verify, addEmpireEffect)
-router.post('/:uuid/bank', user, auth, verify, bank)
+router.post('/:uuid/bank', user, auth, verify, attachGame, bank)
 router.post('/:uuid/tax', user, auth, verify, updateTax)
 router.post('/:uuid/industry', user, auth, verify, updateIndustry)
 router.post('/otherEmpires', user, auth, getOtherEmpires)
@@ -956,8 +948,8 @@ router.post(
 router.post('/:uuid/favorites/size', user, auth, verify, setFavSize)
 router.post('/:uuid/profile', user, auth, verify, updateProfile)
 router.post('/:uuid/icon', user, auth, verify, updateIcon)
-router.post('/:uuid/bonus', user, auth, verify, bonusTurns)
-router.post('/:uuid/changeRace', user, auth, verify, changeRace)
+router.post('/:uuid/bonus', user, auth, verify, attachGame, bonusTurns)
+router.post('/:uuid/changeRace', user, auth, verify, attachGame, changeRace)
 router.post('/:uuid/nameChange', user, auth, verify, nameChange)
 router.delete('/:uuid', user, auth, verify, deleteEmpire)
 

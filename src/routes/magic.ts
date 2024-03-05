@@ -141,7 +141,7 @@ const magic = async (req: Request, res: Response) => {
 		empire.turnsUsed += turns
 		empire.lastAction = new Date()
 
-		empire.networth = getNetworth(empire)
+		empire.networth = getNetworth(empire, game)
 		if (empire.peakCash < empire.cash + empire.bank) {
 			empire.peakCash = empire.cash + empire.bank
 		}
@@ -619,7 +619,7 @@ const attackSpell = async (
 		attacker.spells += 1
 		attacker.lastAction = new Date()
 
-		attacker.networth = getNetworth(attacker)
+		attacker.networth = getNetworth(attacker, game)
 
 		if (attacker.peakCash < attacker.cash + attacker.bank) {
 			attacker.peakCash = attacker.cash + attacker.bank
@@ -853,7 +853,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					blast_cost(base),
-					blast_cast(attacker, defender),
+					blast_cast(attacker, defender, game),
 					game
 				)
 				// console.log(spellTurns)
@@ -864,7 +864,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					struct_cost(base),
-					struct_cast(attacker, defender),
+					struct_cast(attacker, defender, game),
 					game
 				)
 				console.log(spellTurns)
@@ -874,7 +874,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					storm_cost(base),
-					storm_cast(attacker, defender),
+					storm_cast(attacker, defender, game),
 					game
 				)
 			} else if (spell === 'steal') {
@@ -883,7 +883,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					steal_cost(base),
-					steal_cast(attacker, defender),
+					steal_cast(attacker, defender, game),
 					game
 				)
 			} else if (spell === 'runes') {
@@ -892,7 +892,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					runes_cost(base),
-					runes_cast(attacker, defender),
+					runes_cast(attacker, defender, game),
 					game
 				)
 			} else if (spell === 'fight') {
@@ -913,7 +913,8 @@ const magicAttack = async (req: Request, res: Response) => {
 							defender,
 							clan,
 							game.turnsProtection,
-							game.drRate
+							game.drRate,
+							game
 						),
 						game
 					)

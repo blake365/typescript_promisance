@@ -2,7 +2,6 @@ import { Request, Response, Router } from 'express'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
-
 import { useTurnInternal } from './useturns'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
@@ -47,7 +46,7 @@ const build = async (req: Request, res: Response) => {
 		bldWiz,
 	} = req.body
 
-	const game = res.locals.game
+	const game: Game = res.locals.game
 
 	if (type !== 'build') {
 		return res.json({ error: 'Something went wrong' })
@@ -179,7 +178,7 @@ const build = async (req: Request, res: Response) => {
 						empire.peasants += turnRes.peasants
 						empire.runes += turnRes.runes
 						empire.trpWiz += turnRes.trpWiz
-						empire.networth = getNetworth(empire)
+						empire.networth = getNetworth(empire, game)
 
 						if (empire.peakCash < empire.cash + empire.bank) {
 							empire.peakCash = empire.cash + empire.bank
@@ -252,7 +251,7 @@ const build = async (req: Request, res: Response) => {
 						empire.peasants += turnRes.peasants
 						empire.runes += turnRes.runes
 						empire.trpWiz += turnRes.trpWiz
-						empire.networth = getNetworth(empire)
+						empire.networth = getNetworth(empire, game)
 
 						if (empire.peakCash < empire.cash + empire.bank) {
 							empire.peakCash = empire.cash + empire.bank

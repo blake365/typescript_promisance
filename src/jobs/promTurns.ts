@@ -26,6 +26,7 @@ import { createNewsEvent } from '../util/helpers'
 import Lottery from '../entity/Lottery'
 import EmpireSnapshot from '../entity/EmpireSnapshot'
 import User from '../entity/User'
+import Game from '../entity/Game'
 
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
@@ -268,7 +269,7 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 		console.log(itemName)
 		const empire = await Empire.findOne({ id: item.empire_id })
 		empire[itemName] += Math.round(item.amount * 0.75)
-		empire.networth = getNetworth(empire)
+		// empire.networth = getNetworth(empire, game)
 
 		// news event for expired market item
 		// create news entry

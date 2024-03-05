@@ -280,7 +280,7 @@ export const useTurn = async (
 		let troubleLoan = false
 		let troubleCash = false
 		let troubleCashMinor = false
-		empire.networth = getNetworth(empire)
+		empire.networth = getNetworth(empire, game)
 
 		// size bonus penalty
 		let size = calcSizeBonus(empire)
@@ -658,7 +658,7 @@ export const useTurn = async (
 				} have deserted due to lack of resources. Turns have been stopped to prevent further losses.`
 				current['messages'] = message
 
-				empire.networth = getNetworth(empire)
+				empire.networth = getNetworth(empire, game)
 				await empire.save()
 				statsArray.push(current)
 				break
@@ -668,7 +668,7 @@ export const useTurn = async (
 				'desertion'
 			] = `Your loan is growing quickly. Turns have been stopped to allow you to make adjustments.`
 			current['messages'] = message
-			empire.networth = getNetworth(empire)
+			empire.networth = getNetworth(empire, game)
 			await empire.save()
 			statsArray.push(current)
 			break
@@ -688,7 +688,7 @@ export const useTurn = async (
 	}
 
 	empire.lastAction = new Date()
-	empire.networth = getNetworth(empire)
+	empire.networth = getNetworth(empire, game)
 	// empire.achievements = await awardAchievements(empire)
 
 	await empire.save()
@@ -769,7 +769,7 @@ export const useTurnInternal = (
 		let troubleFood = false
 		let troubleLoan = false
 		let troubleCash = false
-		empire.networth = getNetworth(empire)
+		empire.networth = getNetworth(empire, game)
 
 		// if (type === 'explore') {
 		// 	turnResult += exploreAlt(empire)

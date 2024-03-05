@@ -171,7 +171,7 @@ const demolish = async (req: Request, res: Response) => {
 					empire.turns--
 					empire.turnsUsed++
 
-					empire.networth = getNetworth(empire)
+					empire.networth = getNetworth(empire, game)
 
 					if (empire.peakCash < empire.cash + empire.bank) {
 						empire.peakCash = empire.cash + empire.bank
@@ -251,7 +251,7 @@ const demolish = async (req: Request, res: Response) => {
 					empire.turns--
 					empire.turnsUsed++
 
-					empire.networth = getNetworth(empire)
+					empire.networth = getNetworth(empire, game)
 
 					if (empire.peakCash < empire.cash + empire.bank) {
 						empire.peakCash = empire.cash + empire.bank

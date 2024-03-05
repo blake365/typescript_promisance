@@ -92,7 +92,7 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 		// add cost to seller cash
 		seller.bank += cost
 
-		buyer.networth = getNetworth(buyer)
+		buyer.networth = getNetworth(buyer, game)
 		// seller.networth = getNetworth(seller)
 
 		buyer.lastAction = new Date()
@@ -329,7 +329,7 @@ const pubSell = async (req: Request, res: Response) => {
 		}
 	}
 
-	empire.networth = getNetworth(empire)
+	empire.networth = getNetworth(empire, game)
 	empire.lastAction = new Date()
 
 	await empire.save()
@@ -489,6 +489,7 @@ const recallItem = async (req: Request, res: Response) => {
 	// return 75% of the items to the empire
 	const { itemId, empireId } = req.body
 
+	const game: Game = res.locals.game
 	const user: User = res.locals.user
 
 	if (user.empires[0].id !== empireId) {
@@ -506,7 +507,7 @@ const recallItem = async (req: Request, res: Response) => {
 		}
 
 		empire[itemArray[item.type]] += Math.round(item.amount * 0.75)
-		empire.networth = getNetworth(empire)
+		empire.networth = getNetworth(empire, game)
 		await item.remove()
 
 		if (empire.peakCash < empire.cash + empire.bank) {
@@ -590,11 +591,11 @@ const router = Router()
 
 // needs user and auth middleware
 // router.post('/pubBuy', user, auth, pubBuy)
-router.post('/pubBuy2', user, auth, pubBuyTwo)
+router.post('/pubBuy2', user, auth, attachGame, pubBuyTwo)
 router.post('/pubSell', user, auth, attachGame, pubSell)
 router.post('/pubSellMine', user, auth, getMyItems)
 router.post('/pubSellOthers', user, auth, attachGame, getOtherItems)
-router.post('/pubRecall', user, auth, recallItem)
+router.post('/pubRecall', user, auth, attachGame, recallItem)
 router.post('/pubEditPrice', user, auth, attachGame, editPrice)
 
 export default router

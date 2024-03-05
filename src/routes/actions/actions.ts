@@ -1,13 +1,7 @@
 import Empire from '../../entity/Empire'
 import { raceArray } from '../../config/races'
 import { eraArray } from '../../config/eras'
-import {
-	PVTM_FOOD,
-	PVTM_TRPARM,
-	PVTM_TRPFLY,
-	PVTM_TRPLND,
-	PVTM_TRPSEA,
-} from '../../config/conifg'
+import Game from '../../entity/Game'
 
 export const exploreAlt = (empire: Empire, lucky: boolean) => {
 	let land = giveLand(empire)
@@ -49,26 +43,26 @@ export const giveLand = (empire: Empire) => {
 	)
 }
 
-export const getNetworth = (empire: Empire) => {
+export const getNetworth = (empire: Empire, game: Game) => {
 	let networth = 0
 
 	//troops
 	networth += empire.trpArm * 1 // 100
-	networth += (empire.trpLnd * PVTM_TRPLND) / PVTM_TRPARM // 50 100
-	networth += (empire.trpFly * PVTM_TRPFLY) / PVTM_TRPARM // 20 80
-	networth += (empire.trpSea * PVTM_TRPSEA) / PVTM_TRPARM // 10 60
+	networth += (empire.trpLnd * game.pvtmTrpLnd) / game.pvtmTrpArm // 50 100
+	networth += (empire.trpFly * game.pvtmTrpFly) / game.pvtmTrpArm // 20 80
+	networth += (empire.trpSea * game.pvtmTrpSea) / game.pvtmTrpArm // 10 60
 	networth += empire.trpWiz * 2 // 10 20
 	networth += empire.peasants * 3 // 500 1500
 	// Cash
 	networth +=
-		(empire.cash + empire.bank / 2 - empire.loan * 2) / (5 * PVTM_TRPARM) // 100000
+		(empire.cash + empire.bank / 2 - empire.loan * 2) / (5 * game.pvtmTrpArm) // 100000
 	networth += empire.land * 250 // 250 62500
 	networth += empire.freeLand * 100 // 160 16000
 
 	// Food, reduced using logarithm to prevent it from boosting networth to ludicrous levels
 	networth +=
 		(empire.food / Math.log10(Math.max(10, empire.food))) *
-		(PVTM_FOOD / PVTM_TRPARM) // 10000 2500
+		(game.pvtmFood / game.pvtmTrpArm) // 10000 2500
 
 	return Math.max(0, Math.floor(networth))
 }

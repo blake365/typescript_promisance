@@ -87,7 +87,7 @@ const buy = async (req: Request, res: Response) => {
 		empire.mktRunes -= buyRunes
 	}
 
-	empire.networth = getNetworth(empire)
+	empire.networth = getNetworth(empire, game)
 
 	if (empire.peakCash < empire.cash + empire.bank) {
 		empire.peakCash = empire.cash + empire.bank
@@ -229,7 +229,7 @@ const sell = async (req: Request, res: Response) => {
 		empire.cash += totalPrice
 	}
 
-	empire.networth = getNetworth(empire)
+	empire.networth = getNetworth(empire, game)
 
 	if (empire.peakCash < empire.cash + empire.bank) {
 		empire.peakCash = empire.cash + empire.bank

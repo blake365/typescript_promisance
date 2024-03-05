@@ -1335,8 +1335,8 @@ const attack = async (req: Request, res: Response) => {
 
 			attackTurns['attack'] = attackDescription
 			resultArray.push(attackTurns)
-			attacker.networth = getNetworth(attacker)
-			defender.networth = getNetworth(defender)
+			attacker.networth = getNetworth(attacker, game)
+			defender.networth = getNetworth(defender, game)
 
 			if (attacker.peakCash < attacker.cash + attacker.bank) {
 				attacker.peakCash = attacker.cash + attacker.bank

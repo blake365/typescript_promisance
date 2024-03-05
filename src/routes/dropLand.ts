@@ -9,6 +9,7 @@ import User from '../entity/User'
 import { takeSnapshot } from './actions/snaps'
 import Game from '../entity/Game'
 import { attachGame } from '../middleware/game'
+import { getNetworth } from './actions/actions'
 
 const getDropAmounts = (empire: Empire) => {
 	let dropRate = Math.max(
@@ -117,9 +118,45 @@ const drop = async (req: Request, res: Response) => {
 				empire.peasants += turnRes.peasants
 				empire.runes += turnRes.runes
 				empire.trpWiz += turnRes.trpWiz
+				empire.networth = getNetworth(empire, game)
 
 				empire.freeLand -= dropAmount
 				leftToDrop -= dropAmount
+
+				if (empire.peakCash < empire.cash + empire.bank) {
+					empire.peakCash = empire.cash + empire.bank
+				}
+				if (empire.peakFood < empire.food) {
+					empire.peakFood = empire.food
+				}
+				if (empire.peakRunes < empire.runes) {
+					empire.peakRunes = empire.runes
+				}
+				if (empire.peakPeasants < empire.peasants) {
+					empire.peakPeasants = empire.peasants
+				}
+				if (empire.peakLand < empire.land) {
+					empire.peakLand = empire.land
+				}
+				if (empire.peakNetworth < empire.networth) {
+					empire.peakNetworth = empire.networth
+				}
+				if (empire.peakTrpArm < empire.trpArm) {
+					empire.peakTrpArm = empire.trpArm
+				}
+				if (empire.peakTrpLnd < empire.trpLnd) {
+					empire.peakTrpLnd = empire.trpLnd
+				}
+				if (empire.peakTrpFly < empire.trpFly) {
+					empire.peakTrpFly = empire.trpFly
+				}
+				if (empire.peakTrpSea < empire.trpSea) {
+					empire.peakTrpSea = empire.trpSea
+				}
+				if (empire.peakTrpWiz < empire.trpWiz) {
+					empire.peakTrpWiz = empire.trpWiz
+				}
+
 				empire.turns--
 				empire.turnsUsed++
 				empire.lastAction = new Date()
@@ -154,6 +191,42 @@ const drop = async (req: Request, res: Response) => {
 				empire.peasants += turnRes.peasants
 				empire.runes += turnRes.runes
 				empire.trpWiz += turnRes.trpWiz
+
+				empire.networth = getNetworth(empire, game)
+
+				if (empire.peakCash < empire.cash + empire.bank) {
+					empire.peakCash = empire.cash + empire.bank
+				}
+				if (empire.peakFood < empire.food) {
+					empire.peakFood = empire.food
+				}
+				if (empire.peakRunes < empire.runes) {
+					empire.peakRunes = empire.runes
+				}
+				if (empire.peakPeasants < empire.peasants) {
+					empire.peakPeasants = empire.peasants
+				}
+				if (empire.peakLand < empire.land) {
+					empire.peakLand = empire.land
+				}
+				if (empire.peakNetworth < empire.networth) {
+					empire.peakNetworth = empire.networth
+				}
+				if (empire.peakTrpArm < empire.trpArm) {
+					empire.peakTrpArm = empire.trpArm
+				}
+				if (empire.peakTrpLnd < empire.trpLnd) {
+					empire.peakTrpLnd = empire.trpLnd
+				}
+				if (empire.peakTrpFly < empire.trpFly) {
+					empire.peakTrpFly = empire.trpFly
+				}
+				if (empire.peakTrpSea < empire.trpSea) {
+					empire.peakTrpSea = empire.trpSea
+				}
+				if (empire.peakTrpWiz < empire.trpWiz) {
+					empire.peakTrpWiz = empire.trpWiz
+				}
 
 				empire.turns--
 				empire.turnsUsed++

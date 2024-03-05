@@ -4,12 +4,17 @@ import { getPower_enemy, getWizLoss_enemy } from './general'
 import EmpireEffect from '../../entity/EmpireEffect'
 import { createNewsEvent } from '../../util/helpers'
 import { getNetworth } from '../actions/actions'
+import Game from '../../entity/Game'
 
 export const runes_cost = (baseCost: number) => {
 	return Math.ceil(9.5 * baseCost)
 }
 
-export const runes_cast = async (empire: Empire, enemyEmpire: Empire) => {
+export const runes_cast = async (
+	empire: Empire,
+	enemyEmpire: Empire,
+	game: Game
+) => {
 	const enemyEffect = await EmpireEffect.findOne({
 		where: { effectOwnerId: enemyEmpire.id, empireEffectName: 'spell shield' },
 		order: { updatedAt: 'DESC' },
@@ -101,7 +106,7 @@ export const runes_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		empire.offSucc++
 		empire.offTotal++
 		enemyEmpire.defTotal++
-		enemyEmpire.networth = getNetworth(enemyEmpire)
+		enemyEmpire.networth = getNetworth(enemyEmpire, game)
 
 		await empire.save()
 		await enemyEmpire.save()

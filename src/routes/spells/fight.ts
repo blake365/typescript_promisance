@@ -9,6 +9,7 @@ import {
 import { createNewsEvent } from '../../util/helpers'
 import { getNetworth } from '../actions/actions'
 import { getRepository } from 'typeorm'
+import Game from '../../entity/Game'
 
 export const fight_cost = (baseCost: number) => {
 	return Math.ceil(22.5 * baseCost)
@@ -44,7 +45,8 @@ export const fight_cast = async (
 	enemyEmpire: Empire,
 	clan: any,
 	turnsProtection: number,
-	drRate: number
+	drRate: number,
+	game: Game
 ) => {
 	const { totalLand, empireCount } = await getRepository(Empire)
 		.createQueryBuilder('empire')
@@ -172,7 +174,7 @@ export const fight_cast = async (
 		enemyEmpire.defTotal++
 		enemyEmpire.diminishingReturns =
 			enemyEmpire.diminishingReturns + drRate / lowLand
-		enemyEmpire.networth = getNetworth(enemyEmpire)
+		enemyEmpire.networth = getNetworth(enemyEmpire, game)
 
 		if (empire.diminishingReturns > 0) {
 			empire.diminishingReturns -= drRate
@@ -297,7 +299,7 @@ export const fight_cast = async (
 			empire.game_id
 		)
 
-		enemyEmpire.networth = getNetworth(enemyEmpire)
+		enemyEmpire.networth = getNetworth(enemyEmpire, game)
 
 		await empire.save()
 		await enemyEmpire.save()

@@ -2,20 +2,20 @@ import { getConnection, getRepository } from 'typeorm'
 // import ClanInvite from '../entity/ClanInvite'
 import Empire from '../entity/Empire'
 import Market from '../entity/Market'
-import {
-	TURNS_COUNT,
-	TURNS_MAXIMUM,
-	TURNS_STORED,
-	TURNS_UNSTORE,
-	MAX_ATTACKS,
-	MAX_SPELLS,
-	DR_RATE,
-	PUBMKT_MAXTIME,
-	PUBMKT_START,
-	AID_MAXCREDITS,
-	LOTTERY_JACKPOT,
-	TURNS_PROTECTION,
-} from '../config/conifg'
+// import {
+// 	TURNS_COUNT,
+// 	TURNS_MAXIMUM,
+// 	TURNS_STORED,
+// 	TURNS_UNSTORE,
+// 	MAX_ATTACKS,
+// 	MAX_SPELLS,
+// 	DR_RATE,
+// 	PUBMKT_MAXTIME,
+// 	PUBMKT_START,
+// 	AID_MAXCREDITS,
+// 	LOTTERY_JACKPOT,
+// 	TURNS_PROTECTION,
+// } from '../config/conifg'
 import EmpireEffect from '../entity/EmpireEffect'
 // import User from '../entity/User'
 import { getNetworth } from '../routes/actions/actions'
@@ -26,6 +26,8 @@ import Lottery from '../entity/Lottery'
 import { Request, Response, Router } from 'express'
 import EmpireSnapshot from '../entity/EmpireSnapshot'
 import User from '../entity/User'
+import Game from '../entity/Game'
+import { attachGame } from '../middleware/game'
 
 // perform standard turn update events
 const promTurns = async (req: Request, res: Response) => {
@@ -34,6 +36,8 @@ const promTurns = async (req: Request, res: Response) => {
 		return res.status(401).end('Unauthorized')
 	}
 
+	const game: Game = res.locals.game
+
 	try {
 		await getConnection()
 			.createQueryBuilder()
@@ -41,7 +45,7 @@ const promTurns = async (req: Request, res: Response) => {
 			.set({
 				// update turns
 				turns: () =>
-					`turns + ${TURNS_COUNT} + LEAST(storedTurns, ${TURNS_UNSTORE}), storedTurns = storedTurns - LEAST(storedTurns, ${TURNS_UNSTORE})`,
+					`turns + ${game.turnsCount} + LEAST(storedTurns, ${game.turnsUnstore}), storedTurns = storedTurns - LEAST(storedTurns, ${game.turnsUnstore})`,
 			})
 			.where('vacation = 0 AND id != 0 AND mode != :mode', { mode: 'demo' })
 			.execute()
@@ -52,11 +56,11 @@ const promTurns = async (req: Request, res: Response) => {
 			.set({
 				// update stored turns
 				storedturns: () =>
-					`LEAST(${TURNS_STORED}, storedTurns + turns - ${TURNS_MAXIMUM}), turns = ${TURNS_MAXIMUM} `,
+					`LEAST(${game.turnsStored}, storedTurns + turns - ${game.turnsMax}), turns = ${game.turnsMax} `,
 			})
 			.where('turns > :turnsMax AND id != 0 AND mode != :mode', {
 				mode: 'demo',
-				turnsMax: TURNS_MAXIMUM,
+				turnsMax: game.turnsMax,
 			})
 			.execute()
 
@@ -203,7 +207,7 @@ const promTurns = async (req: Request, res: Response) => {
 		}
 
 		const snapEmpires = empires.filter(
-			(emp) => emp.turnsUsed > TURNS_PROTECTION - 1 && emp.mode !== 'demo'
+			(emp) => emp.turnsUsed > game.turnsProtection - 1 && emp.mode !== 'demo'
 		)
 
 		for (let i = 0; i < snapEmpires.length; i++) {
@@ -230,9 +234,12 @@ const thirtyMinUpdate = async (req: Request, res: Response) => {
 	if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
 		return res.status(401).end('Unauthorized')
 	}
+
+	const game: Game = res.locals.game
+
 	try {
 		// max attack counter
-		if (MAX_ATTACKS > 0) {
+		if (game.maxAttacks > 0) {
 			await getConnection()
 				.createQueryBuilder()
 				.update(Empire)
@@ -244,7 +251,7 @@ const thirtyMinUpdate = async (req: Request, res: Response) => {
 				.execute()
 		}
 
-		if (MAX_SPELLS > 0) {
+		if (game.maxSpells > 0) {
 			await getConnection()
 				.createQueryBuilder()
 				.update(Empire)
@@ -256,12 +263,12 @@ const thirtyMinUpdate = async (req: Request, res: Response) => {
 				.execute()
 		}
 
-		if (DR_RATE > 0) {
+		if (game.drRate > 0) {
 			await getConnection()
 				.createQueryBuilder()
 				.update(Empire)
 				.set({
-					diminishingReturns: () => `diminishing_returns - ${DR_RATE / 2}`,
+					diminishingReturns: () => `diminishing_returns - ${game.drRate / 2}`,
 				})
 				.where('diminishing_returns > 0 AND id != 0')
 				.execute()
@@ -278,7 +285,7 @@ const thirtyMinUpdate = async (req: Request, res: Response) => {
 		console.log('cleaning market')
 		// take unsold market items and return them to the empire
 		const now = new Date()
-		const maxTime = (PUBMKT_START + PUBMKT_MAXTIME) * 60 * 60 * 1000 // 78 hours in milliseconds
+		const maxTime = (game.pubMktStart + game.pubMktMaxTime) * 60 * 60 * 1000 // 78 hours in milliseconds
 		const oldestDate = new Date(now.getTime() - maxTime)
 
 		const items = await getRepository(Market)
@@ -298,7 +305,7 @@ const thirtyMinUpdate = async (req: Request, res: Response) => {
 			console.log(itemName)
 			const empire = await Empire.findOne({ id: item.empire_id })
 			empire[itemName] += Math.round(item.amount * 0.75)
-			empire.networth = getNetworth(empire)
+			empire.networth = getNetworth(empire, game)
 
 			// news event for expired market item
 			// create news entry
@@ -341,9 +348,12 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 	if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
 		return res.status(401).end('Unauthorized')
 	}
+
+	const game: Game = res.locals.game
+
 	try {
 		console.log('performing hourly update')
-		if (MAX_ATTACKS > 0) {
+		if (game.maxAttacks > 0) {
 			await getConnection()
 				.createQueryBuilder()
 				.update(Empire)
@@ -355,7 +365,7 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 				.execute()
 		}
 
-		if (MAX_SPELLS > 0) {
+		if (game.maxSpells > 0) {
 			await getConnection()
 				.createQueryBuilder()
 				.update(Empire)
@@ -381,6 +391,8 @@ const aidCredits = async (req: Request, res: Response) => {
 		return res.status(401).end('Unauthorized')
 	}
 
+	const game: Game = res.locals.game
+
 	try {
 		// add aid credits
 		console.log('adding aid credits')
@@ -393,7 +405,7 @@ const aidCredits = async (req: Request, res: Response) => {
 			})
 			.where('id != 0 AND aid_credits < :max AND mode != :mode', {
 				mode: 'demo',
-				max: AID_MAXCREDITS,
+				max: game.aidMaxCredits,
 			})
 			.execute()
 		return res.status(200).json({ message: 'Aid credits added' })
@@ -429,6 +441,8 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 		return res.status(401).end('Unauthorized')
 	}
 
+	const game: Game = res.locals.game
+
 	try {
 		console.log('cleaning demo accounts and effects')
 
@@ -438,7 +452,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 			.from(Empire)
 			.where('mode = :gamemode AND turnsUsed < :protection', {
 				gamemode: 'demo',
-				protection: TURNS_PROTECTION,
+				protection: game.turnsProtection,
 			})
 			.execute()
 
@@ -485,7 +499,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 			for (let i = 0; i < allTickets.length; i++) {
 				jackpot += Number(allTickets[i].cash)
 			}
-			jackpot += LOTTERY_JACKPOT
+			jackpot += game.lotteryJackpot
 		} else {
 			for (let i = 0; i < allTickets.length; i++) {
 				if (allTickets[i].ticket != 0) {
@@ -690,11 +704,11 @@ const test = async (req: Request, res: Response) => {
 const router = Router()
 
 router.get('/test', test)
-router.get('/turns', promTurns)
-router.get('/thirty', thirtyMinUpdate)
-router.get('/hourly', hourlyUpdate)
-router.get('/aid', aidCredits)
-router.get('/daily', cleanDemoAccounts)
+router.get('/turns', attachGame, promTurns)
+router.get('/thirty', attachGame, thirtyMinUpdate)
+router.get('/hourly', attachGame, hourlyUpdate)
+router.get('/aid', attachGame, aidCredits)
+router.get('/daily', attachGame, cleanDemoAccounts)
 // router.get('/snapshot', empireSnapshots)
 
 export default router

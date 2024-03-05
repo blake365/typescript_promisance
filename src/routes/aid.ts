@@ -153,7 +153,7 @@ const sendAid = async (req: Request, res: Response) => {
 			receiver.trpFly += trpFly
 			receiver.trpSea += shipsNeeded
 
-			receiver.networth = getNetworth(receiver)
+			receiver.networth = getNetworth(receiver, game)
 
 			if (receiver.peakCash < receiver.cash + receiver.bank) {
 				receiver.peakCash = receiver.cash + receiver.bank
@@ -258,7 +258,7 @@ const sendAid = async (req: Request, res: Response) => {
 		sender.turnsUsed += turns
 		sender.lastAction = new Date()
 
-		sender.networth = getNetworth(sender)
+		sender.networth = getNetworth(sender, game)
 
 		if (sender.peakCash < sender.cash + sender.bank) {
 			sender.peakCash = sender.cash + sender.bank
