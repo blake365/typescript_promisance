@@ -36,6 +36,7 @@ import cron from './routes/chron'
 import archive from './routes/archives'
 import snapshots from './routes/snapshots'
 import apiRoutes from './routes'
+import timeRoutes from './routes/time'
 // import testMail from './util/mail'
 
 import {
@@ -94,19 +95,12 @@ app.use(passport.initialize())
 app.get('/', (_, res) => res.send('hello world'))
 app.get('/api/', (_, res) => res.send('hello api'))
 
-app.get('/api/time', (_, res) =>
-	res.send({
-		time: new Date().getTime(),
-		start: ROUND_START.getTime(),
-		end: ROUND_END.getTime(),
-	})
-)
-
 app.get('/api/perpetual/hello', (req, res) => {
 	console.log(req.url)
 	res.send('hello perpetual')
 })
 
+app.use('/api/time', timeRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/empire', empireRoutes)
 app.use('/api/useturns', useTurns)
