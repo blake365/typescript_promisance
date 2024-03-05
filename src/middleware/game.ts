@@ -12,11 +12,9 @@ export const attachGame = async (
 		// console.log(gameId)
 		// console.log(res.locals.user.empires[0].game_id)
 		if (!gameId) return res.status(400).json({ error: 'Game ID is required.' })
-		if (res.locals.user.empires[0].game_id != gameId) {
-			return res.status(400).json({ error: 'Unauthorized.' })
-		}
 
 		const game = await Game.findOne({ where: { game_id: gameId } })
+		// console.log(game)
 		res.locals.game = game
 
 		next()

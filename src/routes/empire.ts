@@ -41,7 +41,6 @@ const createEmpire = async (req: Request, res: Response) => {
 		maxAttacks,
 		maxSpells,
 		turnsDemo,
-		game_id,
 	} = res.locals.game
 	// console.log(req.body)
 	const user: User = res.locals.user
@@ -56,6 +55,7 @@ const createEmpire = async (req: Request, res: Response) => {
 	let mktFood: number = 999999999999
 	let attacks: number = 0
 	let spells: number = 0
+	let game_id: number = res.locals.game.game_id
 
 	// see how many days have passed since round started
 	// if more than 1 day, add turns that would have been gained to initial turns
@@ -112,7 +112,7 @@ const createEmpire = async (req: Request, res: Response) => {
 				mktSea,
 				attacks,
 				spells,
-				game_id: game_id,
+				game_id,
 			})
 		} else {
 			empire = new Empire({
@@ -122,7 +122,7 @@ const createEmpire = async (req: Request, res: Response) => {
 				mode,
 				turns,
 				storedturns,
-				game_id: game_id,
+				game_id,
 			})
 		}
 
