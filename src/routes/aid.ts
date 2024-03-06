@@ -28,11 +28,6 @@ const sendAid = async (req: Request, res: Response) => {
 		type,
 	} = req.body
 	const game = res.locals.game
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(400).json({ error: 'unauthorized' })
-	}
 
 	if (type !== 'aid') {
 		return res.status(400).json({ error: 'something went wrong' })

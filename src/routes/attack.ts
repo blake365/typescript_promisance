@@ -317,11 +317,6 @@ const attack = async (req: Request, res: Response) => {
 	// console.log(req.params)
 	const { attackType, defenderId, number, empireId } = req.body
 	const game = res.locals.game
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(403).json({ error: 'Unauthorized' })
-	}
 
 	let { type } = req.body
 

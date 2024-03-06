@@ -20,12 +20,6 @@ export const concatenateIntegers = (a, b) => {
 const getConversations = async (req: Request, res: Response) => {
 	const { empireId } = req.body
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(401).json({ message: 'Unauthorized' })
-	}
-
 	try {
 		const conversations = await EmpireMessage.find({
 			select: [
@@ -91,12 +85,6 @@ function reverseConversationId(conversationId, participantId) {
 
 const getMessages = async (req: Request, res: Response) => {
 	const { conversationId, empireId } = req.body
-
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(401).json({ message: 'Unauthorized' })
-	}
 
 	// console.log('conversationId', conversationId)
 	// console.log('empireId', empireId)
@@ -269,12 +257,6 @@ const countNew = async (req: Request, res: Response) => {
 	// console.log('checking for new mail')
 	const { id } = req.params
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== parseInt(id)) {
-		return res.status(401).json({ message: 'Unauthorized' })
-	}
-
 	try {
 		const mail = await EmpireMessage.findAndCount({
 			where: { empireIdDestination: id, seen: false },
@@ -319,12 +301,6 @@ const getClanMessages = async (req: Request, res: Response) => {
 
 const postClanMessage = async (req: Request, res: Response) => {
 	const { empireId, empireName, clanMessageBody, clanId } = req.body
-
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(401).json({ message: 'Unauthorized' })
-	}
 	// console.log(req.body)
 	let message = clanMessageBody
 	// if message only contains symbols, return message
@@ -351,12 +327,6 @@ const postClanMessage = async (req: Request, res: Response) => {
 const unreadClanMessages = async (req: Request, res: Response) => {
 	// count unread messages
 	let { empireId, clanId } = req.body
-
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(401).json({ message: 'Unauthorized' })
-	}
 	// console.log(req.body)
 	empireId = empireId.toString()
 	try {
@@ -385,12 +355,6 @@ const unreadClanMessages = async (req: Request, res: Response) => {
 const readClanMessages = async (req: Request, res: Response) => {
 	// mark messages as read
 	let { empireId, clanId } = req.body
-
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(401).json({ message: 'Unauthorized' })
-	}
 	// console.log(req.body)
 	empireId = empireId.toString()
 	try {

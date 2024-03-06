@@ -487,8 +487,8 @@ router.get('/auth/google/callback', function (req, res, next) {
 
 			return res.redirect(
 				process.env.NODE_ENV === 'production'
-					? 'https://www.neopromisance.com/app/'
-					: 'http://localhost:5173/app/'
+					? 'https://www.neopromisance.com/select'
+					: 'http://localhost:5173/select'
 			)
 		}
 	})(req, res, next)

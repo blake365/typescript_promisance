@@ -35,9 +35,15 @@ const createGame = async (req: Request, res: Response) => {
 	return res.json(game)
 }
 
+const games = async (req: Request, res: Response) => {
+	const games = await Game.find()
+	return res.json(games)
+}
+
 const router = Router()
 
 router.get('/', user, auth, getGames)
 router.post('/', isAdmin, createGame)
+router.get('/games', games)
 
 export default router

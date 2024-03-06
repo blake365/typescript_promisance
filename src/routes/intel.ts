@@ -7,12 +7,6 @@ import User from '../entity/User'
 const getIntel = async (req: Request, res: Response) => {
 	const id = req.params.id
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== parseInt(id)) {
-		return res.status(400).json({ error: 'unauthorized' })
-	}
-
 	try {
 		const intel = await EmpireIntel.find({
 			where: { ownerId: id },

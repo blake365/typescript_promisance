@@ -11,21 +11,12 @@ import Clan from '../entity/Clan'
 import ClanRelation from '../entity/ClanRelation'
 import ClanMessage from '../entity/ClanMessage'
 import EmpireMessage from '../entity/EmpireMessage'
-import { concatenateIntegers } from './mail'
 import verify from '../middleware/verify'
 import { attachGame } from '../middleware/game'
 import Game from '../entity/Game'
 
 const Filter = require('bad-words')
 const filter = new Filter()
-
-// interface resultObject {
-// 	name: string
-// 	land: number
-// 	empireId: number
-// 	era: number
-// 	race: number
-// }
 
 //CREATE
 const createEmpire = async (req: Request, res: Response) => {
@@ -79,8 +70,11 @@ const createEmpire = async (req: Request, res: Response) => {
 		turns += turnsToAdd
 	}
 
-	if (user.empires.length > empiresPerUser) {
-		return res.status(400).json({ error: 'Max empires per user reached' })
+	// check if user.empires contains an empire with the same game_id already
+	if (user.empires.some((empire) => empire.game_id === game_id)) {
+		return res
+			.status(400)
+			.json({ error: 'User already has an empire in this game' })
 	}
 
 	if (name.trim() === '') {
@@ -641,14 +635,6 @@ const findOneEmpire = async (req: Request, res: Response) => {
 const getEmpireEffects = async (req: Request, res: Response) => {
 	const { empireId, clanId } = req.body
 	// console.log(req.body)
-	const user: User = res.locals.user
-
-	// console.log(user.empires[0])
-	if (clanId && user?.empires[0]?.clanId !== clanId) {
-		return res.status(403).json({ error: 'unauthorized' })
-	} else if (!clanId && user?.empires[0]?.id !== empireId) {
-		return res.status(403).json({ error: 'unauthorized' })
-	}
 
 	// console.log(Date.now().valueOf())
 
@@ -928,29 +914,23 @@ const router = Router()
 router.post('/', user, auth, attachGame, createEmpire)
 router.get('/', getEmpires)
 router.get('/scores', getScores)
-router.get('/:uuid', user, auth, verify, findOneEmpire)
+router.get('/:uuid', user, auth, findOneEmpire)
 router.get('/:uuid/achievements', getAchievements)
 router.post('/effects', user, auth, getEmpireEffects)
-router.post('/effects/new', user, auth, verify, addEmpireEffect)
-router.post('/:uuid/bank', user, auth, verify, attachGame, bank)
-router.post('/:uuid/tax', user, auth, verify, updateTax)
-router.post('/:uuid/industry', user, auth, verify, updateIndustry)
+router.post('/effects/new', user, auth, addEmpireEffect)
+router.post('/:uuid/bank', user, auth, attachGame, bank)
+router.post('/:uuid/tax', user, auth, updateTax)
+router.post('/:uuid/industry', user, auth, updateIndustry)
 router.post('/otherEmpires', user, auth, getOtherEmpires)
-router.post('/:uuid/favorite', user, auth, verify, updateEmpireFavorite)
-router.post('/:uuid/favorites/order', user, auth, verify, reorderFavorites)
-router.post(
-	'/:uuid/favorites/orderColumns',
-	user,
-	auth,
-	verify,
-	reorderColFavorites
-)
-router.post('/:uuid/favorites/size', user, auth, verify, setFavSize)
-router.post('/:uuid/profile', user, auth, verify, updateProfile)
-router.post('/:uuid/icon', user, auth, verify, updateIcon)
-router.post('/:uuid/bonus', user, auth, verify, attachGame, bonusTurns)
-router.post('/:uuid/changeRace', user, auth, verify, attachGame, changeRace)
-router.post('/:uuid/nameChange', user, auth, verify, nameChange)
-router.delete('/:uuid', user, auth, verify, deleteEmpire)
+router.post('/:uuid/favorite', user, auth, updateEmpireFavorite)
+router.post('/:uuid/favorites/order', user, auth, reorderFavorites)
+router.post('/:uuid/favorites/orderColumns', user, auth, reorderColFavorites)
+router.post('/:uuid/favorites/size', user, auth, setFavSize)
+router.post('/:uuid/profile', user, auth, updateProfile)
+router.post('/:uuid/icon', user, auth, updateIcon)
+router.post('/:uuid/bonus', user, auth, attachGame, bonusTurns)
+router.post('/:uuid/changeRace', user, auth, attachGame, changeRace)
+router.post('/:uuid/nameChange', user, auth, nameChange)
+router.delete('/:uuid', user, auth, deleteEmpire)
 
 export default router

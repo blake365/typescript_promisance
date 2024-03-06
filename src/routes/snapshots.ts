@@ -12,11 +12,6 @@ import { Readable } from 'stream'
 // READ
 const getSnapshot = async (req: Request, res: Response) => {
 	const { id } = req.params
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== Number(id)) {
-		return res.status(500).json({ error: 'Empire ID mismatch' })
-	}
 
 	try {
 		const snapshot = await EmpireSnapshot.find({

@@ -22,11 +22,6 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 	const { empireId, action, type, buy, item } = req.body
 
 	const game: Game = res.locals.game
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(500).json({ error: 'Empire ID mismatch' })
-	}
 
 	try {
 		// console.log(req.body)
@@ -188,11 +183,6 @@ const pubSell = async (req: Request, res: Response) => {
 	}
 
 	const game: Game = res.locals.game
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(500).json({ error: 'unauthorized' })
-	}
 
 	console.log('public market sale')
 	const basePrices = [
@@ -342,18 +332,13 @@ const pubSell = async (req: Request, res: Response) => {
 }
 
 const getMyItems = async (req: Request, res: Response) => {
-	const empire_id = res.locals.user.empires[0].id
 	// console.log(res.locals.user)
 	// console.log(empire_id)
 	const { empireId } = req.body
 	// console.log(req.body)
 
-	if (empire_id !== empireId) {
-		return res.status(500).json({ error: 'Empire ID mismatch' })
-	}
-
 	const myItems = await Market.find({
-		where: { empire_id: empire_id },
+		where: { empire_id: empireId },
 		order: {
 			createdAt: 'DESC',
 		},
@@ -363,15 +348,11 @@ const getMyItems = async (req: Request, res: Response) => {
 }
 
 const getOtherItems = async (req: Request, res: Response) => {
-	const empire_id = res.locals.user.empires[0].id
 	// console.log(res.locals.user)
 	// console.log(empire_id)
 	const { empireId } = req.body
 	console.log(req.body)
 	const game: Game = res.locals.game
-	if (empire_id !== empireId) {
-		return res.status(500).json({ error: 'Empire ID mismatch' })
-	}
 
 	let returnObject = {
 		arm: null,
@@ -490,11 +471,6 @@ const recallItem = async (req: Request, res: Response) => {
 	const { itemId, empireId } = req.body
 
 	const game: Game = res.locals.game
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(500).json({ error: 'Empire ID mismatch' })
-	}
 
 	const itemArray = ['trpArm', 'trpLnd', 'trpFly', 'trpSea', 'food', 'runes']
 
@@ -549,11 +525,6 @@ const editPrice = async (req: Request, res: Response) => {
 	const { itemId, empireId, price } = req.body
 
 	const game: Game = res.locals.game
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== empireId) {
-		return res.status(500).json({ error: 'Empire ID mismatch' })
-	}
 
 	const prices = [
 		game.pvtmTrpArm,

@@ -8,7 +8,6 @@ import auth from '../middleware/auth'
 const time = async (req: Request, res: Response) => {
 	const game: Game = res.locals.game
 
-	console.log('hello time route')
 	try {
 		res.status(200).json({
 			time: new Date().getTime(),

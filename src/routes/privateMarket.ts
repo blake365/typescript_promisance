@@ -33,11 +33,6 @@ const buy = async (req: Request, res: Response) => {
 		req.body
 
 	const game: Game = res.locals.game
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== parseInt(empireId)) {
-		return res.json({ error: 'unauthorized' })
-	}
 
 	if (type !== 'buy') {
 		return res.json({ error: 'Something went wrong' })
@@ -179,11 +174,6 @@ const sell = async (req: Request, res: Response) => {
 	}
 
 	const game: Game = res.locals.game
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== parseInt(empireId)) {
-		return res.json({ error: 'unauthorized' })
-	}
 
 	const empire = await Empire.findOne({ id: empireId })
 
