@@ -1,4 +1,11 @@
-import { Entity, Column, Index, PrimaryGeneratedColumn, OneToMany, Generated } from 'typeorm'
+import {
+	Entity,
+	Column,
+	Index,
+	PrimaryGeneratedColumn,
+	OneToMany,
+	Generated,
+} from 'typeorm'
 import Model from './Model'
 import Empire from './Empire'
 
@@ -14,8 +21,17 @@ export default class Game extends Model {
 	@Column({ default: true })
 	isActive: boolean
 
-	@Column()
+	@Column({ default: '' })
 	name: string
+
+	@Column({ default: '' })
+	description: string
+
+	@Column({ default: 'blue' })
+	color: string
+
+	@Column({ default: 'competition' })
+	type: string
 
 	@Column({ default: 1 })
 	version: number

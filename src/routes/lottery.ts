@@ -3,18 +3,12 @@ import Empire from '../entity/Empire'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { Not } from 'typeorm'
-import {
-	TURNS_PROTECTION,
-	LOTTERY_MAXTICKETS,
-	LOTTERY_JACKPOT,
-} from '../config/conifg'
-import User from '../entity/User'
 import Lottery from '../entity/Lottery'
 import { generalLog } from '../functions/functions'
-
+import { attachGame } from '../middleware/game'
+import Game from '../entity/Game'
 // lottery
 // set base jackpot
-const base = LOTTERY_JACKPOT
 
 // buy lottery ticket
 // add to lottery db
@@ -22,13 +16,15 @@ const base = LOTTERY_JACKPOT
 const buyTicket = async (req: Request, res: Response) => {
 	const { empireId, type } = req.body
 
+	const game: Game = res.locals.game
+
 	if (type !== 'lottery') {
 		return res.status(400).json({ error: 'invalid request' })
 	}
 
 	const empire = await Empire.findOne({ id: empireId })
 
-	if (empire.turnsUsed < TURNS_PROTECTION || empire.mode === 'demo') {
+	if (empire.turnsUsed < game.turnsProtection || empire.mode === 'demo') {
 		return res.status(400).json({ error: 'not allowed' })
 	}
 
@@ -48,7 +44,7 @@ const buyTicket = async (req: Request, res: Response) => {
 			.json({ error: 'Not enough money to purchase ticket' })
 	}
 
-	if (empireTickets.length >= LOTTERY_MAXTICKETS) {
+	if (empireTickets.length >= game.lotteryMaxTickets) {
 		return res.status(400).json({ error: 'Max tickets reached' })
 	} else {
 		empire.cash -= ticketCost
@@ -67,11 +63,13 @@ const buyTicket = async (req: Request, res: Response) => {
 const getJackpot = async (req: Request, res: Response) => {
 	const allTickets = await Lottery.find()
 
+	const game: Game = res.locals.game
+
 	let jackpot: number = 0
 	const jackpotTracker = await Lottery.findOne({ ticket: 0 })
 	// console.log(jackpotTracker)
 	if (!jackpotTracker) {
-		jackpot += LOTTERY_JACKPOT
+		jackpot += game.lotteryJackpot
 		for (let i = 0; i < allTickets.length; i++) {
 			// console.log(jackpot)
 			jackpot = jackpot + Number(allTickets[i].cash)
@@ -107,8 +105,8 @@ const getTotalTickets = async (req: Request, res: Response) => {
 
 const router = Router()
 
-router.post('/buyTicket', user, auth, buyTicket)
-router.get('/getJackpot', getJackpot)
+router.post('/buyTicket', user, auth, attachGame, buyTicket)
+router.get('/getJackpot', attachGame, getJackpot)
 router.get('/getTickets/:empireId', getTickets)
 router.get('/getTotalTickets', getTotalTickets)
 
