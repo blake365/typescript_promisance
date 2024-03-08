@@ -13,7 +13,7 @@ const getPageNews = async (req: Request, res: Response) => {
 
 	try {
 		const news = await EmpireNews.find({
-			where: { public: view },
+			where: { public: view, game_id: req.query.gameId },
 			order: { createdAt: 'DESC' },
 			skip: skip,
 			take: take,

@@ -27,6 +27,9 @@ export default class Game extends Model {
 	@Column({ default: '' })
 	description: string
 
+	@Column({ default: '' })
+	icon: string
+
 	@Column({ default: 'blue' })
 	color: string
 
