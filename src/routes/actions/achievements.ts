@@ -1,6 +1,10 @@
 import Empire from '../../entity/Empire'
 import { achievements } from '../../config/achievements'
 
+/*
+	You've got a copy of this method that also lives in the EmpireSubscriber so it's
+	worth moving it to the utils directory and then importing it from there.
+*/
 function sortObject(obj: Record<string, unknown>) {
 	return Object.keys(obj)
 		.sort()

@@ -103,7 +103,11 @@ app.get('/api/perpetual/hello', (req, res) => {
 	console.log(req.url)
 	res.send('hello perpetual')
 })
-
+/*
+	In my earlier PR I created and index file in your routes directory that exported a single router
+	to be consumed here as `app.use('/api', apiRoutes)` -- I'd recommend following that pattern
+	and moving all of these individual routes from here into that index file.
+*/
 app.use('/api/auth', authRoutes)
 app.use('/api/empire', empireRoutes)
 app.use('/api/useturns', useTurns)
@@ -134,6 +138,10 @@ app.get('/debug-sentry', function mainHandler(req, res) {
 // The error handler must be registered before any other error middleware and after all controllers
 app.use(Sentry.Handlers.errorHandler())
 
+/*
+	I'd move this error handler and the Sentry initialization call to their own file
+	that you then import at the top of this one.
+*/
 // Optional fallthrough error handler
 app.use(function onError(err, req, res, next) {
 	// The error id is attached to `res.sentry` to be returned
@@ -164,6 +172,9 @@ function checkTime() {
 	} else return false
 }
 
+/*
+	I'd move all of this scheduler logic into a separate file.
+*/
 if (process.env.NODE_ENV === 'development') {
 	let gameOn = false
 

@@ -918,7 +918,28 @@ const attack = async (req: Request, res: Response) => {
 				// won = true
 				let buildLoss: buildLoss = {}
 				let buildGain: buildGain = {}
+				/*
+					One big general note is to try and keep your files on the smaller side
+					(think a couple hundred lines on the high end).
+					Not sure if you've heard of the DRY acronym when it comes to coding, but it stands for Don't Repeat Yourself.
+					It's a pretty easy thing to look out for that can help keep files to more manageable sizes.
+					The destroyBuildings calls you have below are a decent example of mostly repeated code that can be shortened
+					up with a pretty simple refactor. The only things that change from call to call are arguments 2-4 so I'd suggest
+					putting them in an array and then iterating through it and calling destroyBuildings for each item.
 
+					It would look something like:
+
+					const destroyBuildingsParams = [
+						{ pcloss: 0.07 * lowLand, pcgain: 0.7 * lowLand, type: 'bldCash' },
+						{ pcloss: 0.07 * lowLand, pcgain: 0.7 * lowLand, type: 'bldPop' },
+						{ pcloss: 0.07 * lowLand, pcgain: 0.5 * lowLand, type: 'bldTroop' },
+						....
+					]
+
+					destroyBuildingParams.forEach(({ pcloss, pcgain, type }) => {
+						destroyBuildings(attackType, pcloss, pcgain, type, defender, attacker, buildLoss, buildGain)
+					})
+				*/
 				destroyBuildings(
 					attackType,
 					0.07 * lowLand,

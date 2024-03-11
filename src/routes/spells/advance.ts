@@ -1,3 +1,13 @@
+/*
+	I would suggest moving the `spells` and `actions` directories out of the routes directory and
+	maybe into something like a `services` directory.
+	I'd also try to keep the files that are in the routes directory mapped to the route path
+	that it's responsible for.
+	For example:
+	`routes/admin.ts` is responsible for handling calls to `/api/admin`
+	Doing it this way creates a nice paradigm for knowing what your route tree
+	looks like just by perusing your file system.
+*/
 import { eraArray } from '../../config/eras'
 import Empire from '../../entity/Empire'
 import EmpireEffect from '../../entity/EmpireEffect'
