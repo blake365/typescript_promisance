@@ -17,6 +17,8 @@ module.exports = {
 	namingStrategy: new SnakeNamingStrategy(),
 	entities: [rootDir + '/entity/**/*{.ts,.js}'],
 	subscribers: [rootDir + '/subscriber/**/*{.ts,.js}'],
+	// You should really be using migrations to handle all of your schema
+	// updates as opposed to letting typeorm handle the synchronization.
 	migrations: [rootDir + '/migrations/**/*{.ts,.js}'],
 	cli: {
 		entitiesDir: rootDir + '/entity',

@@ -1,3 +1,11 @@
+/*
+	Both makeId and slugify are examples of things I think are better to leverage a library for.
+	https://www.npmjs.com/package/uuid can be used for generating IDs.
+	Or you can also use the native `crypto.randomUUID()` if you're only using the v4
+	uuid generator (which is all I've ever used).
+	As for slugify I would recommend using lodash: https://www.npmjs.com/package/lodash
+	It has a ton of useful utility methods and one of them is `kebabCase` which is equivalent to your slugify.
+*/
 export function makeId(length: number): string {
 	let result = ''
 	const characters =

@@ -7,7 +7,10 @@
 // const orc = 6
 // const drow = 7
 // const goblin = 8
-
+/*
+	This is another thing that I think would probably be better as a database table
+	instead of being hardcoded here.
+*/
 const RACE_HUMAN = {
 	name: 'Human',
 	mod_offense: 0,
