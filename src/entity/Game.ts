@@ -46,6 +46,9 @@ export default class Game extends Model {
 	roundStart: Date
 
 	@Column({ default: () => 'CURRENT_TIMESTAMP' })
+	lastTurnsUpdate: Date
+
+	@Column({ default: () => 'CURRENT_TIMESTAMP' })
 	roundEnd: Date
 
 	@Column({ default: '' })
@@ -192,8 +195,11 @@ export default class Game extends Model {
 	@Column({ default: 5 })
 	aidMaxCredits: number
 
-	@Column({ default: 60 * 60 * 3 })
+	@Column({ default: 3 })
 	aidDelay: number
+
+	@Column({ default: () => 'CURRENT_TIMESTAMP' })
+	lastAidUpdate: Date
 
 	@Column({ default: true })
 	allowMagicRegress: boolean
