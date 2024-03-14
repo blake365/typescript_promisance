@@ -134,12 +134,12 @@ const build = async (req: Request, res: Response) => {
 						empire.freeLand -= buildAmount
 						leftToBuild -= buildAmount
 
-						await updateEmpire(empire, turnRes, 1)
+						await updateEmpire(empire, turnRes, 1, game)
 						// extract turn info from result and put individual object in result array
 						resultArray.push(turnRes)
 					} else {
 						// add value to empire.key
-						await updateEmpire(empire, turnRes, 1)
+						await updateEmpire(empire, turnRes, 1, game)
 						resultArray.push(turnRes)
 
 						break

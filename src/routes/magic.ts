@@ -3,7 +3,7 @@ import { eraArray } from '../config/eras'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
 
-import { useTurn, useTurnInternal } from './useturns'
+import { useTurnInternal } from './useturns'
 import { baseCost } from './spells/general'
 import { regress_allow, regress_cast, regress_cost } from './spells/regress'
 import { advance_allow, advance_cast, advance_cost } from './spells/advance'
@@ -122,7 +122,7 @@ const magic = async (req: Request, res: Response) => {
 					spellTurns = spellTurns[0]
 					console.log(empire.turns)
 					if (spellRes?.messages?.desertion) {
-						// await updateEmpire(empire, spellRes, turns)
+						await updateEmpire(empire, spellRes, turns, game)
 						console.log(spellRes.messages.desertion)
 						spellTurns['cast'] = {
 							result: 'desertion',
@@ -137,8 +137,8 @@ const magic = async (req: Request, res: Response) => {
 							empire.trpWiz -= cast.wizloss
 							await empire.save()
 						}
+						await updateEmpire(empire, spellRes, turns, game)
 						spellTurns['cast'] = cast
-						// await updateEmpire(empire, spellRes, turns)
 					}
 					// console.log(spellTurns)
 					resultArray.push(spellTurns)
@@ -175,7 +175,7 @@ const magic = async (req: Request, res: Response) => {
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 					if (spellRes?.messages?.desertion) {
-						await updateEmpire(empire, spellRes, turns)
+						await updateEmpire(empire, spellRes, turns, game)
 						console.log(spellRes.messages.desertion)
 						spellTurns['cast'] = {
 							result: 'desertion',
@@ -194,7 +194,7 @@ const magic = async (req: Request, res: Response) => {
 							empire.trpWiz -= cast.wizloss
 						}
 						spellTurns['cast'] = cast
-						await updateEmpire(empire, spellRes, turns)
+						await updateEmpire(empire, spellRes, turns, game)
 					}
 					// console.log(spellTurns)
 					resultArray.push(spellTurns)
@@ -238,7 +238,7 @@ const magic = async (req: Request, res: Response) => {
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 					if (spellRes?.messages?.desertion) {
-						await updateEmpire(empire, spellRes, turns)
+						await updateEmpire(empire, spellRes, turns, game)
 						console.log(spellRes.messages.desertion)
 						spellTurns['cast'] = {
 							result: 'desertion',
@@ -248,8 +248,8 @@ const magic = async (req: Request, res: Response) => {
 						break
 					} else {
 						let cast: Cast = cash_cast(empire)
-						console.log(cast)
-						console.log(empire.cash)
+						// console.log(cast)
+						// console.log(empire.cash)
 						if (cast.result === 'success') {
 							empire.cash += cast.cash
 							empire.magicProd += cast.cash
@@ -257,7 +257,7 @@ const magic = async (req: Request, res: Response) => {
 						if (cast.result === 'fail') {
 							empire.trpWiz -= cast.wizloss
 						}
-						await updateEmpire(empire, spellRes, turns)
+						await updateEmpire(empire, spellRes, turns, game)
 						spellTurns['cast'] = cast
 					}
 
@@ -310,7 +310,7 @@ const magic = async (req: Request, res: Response) => {
 						let spellRes = spellTurns[0]
 						spellTurns = spellTurns[0]
 						if (spellRes?.messages?.desertion) {
-							await updateEmpire(empire, spellRes, turns)
+							await updateEmpire(empire, spellRes, turns, game)
 							console.log(spellRes.messages.desertion)
 							spellTurns['cast'] = {
 								result: 'desertion',
@@ -332,7 +332,7 @@ const magic = async (req: Request, res: Response) => {
 
 						resultArray.push(spellTurns)
 
-						await updateEmpire(empire, spellRes, turns)
+						await updateEmpire(empire, spellRes, turns, game)
 						// console.log(empire.era, empire.turns, empire.runes)
 					}
 				} else {
@@ -382,7 +382,7 @@ const magic = async (req: Request, res: Response) => {
 						let spellRes = spellTurns[0]
 						spellTurns = spellTurns[0]
 						if (spellRes?.messages?.desertion) {
-							await updateEmpire(empire, spellRes, turns)
+							await updateEmpire(empire, spellRes, turns, game)
 							console.log(spellRes.messages.desertion)
 							spellTurns['cast'] = {
 								result: 'desertion',
@@ -404,7 +404,7 @@ const magic = async (req: Request, res: Response) => {
 
 						resultArray.push(spellTurns)
 
-						await updateEmpire(empire, spellRes, turns)
+						await updateEmpire(empire, spellRes, turns, game)
 						// console.log(empire.era, empire.turns, empire.runes)
 					}
 				} else {
@@ -441,7 +441,7 @@ const magic = async (req: Request, res: Response) => {
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 					if (spellRes?.messages?.desertion) {
-						await updateEmpire(empire, spellRes, turns)
+						await updateEmpire(empire, spellRes, turns, game)
 						console.log(spellRes.messages.desertion)
 						spellTurns['cast'] = {
 							result: 'desertion',
@@ -461,7 +461,7 @@ const magic = async (req: Request, res: Response) => {
 
 					resultArray.push(spellTurns)
 
-					await updateEmpire(empire, spellRes, turns)
+					await updateEmpire(empire, spellRes, turns, game)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
 					resultArray.push(spellTurns)
@@ -495,7 +495,7 @@ const magic = async (req: Request, res: Response) => {
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
 					if (spellRes?.messages?.desertion) {
-						await updateEmpire(empire, spellRes, turns)
+						await updateEmpire(empire, spellRes, turns, game)
 						console.log(spellRes.messages.desertion)
 						spellTurns['cast'] = {
 							result: 'desertion',
@@ -515,7 +515,7 @@ const magic = async (req: Request, res: Response) => {
 
 					resultArray.push(spellTurns)
 
-					await updateEmpire(empire, spellRes, turns)
+					await updateEmpire(empire, spellRes, turns, game)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
 					resultArray.push(spellTurns)
@@ -553,7 +553,7 @@ const attackSpell = async (
 
 		if (spellRes?.messages?.desertion) {
 			console.log('desertion trigger')
-			await updateEmpire(attacker, spellRes, turns)
+			await updateEmpire(attacker, spellRes, turns, game)
 			console.log(spellRes.messages.desertion)
 			spellTurns['cast'] = {
 				result: 'desertion',
@@ -571,7 +571,7 @@ const attackSpell = async (
 			// console.log('spellTurns', spellTurns)
 			// cast the spell and get result
 			// console.log('spellRes', spellRes)
-			await updateEmpire(attacker, spellRes, turns)
+			await updateEmpire(attacker, spellRes, turns, game)
 			// console.log('returning with spellTurns')
 			return spellTurns
 		}
@@ -762,8 +762,12 @@ const magicAttack = async (req: Request, res: Response) => {
 			if (spell === 'blast') {
 				// blast
 				console.log('blast start')
-				spellTurns = await attackSpell(attacker, clan, blast_cost(base), () =>
-					blast_cast(attacker, defender)
+				spellTurns = await attackSpell(
+					attacker,
+					clan,
+					blast_cost(base),
+					() => blast_cast(attacker, defender, game),
+					game
 				)
 				// console.log(spellTurns)
 			} else if (spell === 'struct') {

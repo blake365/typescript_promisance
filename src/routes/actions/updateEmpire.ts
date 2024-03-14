@@ -6,14 +6,16 @@ import {
 	PVTM_TRPLND,
 	PVTM_TRPSEA,
 } from '../../config/conifg'
+import Game from '../../entity/Game'
 
 export const updateEmpire = async (
 	empire: Empire,
 	spellRes: any,
-	turns: number
+	turns: number,
+	game: Game
 ) => {
-	console.log(spellRes)
-	console.log(empire.cash)
+	// console.log(spellRes)
+	// console.log(empire.cash)
 	empire.cash =
 		empire.cash +
 		// Math.round(spellRes.withdraw / turns) +
@@ -32,10 +34,10 @@ export const updateEmpire = async (
 	empire.trpSea += spellRes.trpSea
 
 	empire.indyProd +=
-		spellRes.trpArm * PVTM_TRPARM +
-		spellRes.trpLnd * PVTM_TRPLND +
-		spellRes.trpFly * PVTM_TRPFLY +
-		spellRes.trpSea * PVTM_TRPSEA
+		spellRes.trpArm * game.pvtmTrpArm +
+		spellRes.trpLnd * game.pvtmTrpLnd +
+		spellRes.trpFly * game.pvtmTrpFly +
+		spellRes.trpSea * game.pvtmTrpSea
 
 	empire.food += spellRes.food
 	if (empire.food < 0) {
@@ -52,7 +54,7 @@ export const updateEmpire = async (
 	empire.turnsUsed += turns
 	empire.lastAction = new Date()
 
-	empire.networth = getNetworth(empire)
+	empire.networth = getNetworth(empire, game)
 	if (empire.peakCash < empire.cash + empire.bank) {
 		empire.peakCash = empire.cash + empire.bank
 	}

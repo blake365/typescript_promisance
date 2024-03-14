@@ -722,7 +722,7 @@ const attack = async (req: Request, res: Response) => {
 			if (attackRes?.messages?.desertion) {
 				console.log('desertion triggered')
 
-				attacker.networth = getNetworth(attacker)
+				attacker.networth = getNetworth(attacker, game)
 				attacker.lastAction = new Date()
 				// save updated attacker and defender
 				await attacker.save()

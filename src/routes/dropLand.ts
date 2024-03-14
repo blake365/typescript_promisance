@@ -87,10 +87,10 @@ const drop = async (req: Request, res: Response) => {
 				// add value to empire.key
 				empire.freeLand -= dropAmount
 				leftToDrop -= dropAmount
-				await updateEmpire(empire, turnRes, 1)
+				await updateEmpire(empire, turnRes, 1, game)
 			} else {
 				resultArray.push(turnRes)
-				await updateEmpire(empire, turnRes, 1)
+				await updateEmpire(empire, turnRes, 1, game)
 				break
 			}
 		}

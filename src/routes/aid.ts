@@ -4,12 +4,9 @@ import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { useTurnInternal } from './useturns'
 import Clan from '../entity/Clan'
-
 import { eraArray } from '../config/eras'
 import { createNewsEvent } from '../util/helpers'
-
 import { getNetworth } from './actions/actions'
-import User from '../entity/User'
 import { takeSnapshot } from './actions/snaps'
 import { updateEmpire } from './actions/updateEmpire'
 import { attachGame } from '../middleware/game'
@@ -210,7 +207,7 @@ const sendAid = async (req: Request, res: Response) => {
 			aidTurns['aid'] = 'Due to chaos and desertion, your shipment was not sent'
 		}
 
-		await updateEmpire(sender, aidTurns, turns)
+		await updateEmpire(sender, aidTurns, turns, game)
 
 		resultArray.push(aidTurns)
 

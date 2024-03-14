@@ -128,11 +128,11 @@ const demolish = async (req: Request, res: Response) => {
 					// empire.cash -= buildAmount * buildCost
 					leftToDemo -= demoAmount
 
-					await updateEmpire(empire, turnRes, 1)
+					await updateEmpire(empire, turnRes, 1, game)
 				} else {
 					resultArray.push(turnRes)
 					// add value to empire.key
-					await updateEmpire(empire, turnRes, 1)
+					await updateEmpire(empire, turnRes, 1, game)
 					break
 				}
 			}
