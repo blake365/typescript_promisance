@@ -14,6 +14,7 @@ import user from '../middleware/user'
 import auth from '../middleware/auth'
 import User from '../entity/User'
 import { takeSnapshot } from './actions/snaps'
+import { updateEmpire } from './actions/updateEmpire'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
@@ -116,77 +117,12 @@ const drop = async (req: Request, res: Response) => {
 			if (!turnRes?.messages?.desertion) {
 				resultArray.push(turnRes)
 				// add value to empire.key
-				empire.cash = empire.cash + turnRes.money - turnRes.loanpayed
-
-				empire.income += turnRes.income
-				empire.expenses +=
-					turnRes.expenses + turnRes.wartax + turnRes.corruption
-
-				empire.loan -= turnRes.loanpayed + turnRes.loanInterest
-				empire.trpArm += turnRes.trpArm
-				empire.trpLnd += turnRes.trpLnd
-				empire.trpFly += turnRes.trpFly
-				empire.trpSea += turnRes.trpSea
-				empire.indyProd +=
-					turnRes.trpArm * PVTM_TRPARM +
-					turnRes.trpLnd * PVTM_TRPLND +
-					turnRes.trpFly * PVTM_TRPFLY +
-					turnRes.trpSea * PVTM_TRPSEA
-
-				empire.food += turnRes.food
-				empire.foodpro += turnRes.foodpro
-				empire.foodcon += turnRes.foodcon
-
-				if (empire.food < 0) {
-					empire.food = 0
-				}
-
-				empire.peasants += turnRes.peasants
-				empire.runes += turnRes.runes
-				empire.trpWiz += turnRes.trpWiz
-
 				empire.freeLand -= dropAmount
 				leftToDrop -= dropAmount
-				empire.turns--
-				empire.turnsUsed++
-				empire.lastAction = new Date()
-
-				await empire.save()
+				await updateEmpire(empire, turnRes, 1)
 			} else {
 				resultArray.push(turnRes)
-				empire.cash = empire.cash + turnRes.money - turnRes.loanpayed
-
-				empire.income += turnRes.income
-				empire.expenses +=
-					turnRes.expenses + turnRes.wartax + turnRes.corruption
-
-				empire.loan -= turnRes.loanpayed + turnRes.loanInterest
-				empire.trpArm += turnRes.trpArm
-				empire.trpLnd += turnRes.trpLnd
-				empire.trpFly += turnRes.trpFly
-				empire.trpSea += turnRes.trpSea
-
-				empire.indyProd +=
-					turnRes.trpArm * PVTM_TRPARM +
-					turnRes.trpLnd * PVTM_TRPLND +
-					turnRes.trpFly * PVTM_TRPFLY +
-					turnRes.trpSea * PVTM_TRPSEA
-
-				empire.food += turnRes.food
-				empire.foodpro += turnRes.foodpro
-				empire.foodcon += turnRes.foodcon
-				if (empire.food < 0) {
-					empire.food = 0
-				}
-				empire.peasants += turnRes.peasants
-				empire.runes += turnRes.runes
-				empire.trpWiz += turnRes.trpWiz
-
-				empire.turns--
-				empire.turnsUsed++
-
-				empire.lastAction = new Date()
-				await empire.save()
+				await updateEmpire(empire, turnRes, 1)
 				break
 			}
 		}

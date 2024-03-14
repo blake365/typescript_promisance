@@ -22,6 +22,7 @@ import User from '../entity/User'
 // import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
 import { getRepository } from 'typeorm'
+import { snapshot } from '../jobs/promTurns'
 
 let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
@@ -688,15 +689,10 @@ const attack = async (req: Request, res: Response) => {
 			attackTurns = attackTurns[0]
 			// console.log(attackRes)
 
-			attacker.cash =
-				attacker.cash +
-				// Math.round(attackRes.withdraw / 2) +
-				attackRes.money -
-				attackRes.loanpayed
+			// console.log('error', attackRes?.messages?.error)
+			// console.log('desertion', attackRes?.messages?.desertion)
 
-			if (attacker.cash < 0) {
-				attacker.cash = 0
-			}
+			attacker.cash = attacker.cash + attackRes.money
 
 			attacker.income += attackRes.income
 			attacker.expenses +=
@@ -704,7 +700,9 @@ const attack = async (req: Request, res: Response) => {
 
 			// attacker.bank -= Math.round(attackRes.withdraw / 2)
 			attacker.bank += attackRes.bankInterest
-			attacker.loan -= attackRes.loanpayed + attackRes.loanInterest
+			attacker.loan += attackRes.loanInterest
+			attacker.loan -= attackRes.loanpayed
+
 			attacker.trpArm += attackRes.trpArm
 			attacker.trpLnd += attackRes.trpLnd
 			attacker.trpFly += attackRes.trpFly
@@ -727,8 +725,27 @@ const attack = async (req: Request, res: Response) => {
 			attacker.peasants += attackRes.peasants
 			attacker.runes += attackRes.runes
 			attacker.trpWiz += attackRes.trpWiz
+
 			attacker.turns -= 2
 			attacker.turnsUsed += 2
+
+			if (attackRes?.messages?.desertion) {
+				console.log('desertion triggered')
+
+				attacker.networth = getNetworth(attacker)
+				attacker.lastAction = new Date()
+				// save updated attacker and defender
+				await attacker.save()
+				await takeSnapshot(attacker)
+				attackDescription = {
+					result: 'desertion',
+					message: 'The attack was not attempted due to the crisis.',
+				}
+				attackTurns['attack'] = attackDescription
+				resultArray.push(attackTurns)
+				return res.json(resultArray)
+			}
+
 			if (type !== 'war') {
 				attacker.attacks++
 			}

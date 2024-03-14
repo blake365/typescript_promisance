@@ -9,6 +9,7 @@ export const spy_cost = (baseCost: number) => {
 }
 
 export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
+	console.log('spy cast')
 	if (getPower_enemy(empire, enemyEmpire) > 1) {
 		// spy success
 		// display enemy info and save to intel table
