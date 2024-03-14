@@ -11,6 +11,7 @@ import { createNewsEvent } from '../util/helpers'
 import { getNetworth } from './actions/actions'
 import User from '../entity/User'
 import { takeSnapshot } from './actions/snaps'
+import { updateEmpire } from './actions/updateEmpire'
 import { attachGame } from '../middleware/game'
 
 // send aid to another empire
@@ -209,87 +210,9 @@ const sendAid = async (req: Request, res: Response) => {
 			aidTurns['aid'] = 'Due to chaos and desertion, your shipment was not sent'
 		}
 
+		await updateEmpire(sender, aidTurns, turns)
+
 		resultArray.push(aidTurns)
-
-		sender.cash =
-			sender.cash +
-			// Math.round(spellRes.withdraw / turns) +
-			spellRes.money -
-			spellRes.loanpayed
-
-		if (sender.cash < 0) {
-			sender.cash = 0
-		}
-
-		sender.income += spellRes.income
-		sender.expenses += spellRes.expenses + spellRes.wartax + spellRes.corruption
-
-		// sender.bank -= Math.round(spellRes.withdraw / turns)
-		sender.bank += spellRes.bankInterest
-		sender.loan -= spellRes.loanpayed + spellRes.loanInterest
-		sender.trpArm += spellRes.trpArm
-		sender.trpLnd += spellRes.trpLnd
-		sender.trpFly += spellRes.trpFly
-		sender.trpSea += spellRes.trpSea
-
-		sender.indyProd +=
-			spellRes.trpArm * game.pvtmTrpArm +
-			spellRes.trpLnd * game.pvtmTrpLnd +
-			spellRes.trpFly * game.pvtmTrpFly +
-			spellRes.trpSea * game.pvtmTrpSea
-
-		sender.food += spellRes.food
-
-		sender.foodpro += spellRes.foodpro
-		sender.foodcon += spellRes.foodcon
-
-		if (sender.food < 0) {
-			sender.food = 0
-		}
-		sender.peasants += spellRes.peasants
-		sender.runes += spellRes.runes
-		sender.trpWiz += spellRes.trpWiz
-		sender.turns -= turns
-		sender.turnsUsed += turns
-		sender.lastAction = new Date()
-
-		sender.networth = getNetworth(sender, game)
-
-		if (sender.peakCash < sender.cash + sender.bank) {
-			sender.peakCash = sender.cash + sender.bank
-		}
-		if (sender.peakFood < sender.food) {
-			sender.peakFood = sender.food
-		}
-		if (sender.peakRunes < sender.runes) {
-			sender.peakRunes = sender.runes
-		}
-		if (sender.peakPeasants < sender.peasants) {
-			sender.peakPeasants = sender.peasants
-		}
-		if (sender.peakLand < sender.land) {
-			sender.peakLand = sender.land
-		}
-		if (sender.peakNetworth < sender.networth) {
-			sender.peakNetworth = sender.networth
-		}
-		if (sender.peakTrpArm < sender.trpArm) {
-			sender.peakTrpArm = sender.trpArm
-		}
-		if (sender.peakTrpLnd < sender.trpLnd) {
-			sender.peakTrpLnd = sender.trpLnd
-		}
-		if (sender.peakTrpFly < sender.trpFly) {
-			sender.peakTrpFly = sender.trpFly
-		}
-		if (sender.peakTrpSea < sender.trpSea) {
-			sender.peakTrpSea = sender.trpSea
-		}
-		if (sender.peakTrpWiz < sender.trpWiz) {
-			sender.peakTrpWiz = sender.trpWiz
-		}
-
-		await sender.save()
 
 		// await awardAchievements(sender)
 		await takeSnapshot(sender)

@@ -372,7 +372,7 @@ export const useTurn = async (
 		empire.cash += money
 
 		// handle loan separately
-		if (empire.cash <= 0) {
+		if (empire.cash < 0) {
 			trouble |= 1 // turns trouble cash
 			troubleCash = true
 		}
@@ -382,38 +382,45 @@ export const useTurn = async (
 		}
 
 		//more loan stuff
-		let loanpayed
-		let loanincrease
+		let loanpayed: number
 		let loanEmergencyLimit = loanMax * 2
 
 		if (trouble && troubleCash && empire.loan > loanEmergencyLimit) {
+			console.log('extreme cash trouble')
+			message['desertion'] =
+				'You have run out of money and your loan is maxed out!'
 			trouble |= 2
 			troubleLoan = true
 			empire.cash = 0
 			loanpayed = 0
 		} else if (troubleCash) {
+			console.log('less than 0')
 			message['desertion'] =
 				'You have run out of money! You rush to the bank to take out a loan.'
 			loanpayed = Math.min(Math.round(empire.loan / 200), empire.cash)
+			console.log(loanpayed)
 		} else {
 			loanpayed = Math.min(Math.round(empire.loan / 200), empire.cash)
 		}
 
 		// console.log(loanpayed)
-		if (loanpayed >= 0) {
-			empire.loan -= loanpayed
-			empire.cash -= loanpayed
-			money -= loanpayed
-			if (empire.cash < 0) {
-				empire.cash = 0
-			}
-		} else {
-			loanincrease = loanpayed
-			empire.loan -= loanincrease
-			empire.cash = 0
-			money += loanincrease
-		}
+		// if (loanpayed >= 0) {
+		// 	empire.loan -= loanpayed
+		// 	empire.cash -= loanpayed
+		// 	money -= loanpayed
+		// 	if (empire.cash < 0) {
+		// 		empire.cash = 0
+		// 	}
+		// } else {
+		// 	loanincrease = loanpayed
+		// 	empire.loan -= loanincrease
+		// 	empire.cash = 0
+		// 	money += loanincrease
+		// }
+		empire.cash -= loanpayed
+		empire.loan -= loanpayed
 
+		money -= Math.abs(loanpayed)
 		//adjust net income
 		// money = money - loanpayed
 		if (type === 'cash') {
@@ -428,10 +435,9 @@ export const useTurn = async (
 		empire.expenses += expenses + wartax
 		current['wartax'] = wartax
 		current['corruption'] = corruption
-		if (loanpayed < 0) {
-			current['loanpayed'] = loanincrease
-		} else current['loanpayed'] = loanpayed
+		current['loanpayed'] = loanpayed
 
+		// console.log(money)
 		current['money'] = money
 
 		// industry
@@ -786,8 +792,8 @@ export const useTurnInternal = (
 		let withdraw = 0
 		let bankInterest = 0
 
-		console.log('money:', empire.cash)
-		console.log('bank:', empire.bank)
+		// console.log('money:', empire.cash)
+		// console.log('bank:', empire.bank)
 		// savings interest
 		if (empire.turnsUsed > game.turnsProtection) {
 			let bankMax = empire.networth * 100
@@ -804,19 +810,19 @@ export const useTurnInternal = (
 			}
 		}
 
-		console.log('withdraw after:', withdraw)
-		console.log('money after :', empire.cash)
-		console.log('bank after:', empire.bank)
+		// console.log('withdraw after:', withdraw)
+		// console.log('money after :', empire.cash)
+		// console.log('bank after:', empire.bank)
 		// withdraw not accumulating in condensed view?
 		current['bankInterest'] = bankInterest
 		current['withdraw'] = withdraw
 
-		console.log(current['withdraw'])
+		// console.log(current['withdraw'])
 		// loan interest
 		let loanMax = empire.networth * 50
 		let loanRate = game.bankLoanRate + size
 		let loanInterest = Math.round(empire.loan * (loanRate / 52 / 100))
-		empire.loan += loanInterest
+		// empire.loan += loanInterest
 		current['loanInterest'] = loanInterest
 		// income/expenses/loan
 
@@ -861,10 +867,10 @@ export const useTurnInternal = (
 		}
 
 		//more loan stuff
-		let loanpayed
-		let loanincrease
+		let loanpayed: number
 		let loanEmergencyLimit = loanMax * 2
 		if (trouble && troubleCash && empire.loan > loanEmergencyLimit) {
+			console.log('extreme cash trouble')
 			message['desertion'] =
 				'You have run out of money and your loan is maxed out!'
 			trouble |= 2
@@ -872,31 +878,34 @@ export const useTurnInternal = (
 			empire.cash = 0
 			loanpayed = 0
 		} else if (troubleCash) {
+			console.log('troubleCash', troubleCash)
 			message['desertion'] =
 				'You have run out of money! You rush to the bank to take out a loan.'
 			loanpayed = Math.min(Math.round(empire.loan / 200), empire.cash)
 		} else {
+			console.log('no troubleCash')
 			loanpayed = Math.min(Math.round(empire.loan / 200), empire.cash)
 		}
 
 		// empire.cash -= loanpayed
 		// empire.loan -= loanpayed
 
+		money -= Math.abs(loanpayed)
 		//adjust net income
 		// console.log(loanpayed)
-		if (loanpayed >= 0) {
-			empire.loan -= loanpayed
-			empire.cash -= loanpayed
-			money -= loanpayed
-			if (empire.cash < 0) {
-				empire.cash = 0
-			}
-		} else {
-			loanincrease = loanpayed
-			empire.loan -= loanincrease
-			empire.cash = 0
-			money += loanincrease
-		}
+		// if (loanpayed >= 0) {
+		// 	empire.loan -= loanpayed
+		// 	empire.cash -= loanpayed
+		// 	// money -= loanpayed
+		// 	if (empire.cash < 0) {
+		// 		empire.cash = 0
+		// 	}
+		// } else {
+		// 	loanincrease = loanpayed
+		// 	empire.loan -= loanincrease
+		// 	empire.cash = 0
+		// 	// money += loanincrease
+		// }
 		// if (type === 'cash') {
 		// 	turnResult += money
 		// }
@@ -905,9 +914,7 @@ export const useTurnInternal = (
 		current['expenses'] = expenses
 		current['wartax'] = wartax
 		current['corruption'] = corruption
-		if (loanpayed < 0) {
-			current['loanpayed'] = loanincrease
-		} else current['loanpayed'] = loanpayed
+		current['loanpayed'] = loanpayed
 		current['money'] = money
 
 		// industry

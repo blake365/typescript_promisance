@@ -3,7 +3,7 @@ import { eraArray } from '../config/eras'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
 
-import { useTurnInternal } from './useturns'
+import { useTurn, useTurnInternal } from './useturns'
 import { baseCost } from './spells/general'
 import { regress_allow, regress_cast, regress_cost } from './spells/regress'
 import { advance_allow, advance_cast, advance_cost } from './spells/advance'
@@ -23,7 +23,7 @@ import { runes_cast, runes_cost } from './spells/runes'
 import { fight_cast, fight_cost } from './spells/fight'
 import { spy_cast, spy_cost } from './spells/spy'
 
-import { getNetworth } from './actions/actions'
+import { updateEmpire } from './actions/updateEmpire'
 import User from '../entity/User'
 
 // import { awardAchievements } from './actions/achievements'
@@ -38,6 +38,12 @@ const spellCheck = (empire: Empire, cost: number, turns: number) => {
 		return {
 			error:
 				'You have run out of food! Spells cannot be cast during this crisis!',
+		}
+	}
+	if (empire.cash <= 0) {
+		return {
+			error:
+				'You have run out of cash! Spells cannot be cast during this crisis!',
 		}
 	}
 
@@ -93,86 +99,6 @@ const magic = async (req: Request, res: Response) => {
 	// handle errors
 	// add break if spell check is false
 
-	const updateEmpire = async (empire: Empire, spellRes: any, turns: number) => {
-		empire.cash =
-			empire.cash +
-			// Math.round(spellRes.withdraw / turns) +
-			spellRes.money -
-			spellRes.loanpayed
-		if (empire.cash < 0) {
-			empire.cash = 0
-		}
-
-		empire.income += spellRes.income
-		empire.expenses += spellRes.expenses + spellRes.wartax + spellRes.corruption
-
-		// empire.bank -= Math.round(spellRes.withdraw / turns)
-		empire.bank += spellRes.bankInterest
-		empire.loan -= spellRes.loanpayed + spellRes.loanInterest
-		empire.trpArm += spellRes.trpArm
-		empire.trpLnd += spellRes.trpLnd
-		empire.trpFly += spellRes.trpFly
-		empire.trpSea += spellRes.trpSea
-
-		empire.indyProd +=
-			spellRes.trpArm * game.pvtmTrpArm +
-			spellRes.trpLnd * game.pvtmTrpLnd +
-			spellRes.trpFly * game.pvtmTrpFly +
-			spellRes.trpSea * game.pvtmTrpSea
-
-		empire.food += spellRes.food
-		if (empire.food < 0) {
-			empire.food = 0
-		}
-
-		empire.foodpro += spellRes.foodpro
-		empire.foodcon += spellRes.foodcon
-
-		empire.peasants += spellRes.peasants
-		empire.runes += spellRes.runes
-		empire.trpWiz += spellRes.trpWiz
-		empire.turns -= turns
-		empire.turnsUsed += turns
-		empire.lastAction = new Date()
-
-		empire.networth = getNetworth(empire, game)
-		if (empire.peakCash < empire.cash + empire.bank) {
-			empire.peakCash = empire.cash + empire.bank
-		}
-		if (empire.peakFood < empire.food) {
-			empire.peakFood = empire.food
-		}
-		if (empire.peakRunes < empire.runes) {
-			empire.peakRunes = empire.runes
-		}
-		if (empire.peakPeasants < empire.peasants) {
-			empire.peakPeasants = empire.peasants
-		}
-		if (empire.peakLand < empire.land) {
-			empire.peakLand = empire.land
-		}
-		if (empire.peakNetworth < empire.networth) {
-			empire.peakNetworth = empire.networth
-		}
-		if (empire.peakTrpArm < empire.trpArm) {
-			empire.peakTrpArm = empire.trpArm
-		}
-		if (empire.peakTrpLnd < empire.trpLnd) {
-			empire.peakTrpLnd = empire.trpLnd
-		}
-		if (empire.peakTrpFly < empire.trpFly) {
-			empire.peakTrpFly = empire.trpFly
-		}
-		if (empire.peakTrpSea < empire.trpSea) {
-			empire.peakTrpSea = empire.trpSea
-		}
-		if (empire.peakTrpWiz < empire.trpWiz) {
-			empire.peakTrpWiz = empire.trpWiz
-		}
-
-		await empire.save()
-	}
-
 	let resultArray = []
 	if (spell === 0) {
 		// shield
@@ -194,18 +120,28 @@ const magic = async (req: Request, res: Response) => {
 					let spellRes = spellTurns[0]
 					// console.log('spell res', spellRes)
 					spellTurns = spellTurns[0]
-					if (!spellRes?.messages?.desertion) {
+					console.log(empire.turns)
+					if (spellRes?.messages?.desertion) {
+						// await updateEmpire(empire, spellRes, turns)
+						console.log(spellRes.messages.desertion)
+						spellTurns['cast'] = {
+							result: 'desertion',
+							message: 'The spell could not be cast.',
+						}
+						resultArray.push(spellTurns)
+						break
+					} else {
 						let cast: Cast = await shield_cast(empire)
 						// console.log(cast)
 						if (cast.result === 'fail') {
 							empire.trpWiz -= cast.wizloss
+							await empire.save()
 						}
 						spellTurns['cast'] = cast
+						// await updateEmpire(empire, spellRes, turns)
 					}
 					// console.log(spellTurns)
 					resultArray.push(spellTurns)
-
-					await updateEmpire(empire, spellRes, turns)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
 					resultArray.push(spellTurns)
@@ -238,7 +174,16 @@ const magic = async (req: Request, res: Response) => {
 					)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
-					if (!spellRes?.messages?.desertion) {
+					if (spellRes?.messages?.desertion) {
+						await updateEmpire(empire, spellRes, turns)
+						console.log(spellRes.messages.desertion)
+						spellTurns['cast'] = {
+							result: 'desertion',
+							message: 'The spell could not be cast.',
+						}
+						resultArray.push(spellTurns)
+						break
+					} else {
 						let cast: Cast = food_cast(empire, game.pvtmFood)
 						// console.log(cast)
 						if (cast.result === 'success') {
@@ -249,13 +194,12 @@ const magic = async (req: Request, res: Response) => {
 							empire.trpWiz -= cast.wizloss
 						}
 						spellTurns['cast'] = cast
+						await updateEmpire(empire, spellRes, turns)
 					}
-
 					// console.log(spellTurns)
 					resultArray.push(spellTurns)
 					// cast the spell and get result
 					// compose turn result and food result into a single object, insert into array
-					await updateEmpire(empire, spellRes, turns)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
 					resultArray.push(spellTurns)
@@ -279,6 +223,7 @@ const magic = async (req: Request, res: Response) => {
 			for (let i = 0; i < number; i++) {
 				// console.log(i, spellCheck(empire, cost, turns))
 				if (spellCheck(empire, cost, turns) === 'passed') {
+					console.log(empire.cash)
 					empire.runes -= cost
 					// use two turns to cast spell
 					let spellTurns = useTurnInternal(
@@ -289,11 +234,22 @@ const magic = async (req: Request, res: Response) => {
 						true,
 						game
 					)
+					console.log(empire.cash)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
-					if (!spellRes?.messages?.desertion) {
+					if (spellRes?.messages?.desertion) {
+						await updateEmpire(empire, spellRes, turns)
+						console.log(spellRes.messages.desertion)
+						spellTurns['cast'] = {
+							result: 'desertion',
+							message: 'The spell could not be cast.',
+						}
+						resultArray.push(spellTurns)
+						break
+					} else {
 						let cast: Cast = cash_cast(empire)
-						// console.log(cast)
+						console.log(cast)
+						console.log(empire.cash)
 						if (cast.result === 'success') {
 							empire.cash += cast.cash
 							empire.magicProd += cast.cash
@@ -301,12 +257,12 @@ const magic = async (req: Request, res: Response) => {
 						if (cast.result === 'fail') {
 							empire.trpWiz -= cast.wizloss
 						}
+						await updateEmpire(empire, spellRes, turns)
 						spellTurns['cast'] = cast
 					}
 
 					resultArray.push(spellTurns)
 					// compose turn result and food result into a single object, insert into array
-					await updateEmpire(empire, spellRes, turns)
 					// console.log('cash:', empire.cash, empire.turns, empire.runes)
 				} else {
 					let spellTurns = spellCheck(empire, cost, turns)
@@ -353,7 +309,16 @@ const magic = async (req: Request, res: Response) => {
 						)
 						let spellRes = spellTurns[0]
 						spellTurns = spellTurns[0]
-						if (!spellRes?.messages?.desertion) {
+						if (spellRes?.messages?.desertion) {
+							await updateEmpire(empire, spellRes, turns)
+							console.log(spellRes.messages.desertion)
+							spellTurns['cast'] = {
+								result: 'desertion',
+								message: 'The spell could not be cast.',
+							}
+							resultArray.push(spellTurns)
+							break
+						} else {
 							let cast: Cast = advance_cast(empire)
 							// console.log(cast)
 							if (cast.result === 'success') {
@@ -416,7 +381,16 @@ const magic = async (req: Request, res: Response) => {
 						)
 						let spellRes = spellTurns[0]
 						spellTurns = spellTurns[0]
-						if (!spellRes?.messages?.desertion) {
+						if (spellRes?.messages?.desertion) {
+							await updateEmpire(empire, spellRes, turns)
+							console.log(spellRes.messages.desertion)
+							spellTurns['cast'] = {
+								result: 'desertion',
+								message: 'The spell could not be cast.',
+							}
+							resultArray.push(spellTurns)
+							break
+						} else {
 							let cast: Cast = regress_cast(empire)
 							// console.log(cast)
 							if (cast.result === 'success') {
@@ -466,7 +440,16 @@ const magic = async (req: Request, res: Response) => {
 					)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
-					if (!spellRes?.messages?.desertion) {
+					if (spellRes?.messages?.desertion) {
+						await updateEmpire(empire, spellRes, turns)
+						console.log(spellRes.messages.desertion)
+						spellTurns['cast'] = {
+							result: 'desertion',
+							message: 'The spell could not be cast.',
+						}
+						resultArray.push(spellTurns)
+						break
+					} else {
 						let cast: Cast = await gate_cast(empire)
 						// console.log(cast)
 
@@ -511,7 +494,16 @@ const magic = async (req: Request, res: Response) => {
 					)
 					let spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
-					if (!spellRes?.messages?.desertion) {
+					if (spellRes?.messages?.desertion) {
+						await updateEmpire(empire, spellRes, turns)
+						console.log(spellRes.messages.desertion)
+						spellTurns['cast'] = {
+							result: 'desertion',
+							message: 'The spell could not be cast.',
+						}
+						resultArray.push(spellTurns)
+						break
+					} else {
 						let cast: Cast = await ungate_cast(empire)
 						// console.log(cast)
 
@@ -558,104 +550,31 @@ const attackSpell = async (
 		let spellTurns = useTurnInternal('magic', turns, attacker, clan, true, game)
 		let spellRes = spellTurns[0]
 		spellTurns = spellTurns[0]
-		let cast: Cast = await spell
-		// console.log(cast)
 
-		if (cast.result === 'fail') {
-			attacker.trpWiz -= cast.wizloss
+		if (spellRes?.messages?.desertion) {
+			console.log('desertion trigger')
+			await updateEmpire(attacker, spellRes, turns)
+			console.log(spellRes.messages.desertion)
+			spellTurns['cast'] = {
+				result: 'desertion',
+				message: 'The spell could not be cast.',
+			}
+			return spellTurns
+		} else {
+			console.log('spell casting')
+			let cast: Cast = await spell()
+			// console.log(cast)
+			if (cast.result === 'fail') {
+				attacker.trpWiz -= cast.wizloss
+			}
+			spellTurns['cast'] = cast
+			// console.log('spellTurns', spellTurns)
+			// cast the spell and get result
+			// console.log('spellRes', spellRes)
+			await updateEmpire(attacker, spellRes, turns)
+			// console.log('returning with spellTurns')
+			return spellTurns
 		}
-		spellTurns['cast'] = cast
-		// console.log('spellTurns', spellTurns)
-		// cast the spell and get result
-
-		console.log('spellRes', spellRes)
-
-		attacker.cash =
-			attacker.cash +
-			// Math.round(spellRes.withdraw / turns) +
-			spellRes.money -
-			spellRes.loanpayed
-		if (attacker.cash < 0) {
-			attacker.cash = 0
-		}
-		attacker.income += spellRes.income
-		attacker.expenses +=
-			spellRes.expenses + spellRes.wartax + spellRes.corruption
-
-		// attacker.bank -= Math.round(spellRes.withdraw / turns)
-		attacker.bank += spellRes.bankInterest
-		attacker.loan -= spellRes.loanpayed + spellRes.loanInterest
-		attacker.trpArm += spellRes.trpArm
-		attacker.trpLnd += spellRes.trpLnd
-		attacker.trpFly += spellRes.trpFly
-		attacker.trpSea += spellRes.trpSea
-
-		attacker.indyProd +=
-			spellRes.trpArm * game.pvtmTrpArm +
-			spellRes.trpLnd * game.pvtmTrpLnd +
-			spellRes.trpFly * game.pvtmTrpFly +
-			spellRes.trpSea * game.pvtmTrpSea
-
-		attacker.food += spellRes.food
-		if (attacker.food < 0) {
-			attacker.food = 0
-		}
-
-		attacker.foodpro += spellRes.foodpro
-		attacker.foodcon += spellRes.foodcon
-
-		attacker.peasants += spellRes.peasants
-		attacker.runes += spellRes.runes
-		attacker.trpWiz += spellRes.trpWiz
-		attacker.turns -= turns
-		attacker.turnsUsed += turns
-		attacker.health -= 6
-		attacker.spells += 1
-		attacker.lastAction = new Date()
-
-		attacker.networth = getNetworth(attacker, game)
-
-		if (attacker.peakCash < attacker.cash + attacker.bank) {
-			attacker.peakCash = attacker.cash + attacker.bank
-		}
-		if (attacker.peakFood < attacker.food) {
-			attacker.peakFood = attacker.food
-		}
-		if (attacker.peakRunes < attacker.runes) {
-			attacker.peakRunes = attacker.runes
-		}
-		if (attacker.peakPeasants < attacker.peasants) {
-			attacker.peakPeasants = attacker.peasants
-		}
-		if (attacker.peakLand < attacker.land) {
-			attacker.peakLand = attacker.land
-		}
-		if (attacker.peakNetworth < attacker.networth) {
-			attacker.peakNetworth = attacker.networth
-		}
-		if (attacker.peakTrpArm < attacker.trpArm) {
-			attacker.peakTrpArm = attacker.trpArm
-		}
-		if (attacker.peakTrpLnd < attacker.trpLnd) {
-			attacker.peakTrpLnd = attacker.trpLnd
-		}
-		if (attacker.peakTrpFly < attacker.trpFly) {
-			attacker.peakTrpFly = attacker.trpFly
-		}
-		if (attacker.peakTrpSea < attacker.trpSea) {
-			attacker.peakTrpSea = attacker.trpSea
-		}
-		if (attacker.peakTrpWiz < attacker.trpWiz) {
-			attacker.peakTrpWiz = attacker.trpWiz
-		}
-
-		console.log('attacker cash', attacker.cash)
-		console.log('attacker bank', attacker.bank)
-
-		await attacker.save()
-
-		// console.log('returning with spellTurns')
-		return spellTurns
 	} else {
 		let spellTurns = spellCheck(attacker, cost, turns)
 		return spellTurns
@@ -843,12 +762,8 @@ const magicAttack = async (req: Request, res: Response) => {
 			if (spell === 'blast') {
 				// blast
 				console.log('blast start')
-				spellTurns = await attackSpell(
-					attacker,
-					clan,
-					blast_cost(base),
-					blast_cast(attacker, defender, game),
-					game
+				spellTurns = await attackSpell(attacker, clan, blast_cost(base), () =>
+					blast_cast(attacker, defender)
 				)
 				// console.log(spellTurns)
 			} else if (spell === 'struct') {
@@ -858,7 +773,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					struct_cost(base),
-					struct_cast(attacker, defender, game),
+					() => struct_cast(attacker, defender, game),
 					game
 				)
 				console.log(spellTurns)
@@ -868,7 +783,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					storm_cost(base),
-					storm_cast(attacker, defender, game),
+					() => storm_cast(attacker, defender, game),
 					game
 				)
 			} else if (spell === 'steal') {
@@ -877,7 +792,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					steal_cost(base),
-					steal_cast(attacker, defender, game),
+					() => steal_cast(attacker, defender, game),
 					game
 				)
 			} else if (spell === 'runes') {
@@ -886,7 +801,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					runes_cost(base),
-					runes_cast(attacker, defender, game),
+					() => runes_cast(attacker, defender, game),
 					game
 				)
 			} else if (spell === 'fight') {
@@ -902,14 +817,15 @@ const magicAttack = async (req: Request, res: Response) => {
 						attacker,
 						clan,
 						fight_cost(base),
-						fight_cast(
-							attacker,
-							defender,
-							clan,
-							game.turnsProtection,
-							game.drRate,
-							game
-						),
+						() =>
+							fight_cast(
+								attacker,
+								defender,
+								clan,
+								game.turnsProtection,
+								game.drRate,
+								game
+							),
 						game
 					)
 				}
@@ -919,7 +835,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					spy_cost(base),
-					spy_cast(attacker, defender),
+					() => spy_cast(attacker, defender),
 					game
 				)
 			}

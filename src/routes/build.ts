@@ -10,6 +10,7 @@ import User from '../entity/User'
 import { takeSnapshot } from './actions/snaps'
 import { attachGame } from '../middleware/game'
 import Game from '../entity/Game'
+import { updateEmpire } from './actions/updateEmpire'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
@@ -126,166 +127,21 @@ const build = async (req: Request, res: Response) => {
 						resultArray.push(turnRes)
 						break
 					} else if (!turnRes?.messages?.desertion) {
-						console.log(turnRes)
-						empire.cash =
-							empire.cash +
-							// turnRes.withdraw +
-							turnRes.money -
-							turnRes.loanpayed -
-							buildAmount * buildCost
+						// console.log(turnRes)
 
-						if (empire.cash < 0) {
-							empire.cash = 0
-						}
-
-						empire.income += turnRes.income
-						empire.expenses +=
-							turnRes.expenses + turnRes.wartax + turnRes.corruption
-
+						empire.cash -= buildAmount * buildCost
 						empire[key] += buildAmount
 						empire.freeLand -= buildAmount
-						// empire.cash -= buildAmount * buildCost
 						leftToBuild -= buildAmount
+
+						await updateEmpire(empire, turnRes, 1)
 						// extract turn info from result and put individual object in result array
 						resultArray.push(turnRes)
-						// add value to empire.key
-						empire.loan -= turnRes.loanpayed + turnRes.loanInterest
-						empire.trpArm += turnRes.trpArm
-						empire.trpLnd += turnRes.trpLnd
-						empire.trpFly += turnRes.trpFly
-						empire.trpSea += turnRes.trpSea
-
-						empire.indyProd +=
-							turnRes.trpArm * game.pvtmTrpArm +
-							turnRes.trpLnd * game.pvtmTrpLnd +
-							turnRes.trpFly * game.pvtmTrpFly +
-							turnRes.trpSea * game.pvtmTrpSea
-
-						empire.food += turnRes.food
-						empire.foodpro += turnRes.foodpro
-						empire.foodcon += turnRes.foodcon
-
-						if (empire.food < 0) {
-							empire.food = 0
-						}
-
-						empire.peasants += turnRes.peasants
-						empire.runes += turnRes.runes
-						empire.trpWiz += turnRes.trpWiz
-						empire.networth = getNetworth(empire, game)
-
-						if (empire.peakCash < empire.cash + empire.bank) {
-							empire.peakCash = empire.cash + empire.bank
-						}
-						if (empire.peakFood < empire.food) {
-							empire.peakFood = empire.food
-						}
-						if (empire.peakRunes < empire.runes) {
-							empire.peakRunes = empire.runes
-						}
-						if (empire.peakPeasants < empire.peasants) {
-							empire.peakPeasants = empire.peasants
-						}
-						if (empire.peakLand < empire.land) {
-							empire.peakLand = empire.land
-						}
-						if (empire.peakNetworth < empire.networth) {
-							empire.peakNetworth = empire.networth
-						}
-						if (empire.peakTrpArm < empire.trpArm) {
-							empire.peakTrpArm = empire.trpArm
-						}
-						if (empire.peakTrpLnd < empire.trpLnd) {
-							empire.peakTrpLnd = empire.trpLnd
-						}
-						if (empire.peakTrpFly < empire.trpFly) {
-							empire.peakTrpFly = empire.trpFly
-						}
-						if (empire.peakTrpSea < empire.trpSea) {
-							empire.peakTrpSea = empire.trpSea
-						}
-						if (empire.peakTrpWiz < empire.trpWiz) {
-							empire.peakTrpWiz = empire.trpWiz
-						}
-
-						empire.turns--
-						empire.turnsUsed++
-
-						empire.lastAction = new Date()
-						await empire.save()
 					} else {
-						resultArray.push(turnRes)
 						// add value to empire.key
-						empire.cash = empire.cash + turnRes.money - turnRes.loanpayed
+						await updateEmpire(empire, turnRes, 1)
+						resultArray.push(turnRes)
 
-						if (empire.cash < 0) {
-							empire.cash = 0
-						}
-
-						empire.income += turnRes.income
-						empire.expenses +=
-							turnRes.expenses + turnRes.wartax + turnRes.corruption
-
-						empire.bank += turnRes.bankInterest
-						empire.loan -= turnRes.loanpayed + turnRes.loanInterest
-						empire.trpArm += turnRes.trpArm
-						empire.trpLnd += turnRes.trpLnd
-						empire.trpFly += turnRes.trpFly
-						empire.trpSea += turnRes.trpSea
-						empire.indyProd +=
-							turnRes.trpArm * game.pvtmTrpArm +
-							turnRes.trpLnd * game.pvtmTrpLnd +
-							turnRes.trpFly * game.pvtmTrpFly +
-							turnRes.trpSea * game.pvtmTrpSea
-
-						empire.food += turnRes.food
-						empire.foodpro += turnRes.foodpro
-						empire.foodcon += turnRes.foodcon
-
-						empire.peasants += turnRes.peasants
-						empire.runes += turnRes.runes
-						empire.trpWiz += turnRes.trpWiz
-						empire.networth = getNetworth(empire, game)
-
-						if (empire.peakCash < empire.cash + empire.bank) {
-							empire.peakCash = empire.cash + empire.bank
-						}
-						if (empire.peakFood < empire.food) {
-							empire.peakFood = empire.food
-						}
-						if (empire.peakRunes < empire.runes) {
-							empire.peakRunes = empire.runes
-						}
-						if (empire.peakPeasants < empire.peasants) {
-							empire.peakPeasants = empire.peasants
-						}
-						if (empire.peakLand < empire.land) {
-							empire.peakLand = empire.land
-						}
-						if (empire.peakNetworth < empire.networth) {
-							empire.peakNetworth = empire.networth
-						}
-						if (empire.peakTrpArm < empire.trpArm) {
-							empire.peakTrpArm = empire.trpArm
-						}
-						if (empire.peakTrpLnd < empire.trpLnd) {
-							empire.peakTrpLnd = empire.trpLnd
-						}
-						if (empire.peakTrpFly < empire.trpFly) {
-							empire.peakTrpFly = empire.trpFly
-						}
-						if (empire.peakTrpSea < empire.trpSea) {
-							empire.peakTrpSea = empire.trpSea
-						}
-						if (empire.peakTrpWiz < empire.trpWiz) {
-							empire.peakTrpWiz = empire.trpWiz
-						}
-
-						empire.turns--
-						empire.turnsUsed++
-
-						empire.lastAction = new Date()
-						await empire.save()
 						break
 					}
 				}
