@@ -294,6 +294,7 @@ const pubSell = async (req: Request, res: Response) => {
 			// console.log(index)
 			// console.log(price)
 			// console.log(amount)
+			let game_id = game.game_id
 			let empire_id = empire.id
 			returnArray[index].amount = amount
 			returnArray[index].price = price
@@ -312,7 +313,7 @@ const pubSell = async (req: Request, res: Response) => {
 				empire.runes -= amount
 			}
 			await empire.save()
-			marketItem = new Market({ type, amount, price, empire_id })
+			marketItem = new Market({ type, amount, price, empire_id, game_id })
 			await marketItem.save()
 			// console.log(marketItem)
 			// console.log(returnArray)
@@ -369,6 +370,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 	returnObject.arm = await Market.find({
 		where: {
 			type: 0,
+			game_id: game.game_id,
 			empire_id: Not(empireId),
 			amount: Not(0),
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
@@ -382,6 +384,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 	returnObject.lnd = await Market.find({
 		where: {
 			type: 1,
+			game_id: game.game_id,
 			empire_id: Not(empireId),
 			amount: Not(0),
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
@@ -395,6 +398,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 	returnObject.fly = await Market.find({
 		where: {
 			type: 2,
+			game_id: game.game_id,
 			empire_id: Not(empireId),
 			amount: Not(0),
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
@@ -408,6 +412,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 	returnObject.sea = await Market.find({
 		where: {
 			type: 3,
+			game_id: game.game_id,
 			empire_id: Not(empireId),
 			amount: Not(0),
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
@@ -421,6 +426,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 	returnObject.food = await Market.find({
 		where: {
 			type: 4,
+			game_id: game.game_id,
 			empire_id: Not(empireId),
 			amount: Not(0),
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
@@ -434,6 +440,7 @@ const getOtherItems = async (req: Request, res: Response) => {
 	returnObject.runes = await Market.find({
 		where: {
 			type: 5,
+			game_id: game.game_id,
 			empire_id: Not(empireId),
 			amount: Not(0),
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),

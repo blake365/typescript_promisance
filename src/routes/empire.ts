@@ -10,8 +10,7 @@ import EmpireEffect from '../entity/EmpireEffect'
 import Clan from '../entity/Clan'
 import ClanRelation from '../entity/ClanRelation'
 import ClanMessage from '../entity/ClanMessage'
-import EmpireMessage from '../entity/EmpireMessage'
-import verify from '../middleware/verify'
+// import EmpireMessage from '../entity/EmpireMessage'
 import { attachGame } from '../middleware/game'
 import Game from '../entity/Game'
 
@@ -91,8 +90,8 @@ const createEmpire = async (req: Request, res: Response) => {
 		if (user.role === 'demo') {
 			mode = 'demo'
 			turns = turnsDemo
-			attacks = Math.round(maxAttacks * 0.2)
-			spells = Math.round(maxSpells * 0.2)
+			attacks = Math.round(maxAttacks * 0.8)
+			spells = Math.round(maxSpells * 0.8)
 			empire = new Empire({
 				name,
 				race,

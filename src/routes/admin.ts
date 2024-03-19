@@ -40,6 +40,7 @@ const getEmpires = async (req: Request, res: Response) => {
 
 	try {
 		const empires = await Empire.find({
+			where: { game_id: req.query.gameId },
 			order: {
 				createdAt: 'DESC',
 			},
@@ -63,7 +64,15 @@ const getUsers = async (req: Request, res: Response) => {
 				createdAt: 'DESC',
 			},
 		})
-		return res.json(users)
+
+		const filteredUsers = users.filter((user) => {
+			user.empires = user.empires.filter((empire) => {
+				return empire.game_id === Number(req.query.gameId)
+			})
+			return user.empires.length !== 0
+		})
+
+		return res.json(filteredUsers)
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json(error)
@@ -77,6 +86,7 @@ const getNews = async (req: Request, res: Response) => {
 
 	try {
 		const news = await EmpireNews.find({
+			where: { game_id: req.query.gameId },
 			order: {
 				createdAt: 'DESC',
 			},
@@ -95,6 +105,7 @@ const getMarkets = async (req: Request, res: Response) => {
 
 	try {
 		const markets = await Market.find({
+			where: { game_id: req.query.gameId },
 			order: {
 				createdAt: 'DESC',
 			},

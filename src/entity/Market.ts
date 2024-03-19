@@ -26,6 +26,13 @@ export default class Market extends Model {
 		type: 'int',
 		default: 0,
 	})
+	game_id: number
+
+	@Index()
+	@Column({
+		type: 'int',
+		default: 0,
+	})
 	type: number
 
 	@Index()
