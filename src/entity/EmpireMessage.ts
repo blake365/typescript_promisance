@@ -36,6 +36,13 @@ export default class EmpireMessage extends Model {
 	})
 	empireIdSource: number
 
+	@Index()
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	game_id: number
+
 	@Column({
 		default: '',
 	})

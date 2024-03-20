@@ -22,6 +22,13 @@ export default class ClanMessage extends Model {
 	})
 	empireId: number
 
+	@Index()
+	@Column({
+		type: 'int',
+		default: 0,
+	})
+	game_id: number
+
 	@Column({
 		default: '',
 	})

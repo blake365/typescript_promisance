@@ -6,6 +6,7 @@ import auth from '../middleware/auth'
 import { getConnection } from 'typeorm'
 import User from '../entity/User'
 import { containsOnlySymbols } from './actions/actions'
+import { attachGame } from '../middleware/game'
 
 const Filter = require('bad-words')
 const filter = new Filter()
@@ -128,6 +129,7 @@ const postMessage = async (req: Request, res: Response) => {
 	console.log(message)
 
 	const user: User = res.locals.user
+	const { game_id } = res.locals.game
 
 	if (user.empires[0].id !== sourceId) {
 		return res.status(401).json({ message: 'Unauthorized' })
@@ -181,6 +183,7 @@ const postMessage = async (req: Request, res: Response) => {
 			messageFlags: 0,
 			messageIdRef: 0,
 			conversationId: conversationId1,
+			game_id: game_id,
 		})
 
 		await newConversation.save()
@@ -198,6 +201,7 @@ const postMessage = async (req: Request, res: Response) => {
 			messageFlags: 0,
 			messageIdRef: 0,
 			conversationId: conversationId1,
+			game_id: game_id,
 		})
 
 		await newMessage.save()
@@ -215,6 +219,7 @@ const postMessage = async (req: Request, res: Response) => {
 			messageFlags: 0,
 			messageIdRef: 0,
 			conversationId: conversationId2,
+			game_id: game_id,
 		})
 
 		await newMessage.save()
@@ -303,6 +308,8 @@ const postClanMessage = async (req: Request, res: Response) => {
 	const { empireId, empireName, clanMessageBody, clanId } = req.body
 	// console.log(req.body)
 	let message = clanMessageBody
+
+	const { game_id } = res.locals.game
 	// if message only contains symbols, return message
 	if (!containsOnlySymbols(clanMessageBody)) {
 		message = filter.clean(clanMessageBody)
@@ -315,6 +322,7 @@ const postClanMessage = async (req: Request, res: Response) => {
 			clanMessageBody: message,
 			clanId,
 			seenBy: [empireId],
+			game_id,
 		})
 
 		await newMessage.save()
@@ -425,19 +433,17 @@ const toggleReport = async (req: Request, res: Response) => {
 	}
 }
 
-const deleteMessage = async (req: Request, res: Response) => {}
-
 const router = Router()
 
 router.post('/conversations', user, auth, getConversations)
 router.post('/messages', user, auth, getMessages)
-router.post('/message/new', user, auth, postMessage)
+router.post('/message/new', user, auth, attachGame, postMessage)
 router.get('/:id/count', user, auth, countNew)
 router.get('/:id/check', user, auth, checkForNew)
 router.get('/:id/read', user, auth, markRead)
 // router.delete('/message', deleteMessage)
 router.post('/clan', user, auth, getClanMessages)
-router.post('/clan/new', user, auth, postClanMessage)
+router.post('/clan/new', user, auth, attachGame, postClanMessage)
 router.post('/clan/read', user, auth, readClanMessages)
 router.post('/clan/unread', user, auth, unreadClanMessages)
 router.post('/report', user, auth, reportMessage)

@@ -124,6 +124,25 @@ const getMails = async (req: Request, res: Response) => {
 
 	try {
 		const mail = await EmpireMessage.find({
+			where: { game_id: req.query.gameId },
+			order: {
+				createdAt: 'DESC',
+			},
+		})
+		return res.json(mail)
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
+const getClanMails = async (req: Request, res: Response) => {
+	if (res.locals.user.role !== 'admin') {
+		return res.status(401).json({ message: 'Not authorized' })
+	}
+	try {
+		const mail = await ClanMessage.find({
+			where: { game_id: req.query.gameId },
 			order: {
 				createdAt: 'DESC',
 			},
@@ -459,6 +478,37 @@ const deleteMail = async (req: Request, res: Response) => {
 	try {
 		await EmpireMessage.delete({ uuid: uuid })
 		return res.json({ message: 'Mail deleted' })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
+const updateClanMail = async (req: Request, res: Response) => {
+	if (res.locals.user.role !== 'admin') {
+		return res.status(401).json({ message: 'Not authorized' })
+	}
+	const { uuid } = req.params
+	const body = req.body
+
+	try {
+		await ClanMessage.update({ uuid: uuid }, body)
+		return res.json({ message: 'Clan Mail updated' })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
+const deleteClanMail = async (req: Request, res: Response) => {
+	if (res.locals.user.role !== 'admin') {
+		return res.status(401).json({ message: 'Not authorized' })
+	}
+	const { uuid } = req.params
+
+	try {
+		await ClanMessage.delete({ uuid: uuid })
+		return res.json({ message: 'Clan Mail deleted' })
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json(error)
@@ -862,6 +912,8 @@ router.get('/users', user, auth, getUsers)
 router.get('/news', user, auth, getNews)
 router.get('/markets', user, auth, getMarkets)
 router.get('/mail', user, auth, getMails)
+router.get('/clanMail', user, auth, getClanMails)
+
 router.get('/countusers', user, auth, countUsers)
 router.get('/countempires', user, auth, countEmpires)
 router.get('/countnews', user, auth, countNews)
@@ -886,6 +938,8 @@ router.post('/updatemarket/:uuid', user, auth, updateMarket)
 router.delete('/deletemarket/:uuid', user, auth, deleteMarket)
 router.post('/updatemail/:uuid', user, auth, updateMail)
 router.delete('/deletemail/:uuid', user, auth, deleteMail)
+router.post('/updateClanMail/:uuid', user, auth, updateClanMail)
+router.delete('/deleteClanMail/:uuid', user, auth, deleteClanMail)
 
 router.post('/resetgame', user, auth, resetGame)
 router.post('/creategame', user, auth, createGame)
