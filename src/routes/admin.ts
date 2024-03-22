@@ -507,9 +507,7 @@ const deleteClanMail = async (req: Request, res: Response) => {
 	}
 }
 
-const countAll = async (req: Request, res: Response) => {
-	// FIXME: need to add game_id to all queries
-
+const countEverything = async (req: Request, res: Response) => {
 	if (res.locals.user.role !== 'admin') {
 		return res.status(401).json({ message: 'Not authorized' })
 	}
@@ -525,6 +523,53 @@ const countAll = async (req: Request, res: Response) => {
 		})
 		return res.json({
 			users: users,
+			empires: empires,
+			news: news,
+			markets: markets,
+			mail: mail,
+			reports: mailReports,
+		})
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
+const countAll = async (req: Request, res: Response) => {
+	if (res.locals.user.role !== 'admin') {
+		return res.status(401).json({ message: 'Not authorized' })
+	}
+
+	const game: Game = res.locals.game
+
+	console.log(game.game_id)
+
+	try {
+		let userCount = 0
+		let empires = 0
+		let news = 0
+		let markets = 0
+		let mail = 0
+		let mailReports = 0
+
+		let users = await User.find({ relations: ['empires'] })
+		users = users.filter((user) => {
+			user.empires = user.empires.filter((empire) => {
+				return empire.game_id === Number(game.game_id)
+			})
+			return user.empires.length !== 0
+		})
+		userCount = users.length
+		empires = await Empire.count({ where: { game_id: game.game_id } })
+		news = await EmpireNews.count({ where: { game_id: game.game_id } })
+		markets = await Market.count({ where: { game_id: game.game_id } })
+		mail = await EmpireMessage.count({ where: { game_id: game.game_id } })
+		mailReports = await EmpireMessage.count({
+			where: { messageFlags: 1, game_id: game.game_id },
+		})
+
+		return res.json({
+			users: userCount,
 			empires: empires,
 			news: news,
 			markets: markets,
@@ -945,7 +990,8 @@ router.get('/countempires', user, auth, countEmpires)
 router.get('/countnews', user, auth, countNews)
 router.get('/countmarkets', user, auth, countMarkets)
 router.get('/countmail', user, auth, countMails)
-router.get('/countall', user, auth, countAll)
+router.get('/countall', user, auth, attachGame, countAll)
+router.get('/counteverything', user, auth, countEverything)
 
 router.get('/users/:uuid', user, auth, loadOneUser)
 router.get('/empires/:uuid', user, auth, loadOneEmpire)

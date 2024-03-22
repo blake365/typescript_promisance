@@ -36,6 +36,9 @@ export default class Game extends Model {
 	@Column({ default: 'competition' })
 	type: string
 
+	@Column({ default: false })
+	experimental: boolean
+
 	@Column({ default: 1 })
 	version: number
 
