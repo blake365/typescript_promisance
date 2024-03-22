@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import Empire from '../entity/Empire'
 import User from '../entity/User'
 import EmpireNews from '../entity/EmpireNews'
@@ -11,16 +12,6 @@ import Game from '../entity/Game'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import RoundHistory from '../entity/RoundHistory'
-import {
-	ROUND_DESCRIPTION,
-	ROUND_NAME,
-	ROUND_START,
-	ROUND_END,
-	PVTM_FOOD,
-	PVTM_TRPARM,
-	TURNS_PROTECTION,
-	GAME_VERSION,
-} from '../config/conifg'
 import { makeId } from '../util/helpers'
 import { raceArray } from '../config/races'
 import { eraArray } from '../config/eras'
@@ -31,6 +22,7 @@ import Lottery from '../entity/Lottery'
 import { getConnection } from 'typeorm'
 import ClanMessage from '../entity/ClanMessage'
 import EmpireIntel from '../entity/EmpireIntel'
+import { attachGame } from '../middleware/game'
 
 // READ
 const getEmpires = async (req: Request, res: Response) => {
@@ -516,6 +508,8 @@ const deleteClanMail = async (req: Request, res: Response) => {
 }
 
 const countAll = async (req: Request, res: Response) => {
+	// FIXME: need to add game_id to all queries
+
 	if (res.locals.user.role !== 'admin') {
 		return res.status(401).json({ message: 'Not authorized' })
 	}
@@ -546,6 +540,7 @@ const countAll = async (req: Request, res: Response) => {
 // reset game and round
 const resetGame = async (req: Request, res: Response) => {
 	const { code } = req.body
+	const game: Game = res.locals.game
 
 	if (!res.locals.user || res.locals.user.role !== 'admin') {
 		return res.status(401).json({
@@ -561,11 +556,11 @@ const resetGame = async (req: Request, res: Response) => {
 
 	try {
 		// create round history
-		let round_h_id = makeId(10)
-		let name: string = ROUND_NAME
-		let description: string = ROUND_DESCRIPTION
-		let startDate = ROUND_START
-		let stopDate = ROUND_END
+		const round_h_id = makeId(10)
+		const name: string = game.roundName
+		const description: string = game.roundDescription
+		const startDate = game.roundStart
+		const stopDate = game.roundEnd
 
 		// save empire data into empire history table
 		// save clan data into clan history
@@ -573,15 +568,19 @@ const resetGame = async (req: Request, res: Response) => {
 		// update user stats
 		let users = await User.find()
 
-		// filter out users with no empires
+		// filter out users with no empires in this game
 		users = users.filter((user) => {
-			return user?.empires?.length > 0
+			user.empires = user.empires.filter((empire) => {
+				return empire.game_id === Number(game.game_id)
+			})
+			return user.empires.length !== 0
 		})
 
+		// biome-ignore lint/complexity/noForEach: <explanation>
 		users.forEach(async (user) => {
 			// console.log(user)
-			let empire = await Empire.findOne({
-				where: { id: user.empires[0].id },
+			const empire = await Empire.findOne({
+				where: { id: user.empires[0].id, game_id: game.game_id },
 			})
 
 			if (empire.rank > user.bestRank) {
@@ -602,12 +601,12 @@ const resetGame = async (req: Request, res: Response) => {
 
 			user.totalProduction +=
 				empire.income +
-				empire.foodpro * (PVTM_FOOD / PVTM_TRPARM) +
+				empire.foodpro * (game.pvtmFood / game.pvtmTrpArm) +
 				empire.indyProd +
 				empire.magicProd
 
 			user.totalConsumption +=
-				empire.expenses + empire.foodcon * (PVTM_FOOD / PVTM_TRPARM)
+				empire.expenses + empire.foodcon * (game.pvtmFood / game.pvtmTrpArm)
 
 			await user.save()
 		})
@@ -615,25 +614,27 @@ const resetGame = async (req: Request, res: Response) => {
 		console.log('user stats updated')
 
 		// get clans
-		let clans = await Clan.find()
+		const clans = await Clan.find({ where: { game_id: game.game_id } })
+		// biome-ignore lint/complexity/noForEach: <explanation>
 		clans.forEach(async (clan) => {
 			// create clan history
-			let roundHistory_id = round_h_id
-			let clanHistoryName = clan.clanName
-			let clanHistoryMembers = clan.clanMembers
+			const roundHistory_id = round_h_id
+			const clanHistoryName = clan.clanName
+			const clanHistoryMembers = clan.clanMembers
 			let totalNetworth = 0
-			let clan_id = clan.id
-			let clanHistoryLeader = clan.empireIdLeader
-			let clanHistoryAssistant = clan.empireIdAssistant
+			const clan_id = clan.id
+			const clanHistoryLeader = clan.empireIdLeader
+			const clanHistoryAssistant = clan.empireIdAssistant
 
 			const empires = await Empire.find({
 				where: { clanId: clan.id },
 			})
 
+			// biome-ignore lint/complexity/noForEach: <explanation>
 			empires.forEach((empire) => {
 				totalNetworth += empire.networth
 			})
-			let clanHistoryTotalNet = totalNetworth
+			const clanHistoryTotalNet = totalNetworth
 
 			// create clan history
 			await new ClanHistory({
@@ -651,54 +652,56 @@ const resetGame = async (req: Request, res: Response) => {
 		console.log('clan history added and clans removed')
 
 		// get empires
-		let empires = await Empire.find({
+		const empires = await Empire.find({
 			relations: ['user'],
+			where: { game_id: game.game_id },
 		})
 
+		// biome-ignore lint/complexity/noForEach: <explanation>
 		empires.forEach(async (empire) => {
-			if (empire.turnsUsed > TURNS_PROTECTION) {
+			if (empire.turnsUsed > game.turnsProtection) {
 				// console.log(empire.user)
-				let roundHistory_id = round_h_id
-				let u_id = empire.user.id
-				let empireHistoryName = empire.name
-				let empireHistoryId = empire.id
-				let empireHistoryRace = raceArray[empire.race].name
-				let empireHistoryEra = eraArray[empire.era].name
-				let clanHistory_id = empire.clanId
-				let empireHistoryOffSucc = empire.offSucc
-				let empireHistoryOffTotal = empire.offTotal
-				let empireHistoryDefSucc = empire.defSucc
-				let empireHistoryDefTotal = empire.defTotal
-				let empireHistoryNetworth = empire.networth
-				let empireHistoryLand = empire.land
-				let empireHistoryRank = empire.rank
-				let empireHistoryAttackGain = empire.attackGains
-				let empireHistoryAttackLoss = empire.attackLosses
-				let empireHistoryExpenses = empire.expenses
-				let empireHistoryIncome = empire.income
-				let empireHistoryFoodCon = empire.foodcon
-				let empireHistoryFoodPro = empire.foodpro
-				let empireHistoryIndyProd = empire.indyProd
-				let empireHistoryMagicProd = empire.magicProd
-				let profile = empire.profile
-				let profileIcon = empire.profileIcon
-				let turnsUsed = empire.turnsUsed
-				let finalTrpArm = empire.trpArm
-				let finalTrpLnd = empire.trpLnd
-				let finalTrpFly = empire.trpFly
-				let finalTrpSea = empire.trpSea
-				let finalTrpWiz = empire.trpWiz
-				let peakCash = empire.peakCash
-				let peakLand = empire.peakLand
-				let peakNetworth = empire.peakNetworth
-				let peakFood = empire.peakFood
-				let peakRunes = empire.peakRunes
-				let peakPeasants = empire.peakPeasants
-				let peakTrpArm = empire.peakTrpArm
-				let peakTrpLnd = empire.peakTrpLnd
-				let peakTrpFly = empire.peakTrpFly
-				let peakTrpSea = empire.peakTrpSea
-				let peakTrpWiz = empire.peakTrpWiz
+				const roundHistory_id = round_h_id
+				const u_id = empire.user.id
+				const empireHistoryName = empire.name
+				const empireHistoryId = empire.id
+				const empireHistoryRace = raceArray[empire.race].name
+				const empireHistoryEra = eraArray[empire.era].name
+				const clanHistory_id = empire.clanId
+				const empireHistoryOffSucc = empire.offSucc
+				const empireHistoryOffTotal = empire.offTotal
+				const empireHistoryDefSucc = empire.defSucc
+				const empireHistoryDefTotal = empire.defTotal
+				const empireHistoryNetworth = empire.networth
+				const empireHistoryLand = empire.land
+				const empireHistoryRank = empire.rank
+				const empireHistoryAttackGain = empire.attackGains
+				const empireHistoryAttackLoss = empire.attackLosses
+				const empireHistoryExpenses = empire.expenses
+				const empireHistoryIncome = empire.income
+				const empireHistoryFoodCon = empire.foodcon
+				const empireHistoryFoodPro = empire.foodpro
+				const empireHistoryIndyProd = empire.indyProd
+				const empireHistoryMagicProd = empire.magicProd
+				const profile = empire.profile
+				const profileIcon = empire.profileIcon
+				const turnsUsed = empire.turnsUsed
+				const finalTrpArm = empire.trpArm
+				const finalTrpLnd = empire.trpLnd
+				const finalTrpFly = empire.trpFly
+				const finalTrpSea = empire.trpSea
+				const finalTrpWiz = empire.trpWiz
+				const peakCash = empire.peakCash
+				const peakLand = empire.peakLand
+				const peakNetworth = empire.peakNetworth
+				const peakFood = empire.peakFood
+				const peakRunes = empire.peakRunes
+				const peakPeasants = empire.peakPeasants
+				const peakTrpArm = empire.peakTrpArm
+				const peakTrpLnd = empire.peakTrpLnd
+				const peakTrpFly = empire.peakTrpFly
+				const peakTrpSea = empire.peakTrpSea
+				const peakTrpWiz = empire.peakTrpWiz
 
 				// create empire history
 				await new EmpireHistory({
@@ -750,13 +753,16 @@ const resetGame = async (req: Request, res: Response) => {
 
 		console.log('empire history added and empires removed')
 
-		let allClans = clans.length
-		let allEmpires = empires.length
-		let gameVersion = String(GAME_VERSION)
+		const allClans = clans.length
+		const allEmpires = empires.length
+		const gameVersion = String(game.version)
 		const countUnclanned = empires.filter((empire) => {
 			return empire.clanId === 0
 		})
-		let nonClanEmpires = countUnclanned.length
+		const nonClanEmpires = countUnclanned.length
+		const icon = game.icon
+		const color = game.color
+		const type = game.type
 
 		await new RoundHistory({
 			round_h_id,
@@ -768,6 +774,9 @@ const resetGame = async (req: Request, res: Response) => {
 			allEmpires,
 			nonClanEmpires,
 			gameVersion,
+			icon,
+			color,
+			type,
 		}).save()
 
 		console.log('round history added')
@@ -776,6 +785,7 @@ const resetGame = async (req: Request, res: Response) => {
 			.createQueryBuilder()
 			.delete()
 			.from(ClanMessage)
+			.where('game_id = :game_id', { game_id: game.game_id })
 			.execute()
 
 		console.log('clan messages removed')
@@ -784,11 +794,17 @@ const resetGame = async (req: Request, res: Response) => {
 			.createQueryBuilder()
 			.delete()
 			.from(EmpireMessage)
+			.where('game_id = :game_id', { game_id: game.game_id })
 			.execute()
 
 		console.log('empire messages removed')
 
-		await getConnection().createQueryBuilder().delete().from(Market).execute()
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(Market)
+			.where('game_id = :game_id', { game_id: game.game_id })
+			.execute()
 
 		console.log('market items removed')
 
@@ -796,6 +812,7 @@ const resetGame = async (req: Request, res: Response) => {
 			.createQueryBuilder()
 			.delete()
 			.from(EmpireNews)
+			.where('game_id = :game_id', { game_id: game.game_id })
 			.execute()
 
 		console.log('news removed')
@@ -804,13 +821,16 @@ const resetGame = async (req: Request, res: Response) => {
 			.createQueryBuilder()
 			.delete()
 			.from(ClanRelation)
+			.where('game_id = :game_id', { game_id: game.game_id })
 			.execute()
+
 		console.log('clan relations removed')
 
 		await getConnection()
 			.createQueryBuilder()
 			.delete()
 			.from(EmpireIntel)
+			.where('game_id = :game_id', { game_id: game.game_id })
 			.execute()
 		console.log('empire intel removed')
 
@@ -821,10 +841,16 @@ const resetGame = async (req: Request, res: Response) => {
 			.createQueryBuilder()
 			.delete()
 			.from(EmpireSnapshot)
+			.where('game_id = :game_id', { game_id: game.game_id })
 			.execute()
 		console.log('snapshots removed')
 
-		await getConnection().createQueryBuilder().delete().from(Lottery).execute()
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(Lottery)
+			.where('game_id = :game_id', { game_id: game.game_id })
+			.execute()
 		console.log('lottery tickets removed')
 
 		console.log('game reset')
@@ -897,7 +923,7 @@ const createGame = async (req: Request, res: Response) => {
 	}
 
 	try {
-		await Game.create(game)
+		Game.create(game)
 		return res.json({ message: 'Game created' })
 	} catch (error) {
 		console.log(error)
@@ -941,7 +967,7 @@ router.delete('/deletemail/:uuid', user, auth, deleteMail)
 router.post('/updateClanMail/:uuid', user, auth, updateClanMail)
 router.delete('/deleteClanMail/:uuid', user, auth, deleteClanMail)
 
-router.post('/resetgame', user, auth, resetGame)
+router.post('/resetgame', user, auth, attachGame, resetGame)
 router.post('/creategame', user, auth, createGame)
 
 export default router

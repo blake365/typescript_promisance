@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import Empire from '../entity/Empire'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
@@ -8,10 +9,9 @@ import Clan from '../entity/Clan'
 import bcrypt from 'bcrypt'
 import { createNewsEvent } from '../util/helpers'
 import ClanRelation from '../entity/ClanRelation'
-import User from '../entity/User'
 import { containsOnlySymbols } from './actions/actions'
 import { attachGame } from '../middleware/game'
-import Game from '../entity/Game'
+import type Game from '../entity/Game'
 
 const Filter = require('bad-words')
 const filter = new Filter()
@@ -656,8 +656,9 @@ const removeClanRole = async (req: Request, res: Response) => {
 }
 
 const declareWar = async (req: Request, res: Response) => {
-	let { empireId, clanId, enemyClanId } = req.body
+	const { empireId, clanId, enemyClanId } = req.body
 
+	const game: Game = res.locals.game
 	// console.log(req.body)
 	try {
 		const empire = await Empire.findOneOrFail({
@@ -693,7 +694,7 @@ const declareWar = async (req: Request, res: Response) => {
 
 		// console.log(clan.relation)
 
-		let relations = clan.relation.map((relation) => {
+		const relations = clan.relation.map((relation) => {
 			if (relation.clanRelationFlags === 'war') {
 				return relation.c_id2
 			}
@@ -701,7 +702,7 @@ const declareWar = async (req: Request, res: Response) => {
 
 		// console.log(enemyClan.relation)
 
-		let enemyRelations = enemyClan.relation.map((relation) => {
+		const enemyRelations = enemyClan.relation.map((relation) => {
 			if (relation.clanRelationFlags === 'war') {
 				return relation.c_id2
 			}
@@ -709,31 +710,33 @@ const declareWar = async (req: Request, res: Response) => {
 
 		if (relations.includes(enemyClanId) || enemyRelations.includes(clanId)) {
 			return res.status(400).json({ error: 'Clan is already at war' })
-		} else {
-			let myClanRelation = new ClanRelation({
-				c_id1: clanId,
-				clan1Name: clan.clanName,
-				c_id2: enemyClanId,
-				clan2Name: enemyClan.clanName,
-				clanRelationFlags: 'war',
-				clan: clan,
-			})
-
-			let enemyClanRelation = new ClanRelation({
-				c_id1: enemyClanId,
-				clan1Name: enemyClan.clanName,
-				c_id2: clanId,
-				clan2Name: clan.clanName,
-				clanRelationFlags: 'war',
-				clan: enemyClan,
-			})
-
-			await myClanRelation.save()
-			await enemyClanRelation.save()
 		}
 
-		let pubContent = `${clan.clanName} has declared war on ${enemyClan.clanName}!`
-		let content = `${clan.clanName} has declared war on you!`
+		const myClanRelation = new ClanRelation({
+			c_id1: clanId,
+			clan1Name: clan.clanName,
+			c_id2: enemyClanId,
+			clan2Name: enemyClan.clanName,
+			clanRelationFlags: 'war',
+			clan: clan,
+			game_id: game.game_id,
+		})
+
+		const enemyClanRelation = new ClanRelation({
+			c_id1: enemyClanId,
+			clan1Name: enemyClan.clanName,
+			c_id2: clanId,
+			clan2Name: clan.clanName,
+			clanRelationFlags: 'war',
+			clan: enemyClan,
+			game_id: game.game_id,
+		})
+
+		await myClanRelation.save()
+		await enemyClanRelation.save()
+
+		const pubContent = `${clan.clanName} has declared war on ${enemyClan.clanName}!`
+		const content = `${clan.clanName} has declared war on you!`
 
 		await createNewsEvent(
 			content,
@@ -759,6 +762,7 @@ const declareWar = async (req: Request, res: Response) => {
 const offerPeace = async (req: Request, res: Response) => {
 	const { empireId, clanId, enemyClanId } = req.body
 
+	const game: Game = res.locals.game
 	// console.log(req.body)
 
 	try {
@@ -874,6 +878,7 @@ const offerPeace = async (req: Request, res: Response) => {
 				clan2Name: enemyClan.clanName,
 				clanRelationFlags: 'peace',
 				clan: clan,
+				game_id: game.game_id,
 			})
 
 			await myClanRelation.save()
@@ -915,7 +920,7 @@ router.get('/getClans', getClans)
 router.get('/getClansData', getClansData)
 router.post('/assignRole', user, auth, assignClanRole)
 router.post('/removeRole', user, auth, removeClanRole)
-router.post('/declareWar', user, auth, declareWar)
-router.post('/offerPeace', user, auth, offerPeace)
+router.post('/declareWar', user, auth, attachGame, declareWar)
+router.post('/offerPeace', user, auth, attachGame, offerPeace)
 
 export default router

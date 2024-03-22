@@ -17,6 +17,9 @@ export default class EmpireIntel extends Model {
 	@PrimaryGeneratedColumn()
 	intel_id: number
 
+	@Column({ type: 'int', default: 1 })
+	game_id: number
+
 	// @CreateDateColumn()
 	// createdAt: Date
 
@@ -49,7 +52,7 @@ export default class EmpireIntel extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 100000,
 	})
@@ -64,7 +67,7 @@ export default class EmpireIntel extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 10000,
 	})
@@ -88,7 +91,7 @@ export default class EmpireIntel extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -97,7 +100,7 @@ export default class EmpireIntel extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 500,
 	})
@@ -118,7 +121,7 @@ export default class EmpireIntel extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -133,7 +136,7 @@ export default class EmpireIntel extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 100,
 	})
@@ -142,7 +145,7 @@ export default class EmpireIntel extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 20,
 	})
@@ -151,7 +154,7 @@ export default class EmpireIntel extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 50,
 	})
@@ -160,7 +163,7 @@ export default class EmpireIntel extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 10,
 	})
@@ -169,7 +172,7 @@ export default class EmpireIntel extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 10,
 	})

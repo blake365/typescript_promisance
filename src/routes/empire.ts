@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import Empire from '../entity/Empire'
-import User from '../entity/User'
+import type User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { containsOnlySymbols, getNetworth } from './actions/actions'
@@ -12,7 +12,7 @@ import ClanRelation from '../entity/ClanRelation'
 import ClanMessage from '../entity/ClanMessage'
 // import EmpireMessage from '../entity/EmpireMessage'
 import { attachGame } from '../middleware/game'
-import Game from '../entity/Game'
+import type Game from '../entity/Game'
 
 const Filter = require('bad-words')
 const filter = new Filter()

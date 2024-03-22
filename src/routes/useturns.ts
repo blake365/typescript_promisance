@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
-import Game from '../entity/Game'
+import type Game from '../entity/Game'
 import {
 	calcPCI,
 	calcSizeBonus,
@@ -700,7 +700,7 @@ export const useTurn = async (
 	await empire.save()
 	// console.log(empire)
 	// console.log(achievementResult)
-	await takeSnapshot(empire)
+	await takeSnapshot(empire, game.turnsProtection)
 	// console.log(statsArray)
 	return statsArray
 }

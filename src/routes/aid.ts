@@ -174,7 +174,7 @@ const sendAid = async (req: Request, res: Response) => {
 			}
 
 			await receiver.save()
-			await takeSnapshot(receiver)
+			await takeSnapshot(receiver, game.turnsProtection)
 
 			aidTurns['aid'] = 'Shipment sent successfully'
 
@@ -212,7 +212,7 @@ const sendAid = async (req: Request, res: Response) => {
 		resultArray.push(aidTurns)
 
 		// await awardAchievements(sender)
-		await takeSnapshot(sender)
+		await takeSnapshot(sender, game.turnsProtection)
 	} catch (err) {
 		return res.status(400).json({ error: 'something went wrong' })
 	}

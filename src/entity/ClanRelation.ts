@@ -43,6 +43,9 @@ export default class ClanRelation extends Model {
 	})
 	clanRelationFlags: string
 
+	@Column({ type: 'int', default: 1 })
+	game_id: number
+
 	@Column({
 		type: 'int',
 		default: 0,

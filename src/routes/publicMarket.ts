@@ -7,10 +7,9 @@ import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { Not, Raw } from 'typeorm'
 import { createNewsEvent } from '../util/helpers'
-import User from '../entity/User'
 import { takeSnapshot } from './actions/snaps'
 import { attachGame } from '../middleware/game'
-import Game from '../entity/Game'
+import type Game from '../entity/Game'
 
 interface ReturnObject {
 	amount: number
@@ -123,12 +122,12 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 		await itemBought.save()
 
 		// await awardAchievements(buyer)
-		await takeSnapshot(buyer)
-		await takeSnapshot(seller)
+		await takeSnapshot(buyer, game.turnsProtection)
+		await takeSnapshot(seller, game.turnsProtection)
 
 		// create news entry
-		let content: string = `You sold ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}. The money was deposited into the bank.`
-		let pubContent: string = `${buyer.name} purchased ${itemName} from the public market.`
+		const content = `You sold ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}. The money was deposited into the bank.`
+		const pubContent = `${buyer.name} purchased ${itemName} from the public market.`
 
 		// create news event for seller that goods have been purchased
 		await createNewsEvent(
@@ -325,7 +324,7 @@ const pubSell = async (req: Request, res: Response) => {
 
 	await empire.save()
 	// await awardAchievements(empire)
-	await takeSnapshot(empire)
+	await takeSnapshot(empire, game.turnsProtection)
 
 	// console.log(returnArray)
 	// console.log(empire.networth)
@@ -519,7 +518,7 @@ const recallItem = async (req: Request, res: Response) => {
 		}
 		await empire.save()
 		// await awardAchievements(empire)
-		await takeSnapshot(empire)
+		await takeSnapshot(empire, game.turnsProtection)
 		return res.json({ success: 'Item recalled' })
 	} catch (e) {
 		console.log(e)

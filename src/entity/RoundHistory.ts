@@ -90,4 +90,13 @@ export default class RoundHistory extends Model {
 		default: 0,
 	})
 	allEmpires: number
+
+	@Column({ default: '' })
+	icon: string
+
+	@Column({ default: 'blue' })
+	color: string
+
+	@Column({ default: 'competition' })
+	type: string
 }

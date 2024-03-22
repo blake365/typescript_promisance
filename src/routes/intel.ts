@@ -1,8 +1,9 @@
 import EmpireIntel from '../entity/EmpireIntel'
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
-import User from '../entity/User'
+import type User from '../entity/User'
 
 const getIntel = async (req: Request, res: Response) => {
 	const id = req.params.id

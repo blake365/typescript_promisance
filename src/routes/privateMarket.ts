@@ -7,7 +7,7 @@ import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { takeSnapshot } from './actions/snaps'
 import { attachGame } from '../middleware/game'
-import Game from '../entity/Game'
+import type Game from '../entity/Game'
 
 const getCost = (empire: Empire, base: number, shopBonus: number) => {
 	let cost = base
@@ -111,7 +111,7 @@ const buy = async (req: Request, res: Response) => {
 
 	await empire.save()
 	// await awardAchievements(empire)
-	await takeSnapshot(empire)
+	await takeSnapshot(empire, game.turnsProtection)
 
 	let resultBuyArm = { amount: buyArm, price: spendArray[0] }
 	let resultBuyLnd = { amount: buyLnd, price: spendArray[1] }
@@ -249,7 +249,7 @@ const sell = async (req: Request, res: Response) => {
 	await empire.save()
 
 	// await awardAchievements(empire)
-	await takeSnapshot(empire)
+	await takeSnapshot(empire, game.turnsProtection)
 
 	let resultSellArm = { amount: sellArm, price: spendArray[0] }
 	let resultSellLnd = { amount: sellLnd, price: spendArray[1] }

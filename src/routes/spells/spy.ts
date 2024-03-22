@@ -1,5 +1,5 @@
 import { eraArray } from '../../config/eras'
-import Empire from '../../entity/Empire'
+import type Empire from '../../entity/Empire'
 import { getPower_enemy, getWizLoss_enemy } from './general'
 import EmpireIntel from '../../entity/EmpireIntel'
 import { createNewsEvent } from '../../util/helpers'
@@ -13,28 +13,29 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 	if (getPower_enemy(empire, enemyEmpire) > 1) {
 		// spy success
 		// display enemy info and save to intel table
-		let ownerId = empire.id
-		let spiedEmpireId = enemyEmpire.id
-		let shared = true
-		let cash = enemyEmpire.cash
-		let era = enemyEmpire.era
-		let food = enemyEmpire.food
-		let trpArm = enemyEmpire.trpArm
-		let trpLnd = enemyEmpire.trpLnd
-		let trpFly = enemyEmpire.trpFly
-		let trpSea = enemyEmpire.trpSea
-		let trpWiz = enemyEmpire.trpWiz
-		let name = enemyEmpire.name
-		let land = enemyEmpire.land
-		let networth = enemyEmpire.networth
-		let health = enemyEmpire.health
-		let clanId = enemyEmpire.clanId
-		let peasants = enemyEmpire.peasants
-		let race = enemyEmpire.race
-		let rank = enemyEmpire.rank
-		let tax = enemyEmpire.tax
-		let turns = enemyEmpire.turns
-		let storedturns = enemyEmpire.storedturns
+		const ownerId = empire.id
+		const spiedEmpireId = enemyEmpire.id
+		const shared = true
+		const cash = enemyEmpire.cash
+		const era = enemyEmpire.era
+		const food = enemyEmpire.food
+		const trpArm = enemyEmpire.trpArm
+		const trpLnd = enemyEmpire.trpLnd
+		const trpFly = enemyEmpire.trpFly
+		const trpSea = enemyEmpire.trpSea
+		const trpWiz = enemyEmpire.trpWiz
+		const name = enemyEmpire.name
+		const land = enemyEmpire.land
+		const networth = enemyEmpire.networth
+		const health = enemyEmpire.health
+		const clanId = enemyEmpire.clanId
+		const peasants = enemyEmpire.peasants
+		const race = enemyEmpire.race
+		const rank = enemyEmpire.rank
+		const tax = enemyEmpire.tax
+		const turns = enemyEmpire.turns
+		const storedturns = enemyEmpire.storedturns
+		const game_id = empire.game_id
 
 		let intel: EmpireIntel = null
 
@@ -61,11 +62,12 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			turns,
 			storedturns,
 			tax,
+			game_id,
 		})
 
 		await intel.save()
 
-		let result = {
+		const result = {
 			result: 'success',
 			message: `Your ${eraArray[empire.era].trpwiz} successfully cast ${
 				eraArray[empire.era].spell_spy
@@ -75,11 +77,11 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			intel: intel,
 		}
 
-		let content = `${empire.name} cast ${
+		const content = `${empire.name} cast ${
 			eraArray[empire.era].spell_spy
 		} against you and viewed your empire information. `
 
-		let pubContent = `${empire.name} cast ${
+		const pubContent = `${empire.name} cast ${
 			eraArray[empire.era].spell_spy
 		} on ${enemyEmpire.name} and viewed their empire information.`
 
@@ -96,37 +98,37 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		)
 
 		return result
-	} else {
-		let wizloss = getWizLoss_enemy(empire)
-		let result = {
-			result: 'fail',
-			message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
-				eraArray[empire.era].spell_spy
-			} on your opponent.`,
-			wizloss: wizloss,
-			descriptor: eraArray[empire.era].trpwiz,
-		}
-
-		let content = `${empire.name} attempted to cast ${
-			eraArray[empire.era].spell_spy
-		} against you and failed. `
-
-		let pubContent = `${empire.name} attempted to cast ${
-			eraArray[empire.era].spell_spy
-		} on ${enemyEmpire.name} and failed.`
-
-		await createNewsEvent(
-			content,
-			pubContent,
-			empire.id,
-			empire.name,
-			enemyEmpire.id,
-			enemyEmpire.name,
-			'spell',
-			'success',
-			empire.game_id
-		)
-
-		return result
 	}
+
+	const wizloss = getWizLoss_enemy(empire)
+	const result = {
+		result: 'fail',
+		message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
+			eraArray[empire.era].spell_spy
+		} on your opponent.`,
+		wizloss: wizloss,
+		descriptor: eraArray[empire.era].trpwiz,
+	}
+
+	const content = `${empire.name} attempted to cast ${
+		eraArray[empire.era].spell_spy
+	} against you and failed. `
+
+	const pubContent = `${empire.name} attempted to cast ${
+		eraArray[empire.era].spell_spy
+	} on ${enemyEmpire.name} and failed.`
+
+	await createNewsEvent(
+		content,
+		pubContent,
+		empire.id,
+		empire.name,
+		enemyEmpire.id,
+		enemyEmpire.name,
+		'spell',
+		'success',
+		empire.game_id
+	)
+
+	return result
 }

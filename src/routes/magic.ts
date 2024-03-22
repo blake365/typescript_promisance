@@ -29,7 +29,7 @@ import User from '../entity/User'
 // import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
 import { attachGame } from '../middleware/game'
-import Game from '../entity/Game'
+import type Game from '../entity/Game'
 // import { snapshot } from '../jobs/promTurns'
 // FIXED: internal turns not working
 
@@ -154,7 +154,7 @@ const magic = async (req: Request, res: Response) => {
 		}
 
 		// await awardAchievements(empire)
-		await takeSnapshot(empire)
+		await takeSnapshot(empire, game.turnsProtection)
 	} else if (spell === 1) {
 		// food
 		const cost = food_cost(base)
@@ -214,7 +214,7 @@ const magic = async (req: Request, res: Response) => {
 		}
 
 		// await awardAchievements(empire)
-		await takeSnapshot(empire)
+		await takeSnapshot(empire, game.turnsProtection)
 	} else if (spell === 2) {
 		// cash
 		const cost = cash_cost(base)
@@ -277,7 +277,7 @@ const magic = async (req: Request, res: Response) => {
 		}
 
 		// await awardAchievements(empire)
-		await takeSnapshot(empire)
+		await takeSnapshot(empire, game.turnsProtection)
 	} else if (spell === 3) {
 		// advance
 		// only allow one at a time
@@ -349,7 +349,7 @@ const magic = async (req: Request, res: Response) => {
 		}
 
 		// await awardAchievements(empire)
-		await takeSnapshot(empire)
+		await takeSnapshot(empire, game.turnsProtection)
 	} else if (spell === 4) {
 		// regress
 		// only allow one at a time
@@ -420,7 +420,7 @@ const magic = async (req: Request, res: Response) => {
 		}
 
 		// await awardAchievements(empire)
-		await takeSnapshot(empire)
+		await takeSnapshot(empire, game.turnsProtection)
 	} else if (spell === 5) {
 		// open time gate
 		const cost = gate_cost(base)
@@ -474,7 +474,7 @@ const magic = async (req: Request, res: Response) => {
 		}
 
 		// await awardAchievements(empire)
-		await takeSnapshot(empire)
+		await takeSnapshot(empire, game.turnsProtection)
 	} else if (spell === 6) {
 		// close time gate
 		const cost = ungate_cost(base)
@@ -528,7 +528,7 @@ const magic = async (req: Request, res: Response) => {
 		}
 
 		// await awardAchievements(empire)
-		await takeSnapshot(empire)
+		await takeSnapshot(empire, game.turnsProtection)
 	}
 	// console.log(resultArray)
 
@@ -853,8 +853,8 @@ const magicAttack = async (req: Request, res: Response) => {
 		}
 
 		// await awardAchievements(attacker)
-		await takeSnapshot(attacker)
-		await takeSnapshot(defender)
+		await takeSnapshot(attacker, game.turnsProtection)
+		await takeSnapshot(defender, game.turnsProtection)
 		// console.log('test', spellTurns)
 		return res.json(spellTurns)
 	} catch (e) {

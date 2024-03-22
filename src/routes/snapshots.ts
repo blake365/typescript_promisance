@@ -1,13 +1,12 @@
-// get empire snapshots by id
-
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import EmpireSnapshot from '../entity/EmpireSnapshot'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
-import User from '../entity/User'
+import type User from '../entity/User'
 import { Raw } from 'typeorm'
 import { Parser } from 'json2csv'
-import { Readable } from 'stream'
+import { Readable } from 'node:stream'
 
 // READ
 const getSnapshot = async (req: Request, res: Response) => {
@@ -64,7 +63,7 @@ const paginateSnapshot = async (req: Request, res: Response) => {
 	// if (user.empires[0].id !== Number(id)) {
 	// 	return res.status(500).json({ error: 'Empire ID mismatch' })
 	// }
-	take = parseInt(take)
+	take = Number.parseInt(take)
 	// console.log(page, take)
 	try {
 		let snapshot = await EmpireSnapshot.find({

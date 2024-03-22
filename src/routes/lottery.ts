@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import Empire from '../entity/Empire'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
@@ -6,7 +7,7 @@ import { Not } from 'typeorm'
 import Lottery from '../entity/Lottery'
 import { generalLog } from '../functions/functions'
 import { attachGame } from '../middleware/game'
-import Game from '../entity/Game'
+import type Game from '../entity/Game'
 // lottery
 // set base jackpot
 
@@ -36,7 +37,9 @@ const buyTicket = async (req: Request, res: Response) => {
 		},
 	})
 
-	let ticketCost = Math.round(empire.networth / generalLog(empire.networth, 25))
+	const ticketCost = Math.round(
+		empire.networth / generalLog(empire.networth, 25)
+	)
 
 	if (empire.cash < ticketCost) {
 		return res
@@ -46,18 +49,18 @@ const buyTicket = async (req: Request, res: Response) => {
 
 	if (empireTickets.length >= game.lotteryMaxTickets) {
 		return res.status(400).json({ error: 'Max tickets reached' })
-	} else {
-		empire.cash -= ticketCost
-		await empire.save()
-
-		const ticket = new Lottery()
-		ticket.empire_id = empireId
-		ticket.cash = ticketCost * 10
-		ticket.ticket = allTickets.length + 1
-		await ticket.save()
-
-		return res.json({ success: 'Ticket Purchased!' })
 	}
+
+	empire.cash -= ticketCost
+	await empire.save()
+
+	const ticket = new Lottery()
+	ticket.empire_id = empireId
+	ticket.cash = ticketCost * 10
+	ticket.ticket = allTickets.length + 1
+	await ticket.save()
+
+	return res.json({ success: 'Ticket Purchased!' })
 }
 
 const getJackpot = async (req: Request, res: Response) => {
@@ -65,7 +68,7 @@ const getJackpot = async (req: Request, res: Response) => {
 
 	const game: Game = res.locals.game
 
-	let jackpot: number = 0
+	let jackpot = 0
 	const jackpotTracker = await Lottery.findOne({ ticket: 0 })
 	// console.log(jackpotTracker)
 	if (!jackpotTracker) {

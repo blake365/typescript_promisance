@@ -8,9 +8,8 @@ import auth from '../middleware/auth'
 import User from '../entity/User'
 import { takeSnapshot } from './actions/snaps'
 import { updateEmpire } from './actions/updateEmpire'
-import Game from '../entity/Game'
+import type Game from '../entity/Game'
 import { attachGame } from '../middleware/game'
-import { getNetworth } from './actions/actions'
 
 const getDropAmounts = (empire: Empire) => {
 	let dropRate = Math.max(
@@ -96,7 +95,7 @@ const drop = async (req: Request, res: Response) => {
 		}
 		// console.log(resultArray)
 		// await awardAchievements(empire)
-		await takeSnapshot(empire)
+		await takeSnapshot(empire, game.turnsProtection)
 		return resultArray
 	}
 

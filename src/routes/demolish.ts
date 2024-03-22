@@ -9,7 +9,7 @@ import { calcSizeBonus, getNetworth } from './actions/actions'
 import User from '../entity/User'
 import { takeSnapshot } from './actions/snaps'
 import { attachGame } from '../middleware/game'
-import Game from '../entity/Game'
+import type Game from '../entity/Game'
 import { updateEmpire } from './actions/updateEmpire'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
@@ -139,7 +139,7 @@ const demolish = async (req: Request, res: Response) => {
 		}
 
 		// await awardAchievements(empire)
-		await takeSnapshot(empire)
+		await takeSnapshot(empire, game.turnsProtection)
 
 		// console.log(resultArray)
 		return resultArray

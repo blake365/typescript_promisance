@@ -726,7 +726,7 @@ const attack = async (req: Request, res: Response) => {
 				attacker.lastAction = new Date()
 				// save updated attacker and defender
 				await attacker.save()
-				await takeSnapshot(attacker)
+				await takeSnapshot(attacker, game.turnsProtection)
 				attackDescription = {
 					result: 'desertion',
 					message: 'The attack was not attempted due to the crisis.',
@@ -1389,12 +1389,12 @@ const attack = async (req: Request, res: Response) => {
 			await defender.save()
 
 			// await awardAchievements(attacker)
-			await takeSnapshot(attacker)
-			await takeSnapshot(defender)
+			await takeSnapshot(attacker, game.turnsProtection)
+			await takeSnapshot(defender, game.turnsProtection)
 		} else {
 			// console.log('not allowed')
 			return res.json({
-				error: `Something went wrong. Attack could not be completed.`,
+				error: 'Something went wrong. Attack could not be completed.',
 			})
 		}
 
