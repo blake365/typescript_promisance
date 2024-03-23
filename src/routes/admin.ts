@@ -241,8 +241,67 @@ const deleteEmpire = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 
 	try {
-		await Empire.delete({ uuid: uuid })
-		return res.json({ message: 'Empire deleted' })
+		const empire = await Empire.findOneOrFail({ uuid })
+		if (empire.clanId !== 0) {
+			const clan = await Clan.findOne({ id: empire.clanId })
+			if (clan.empireIdLeader === empire.id) {
+				clan.empireIdLeader = 0
+				if (clan.empireIdAssistant) {
+					clan.empireIdLeader = clan.empireIdAssistant
+					clan.empireIdAssistant = 0
+				} else {
+					let members = await Empire.find({ clanId: clan.id })
+					if (members.length > 1) {
+						members = members.filter((member) => member.id !== empire.id)
+						members = members.sort((a, b) => b.networth - a.networth)
+						clan.empireIdLeader = members[0].id
+					}
+				}
+			} else if (clan.empireIdAssistant === empire.id) {
+				clan.empireIdAssistant = 0
+			}
+
+			clan.clanMembers -= 1
+
+			if (clan.clanMembers < 1) {
+				const relations = await ClanRelation.find({
+					where: [{ c_id1: clan.id }, { c_id2: clan.id }],
+				})
+				if (relations) {
+					relations.forEach(async (relation) => {
+						await relation.remove()
+					})
+				}
+
+				const messages = await ClanMessage.find({ clanId: clan.id })
+				if (messages) {
+					messages.forEach(async (message) => {
+						await message.remove()
+					})
+				}
+
+				await clan.remove()
+			} else {
+				await clan.save()
+			}
+		}
+		// delete market items
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(Market)
+			.where('empire_id = :empire_id', { empire_id: empire.id })
+			.execute()
+		// delete snapshots
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(EmpireSnapshot)
+			.where('empire_id = :empire_id', { empire_id: empire.id })
+			.execute()
+
+		await empire.remove()
+		return res.json({ message: 'empire deleted' })
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json(error)
@@ -542,7 +601,7 @@ const countAll = async (req: Request, res: Response) => {
 
 	const game: Game = res.locals.game
 
-	console.log(game.game_id)
+	// console.log(game.game_id)
 
 	try {
 		let userCount = 0

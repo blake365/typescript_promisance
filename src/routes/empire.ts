@@ -1,18 +1,20 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import Empire from '../entity/Empire'
 import type User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
 import { containsOnlySymbols, getNetworth } from './actions/actions'
-import { Not } from 'typeorm'
+import { Not, getConnection } from 'typeorm'
 import EmpireEffect from '../entity/EmpireEffect'
-
+import EmpireSnapshot from '../entity/EmpireSnapshot'
 import Clan from '../entity/Clan'
 import ClanRelation from '../entity/ClanRelation'
 import ClanMessage from '../entity/ClanMessage'
 // import EmpireMessage from '../entity/EmpireMessage'
 import { attachGame } from '../middleware/game'
 import type Game from '../entity/Game'
+import Market from '../entity/Market'
 
 const Filter = require('bad-words')
 const filter = new Filter()
@@ -37,28 +39,28 @@ const createEmpire = async (req: Request, res: Response) => {
 
 	let mode = 'normal'
 	let turns: number = turnsInitial
-	let storedturns: number = 0
-	let mktArm: number = 999999999999
-	let mktLnd: number = 999999999999
-	let mktFly: number = 999999999999
-	let mktSea: number = 999999999999
-	let mktFood: number = 999999999999
-	let attacks: number = 0
-	let spells: number = 0
-	let game_id: number = res.locals.game.game_id
+	let storedturns = 0
+	const mktArm: number = 999999999999
+	const mktLnd: number = 999999999999
+	const mktFly: number = 999999999999
+	const mktSea: number = 999999999999
+	const mktFood: number = 999999999999
+	let attacks = 0
+	let spells = 0
+	const game_id: number = res.locals.game.game_id
 
 	// see how many days have passed since round started
 	// if more than 1 day, add turns that would have been gained to initial turns
 	// if greater than max turns, add to stored turns up to 100 stored turns
-	let now = new Date()
-	let roundStartDate = new Date(roundStart)
-	let diff = now.getTime() - roundStartDate.getTime()
-	let daysRaw = diff / (1000 * 3600 * 24)
-	let days = Math.floor(diff / (1000 * 3600 * 24))
+	const now = new Date()
+	const roundStartDate = new Date(roundStart)
+	const diff = now.getTime() - roundStartDate.getTime()
+	const daysRaw = diff / (1000 * 3600 * 24)
+	const days = Math.floor(diff / (1000 * 3600 * 24))
 	console.log(days)
-	let turnsElapsed = ((days * 24 * 60) / turnsFreq) * turnsCount
+	const turnsElapsed = ((days * 24 * 60) / turnsFreq) * turnsCount
 	console.log(turnsElapsed)
-	let turnsToAdd = turnsElapsed
+	const turnsToAdd = turnsElapsed
 	if (turnsToAdd > turnsMax) {
 		turns = turnsMax
 		storedturns += turnsToAdd - turnsMax
@@ -285,35 +287,35 @@ const getScores = async (req: Request, res: Response) => {
 
 		if (empires.length === 0) {
 			return res.status(400).json({ error: 'No empires found' })
-		} else {
-			const newEmpires = await Promise.all(
-				empires.map(async (empire) => {
-					if (empire.clanId !== 0 && empire.clanId !== null) {
-						const clan = await Clan.find({
-							select: [
-								'id',
-								'clanName',
-								'clanPic',
-								'empireIdLeader',
-								'empireIdAssistant',
-								'empireIdAgent1',
-								'empireIdAgent2',
-							],
-							where: { id: empire.clanId, game_id: gameId },
-							relations: ['relation'],
-						})
-
-						let clanReturn = clan[0]
-
-						return { clanReturn, ...empire }
-					} else {
-						return empire
-					}
-				})
-			)
-
-			return res.json(newEmpires)
 		}
+
+		const newEmpires = await Promise.all(
+			empires.map(async (empire) => {
+				if (empire.clanId !== 0 && empire.clanId !== null) {
+					const clan = await Clan.find({
+						select: [
+							'id',
+							'clanName',
+							'clanPic',
+							'empireIdLeader',
+							'empireIdAssistant',
+							'empireIdAgent1',
+							'empireIdAgent2',
+						],
+						where: { id: empire.clanId, game_id: gameId },
+						relations: ['relation'],
+					})
+
+					const clanReturn = clan[0]
+
+					return { clanReturn, ...empire }
+				}
+
+				return empire
+			})
+		)
+
+		return res.json(newEmpires)
 
 		// return res.json(empires)
 	} catch (error) {
@@ -465,8 +467,8 @@ const bank = async (req: Request, res: Response) => {
 		// const size = calcSizeBonus(empire)
 		// console.log(empire.id)
 		const maxLoan = empire.networth * 50
-		let bankCapacity = empire.networth * 100
-		let remainingBankCapacity = bankCapacity - empire.bank
+		const bankCapacity = empire.networth * 100
+		const remainingBankCapacity = bankCapacity - empire.bank
 
 		let canSave = remainingBankCapacity
 		if (remainingBankCapacity > empire.cash) {
@@ -585,6 +587,21 @@ const deleteEmpire = async (req: Request, res: Response) => {
 				await clan.save()
 			}
 		}
+		// delete market items
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(Market)
+			.where('empire_id = :empire_id', { empire_id: empire.id })
+			.execute()
+		// delete snapshots
+		await getConnection()
+			.createQueryBuilder()
+			.delete()
+			.from(EmpireSnapshot)
+			.where('empire_id = :empire_id', { empire_id: empire.id })
+			.execute()
+
 		await empire.remove()
 		return res.json({ message: 'empire deleted' })
 	} catch (error) {
@@ -618,7 +635,7 @@ const findOneEmpire = async (req: Request, res: Response) => {
 			})
 
 			if (clan[0]) {
-				empire['clan'] = clan[0]
+				empire.clan = clan[0]
 			}
 
 			return res.json(empire)
@@ -645,20 +662,19 @@ const getEmpireEffects = async (req: Request, res: Response) => {
 		// console.log(effectValue)
 		if (effectAge > effectValue) {
 			return false
-		} else {
-			return true
 		}
+		return true
 	}
 
 	try {
-		let effects = await EmpireEffect.find({
+		const effects = await EmpireEffect.find({
 			where: { effectOwnerId: empireId },
 			// cache: 3000,
 		})
 		// console.log('user', user)
 		// console.log(effects)
 
-		let filterEffects = effects.filter((effect) =>
+		const filterEffects = effects.filter((effect) =>
 			isOld(effect.updatedAt, effect.empireEffectValue)
 		)
 
@@ -702,7 +718,7 @@ const updateEmpireFavorite = async (req: Request, res: Response) => {
 
 		// select a column
 
-		if (empire.favorites && empire.favorites.includes(favorite)) {
+		if (empire?.favorites.includes(favorite)) {
 			empire.favorites = empire.favorites.filter((f) => f !== favorite)
 			if (
 				empire.favColumns.column1.includes(favorite) ||
@@ -804,19 +820,18 @@ const bonusTurns = async (req: Request, res: Response) => {
 
 		if (effectAge > effectValue) {
 			return false
-		} else {
-			return true
 		}
+		return true
 	}
 
 	try {
-		let effects = await EmpireEffect.find({
+		const effects = await EmpireEffect.find({
 			where: { effectOwnerId: empireId },
 		})
 		// console.log('user', user)
 		// console.log(effects)
 
-		let filterEffects = effects.filter((effect) =>
+		const filterEffects = effects.filter((effect) =>
 			isOld(effect.createdAt, effect.empireEffectValue)
 		)
 
@@ -899,9 +914,9 @@ const nameChange = async (req: Request, res: Response) => {
 			empire.changeName++
 			await empire.save()
 			return res.status(201).json(empire)
-		} else {
-			return res.status(400).json({ error: 'Name change already used' })
 		}
+
+		return res.status(400).json({ error: 'Name change already used' })
 	} catch (error) {
 		console.log(error)
 		return res.status(404).json({ error: 'error changing name' })
