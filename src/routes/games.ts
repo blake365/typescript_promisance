@@ -29,15 +29,15 @@ const getGames = async (req: Request, res: Response) => {
 	return res.json({ gamesUserIsIn, gamesUserNotIn })
 }
 
-const createGame = async (req: Request, res: Response) => {
-	const game: any = await Game.create(req.body)
-	await game.save()
+// const createGame = async (req: Request, res: Response) => {
+// 	const game: any = await Game.create(req.body)
+// 	await game.save()
 
-	return res.json(game)
-}
+// 	return res.json(game)
+// }
 
 const games = async (req: Request, res: Response) => {
-	const games = await Game.find()
+	const games = await Game.find({ order: { createdAt: 'ASC' } })
 
 	// add stats to each game
 	for (const game of games) {
@@ -84,7 +84,7 @@ const gameStats = async (req: Request, res: Response) => {
 const router = Router()
 
 router.get('/', user, auth, getGames)
-router.post('/', isAdmin, createGame)
+// router.post('/', isAdmin, createGame)
 router.get('/games', games)
 router.get('/:id/stats', gameStats)
 

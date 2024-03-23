@@ -11,6 +11,11 @@ import Empire from './Empire'
 
 @Entity('game')
 export default class Game extends Model {
+	constructor(game: Partial<Game>) {
+		super()
+		Object.assign(this, game)
+	}
+
 	@Index()
 	@PrimaryGeneratedColumn()
 	game_id: number

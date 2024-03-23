@@ -913,6 +913,7 @@ const createGame = async (req: Request, res: Response) => {
 		})
 	}
 
+	// console.log(req.body)
 	// request body should have game details object from form
 	const game = {
 		name: req.body.name,
@@ -920,9 +921,13 @@ const createGame = async (req: Request, res: Response) => {
 		roundName: req.body.roundName,
 		roundStart: req.body.roundStart,
 		roundEnd: req.body.roundEnd,
-		roundDescription: req.body.roundDescription,
+		type: req.body.type,
+		icon: req.body.icon,
+		color: req.body.color,
+		isActive: req.body.isActive,
+		roundDescription: req.body.description,
 		empiresPerUser: req.body.empiresPerUser,
-		turnsProtections: req.body.turnsProtection,
+		turnsProtection: req.body.turnsProtection,
 		turnsInitial: req.body.turnsInitial,
 		turnsMax: req.body.turnsMax,
 		turnsStored: req.body.turnsStored,
@@ -941,8 +946,8 @@ const createGame = async (req: Request, res: Response) => {
 		pubMktMaxSell: req.body.pubMktMaxSell,
 		pubMktMinFood: req.body.pubMktMinFood,
 		pubMktMaxFood: req.body.pubMktMaxFood,
-		pubMktMinRune: req.body.pubMktMinRune,
-		pubMktMaxRune: req.body.pubMktMaxRune,
+		pubMktMinRunes: req.body.pubMktMinRunes,
+		pubMktMaxRunes: req.body.pubMktMaxRunes,
 		clanEnable: req.body.clanEnable,
 		clanSize: req.body.clanSize,
 		clanMinJoin: req.body.clanMinJoin,
@@ -968,8 +973,90 @@ const createGame = async (req: Request, res: Response) => {
 	}
 
 	try {
-		Game.create(game)
+		const newGame = new Game(game)
+		await newGame.save()
 		return res.json({ message: 'Game created' })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json(error)
+	}
+}
+
+const editGame = async (req: Request, res: Response) => {
+	if (!res.locals.user || res.locals.user.role !== 'admin') {
+		return res.status(401).json({
+			error: 'Not authorized',
+		})
+	}
+
+	// console.log(req.body)
+
+	try {
+		// console.log(req.body)
+		const game: Game = await Game.findOne({
+			where: { game_id: Number(req.query.gameId) },
+		})
+
+		// console.log(game)
+		// request body should have game details object from form
+
+		game.name = req.body.name
+		game.version = req.body.version
+		game.roundName = req.body.roundName
+		game.roundStart = req.body.roundStart
+		game.roundEnd = req.body.roundEnd
+		game.isActive = req.body.isActive
+		game.type = req.body.type
+		game.icon = req.body.icon
+		game.color = req.body.color
+		game.roundDescription = req.body.description
+		game.empiresPerUser = req.body.empiresPerUser
+		game.turnsProtection = req.body.turnsProtection
+		game.turnsInitial = req.body.turnsInitial
+		game.turnsMax = req.body.turnsMax
+		game.turnsStored = req.body.turnsStored
+		game.turnsDemo = req.body.turnsDemo
+		game.turnsFreq = req.body.turnsFreq
+		game.turnsCount = req.body.turnsCount
+		game.turnsUnstore = req.body.turnsUnstore
+		game.lotteryMaxTickets = req.body.lotteryMaxTickets
+		game.lotteryJackpot = req.body.lotteryJackpot
+		game.buildCost = req.body.buildCost
+		game.bankSaveRate = req.body.bankSaveRate
+		game.bankLoanRate = req.body.bankLoanRate
+		game.pubMktStart = req.body.pubMktStart
+		game.pubMktMaxTime = req.body.pubMktMaxTime
+		game.pubMktMinSell = req.body.pubMktMinSell
+		game.pubMktMaxSell = req.body.pubMktMaxSell
+		game.pubMktMinFood = req.body.pubMktMinFood
+		game.pubMktMaxFood = req.body.pubMktMaxFood
+		game.pubMktMinRunes = req.body.pubMktMinRune
+		game.pubMktMaxRunes = req.body.pubMktMaxRune
+		game.clanEnable = req.body.clanEnable
+		game.clanSize = req.body.clanSize
+		game.clanMinJoin = req.body.clanMinJoin
+		game.clanMinRejoin = req.body.clanMinRejoin
+		game.clanMaxWar = req.body.clanMaxWar
+		game.pvtmMaxSell = req.body.pvtmMaxSell
+		game.pvtmShopBonus = req.body.pvtmShopBonus
+		game.pvtmTrpArm = req.body.pvtmTrpArm
+		game.pvtmTrpLnd = req.body.pvtmTrpLnd
+		game.pvtmTrpFly = req.body.pvtmTrpFly
+		game.pvtmTrpSea = req.body.pvtmTrpSea
+		game.pvtmFood = req.body.pvtmTrpWiz
+		game.pvtmRunes = req.body.pvtmRunes
+		game.industryMult = req.body.industryMult
+		game.maxAttacks = req.body.maxAttacks
+		game.maxSpells = req.body.maxSpells
+		game.drRate = req.body.drRate
+		game.baseLuck = req.body.baseLuck
+		game.aidEnable = req.body.aidEnable
+		game.aidMaxCredits = req.body.aidMaxCredits
+		game.aidDelay = req.body.aidDelay
+		game.allowMagicRegress = req.body.allowMagicRegress
+
+		await game.save()
+		return res.json({ message: 'Game Edited' })
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json(error)
@@ -1015,5 +1102,6 @@ router.delete('/deleteClanMail/:uuid', user, auth, deleteClanMail)
 
 router.post('/resetgame', user, auth, attachGame, resetGame)
 router.post('/creategame', user, auth, createGame)
+router.post('/edit', user, auth, editGame)
 
 export default router
