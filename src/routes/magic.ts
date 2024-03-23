@@ -584,7 +584,8 @@ const attackSpell = async (
 // route to cast spells on enemy
 const magicAttack = async (req: Request, res: Response) => {
 	// request will have object with spell, attacker, defender
-	const { type, attackerId, defenderId, spell } = req.body
+	const { attackerId, defenderId, spell } = req.body
+	let { type } = req.body
 	const game: Game = res.locals.game
 	if (type !== 'magic attack') {
 		return res.json({ error: 'Something went wrong' })
@@ -593,7 +594,6 @@ const magicAttack = async (req: Request, res: Response) => {
 	let canAttack = false
 
 	let returnText = ''
-	let attackDescription = {}
 
 	try {
 		const attacker = await Empire.findOne({ id: attackerId })
@@ -609,6 +609,18 @@ const magicAttack = async (req: Request, res: Response) => {
 				where: { id: attacker.clanId },
 				relations: ['relation'],
 			})
+
+			const relations = clan.relation.map((relation) => {
+				if (relation.clanRelationFlags === 'war') {
+					return relation.c_id2
+				}
+			})
+			// check if clan is at war
+			if (relations.includes(defender.clanId)) {
+				console.log('clan is at war')
+				// clan is at war with defender
+				type = 'war'
+			}
 		}
 
 		// console.log('food:', empire.food, 'cash:', empire.cash, empire.turns, empire.runes)
@@ -672,11 +684,11 @@ const magicAttack = async (req: Request, res: Response) => {
 			})
 
 			if (effect) {
-				let now = new Date()
+				const now = new Date()
 
-				let effectAge =
+				const effectAge =
 					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
-				let timeLeft = effect.empireEffectValue - effectAge
+				const timeLeft = effect.empireEffectValue - effectAge
 
 				if (timeLeft > 0) {
 					canAttack = true
@@ -692,10 +704,10 @@ const magicAttack = async (req: Request, res: Response) => {
 					})
 
 					if (defEffect) {
-						let now = new Date()
-						let effectAge =
+						const now = new Date()
+						const effectAge =
 							(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
-						let timeLeft = defEffect.empireEffectValue - effectAge
+						const timeLeft = defEffect.empireEffectValue - effectAge
 						if (timeLeft > 0) {
 							canAttack = true
 							returnText =
@@ -727,10 +739,10 @@ const magicAttack = async (req: Request, res: Response) => {
 				})
 
 				if (defEffect) {
-					let now = new Date()
-					let effectAge =
+					const now = new Date()
+					const effectAge =
 						(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
-					let timeLeft = defEffect.empireEffectValue - effectAge
+					const timeLeft = defEffect.empireEffectValue - effectAge
 					if (timeLeft > 0) {
 						canAttack = true
 						returnText =
@@ -759,6 +771,28 @@ const magicAttack = async (req: Request, res: Response) => {
 		let spellTurns = {}
 
 		if (canAttack) {
+			if (attacker.networth > defender.networth * 2.5 && type !== 'war') {
+				// the attacker is ashamed for attacking a smaller empire, troops desert
+				returnText +=
+					'Your army is ashamed to fight such a weak opponent, many desert... '
+				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
+				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
+				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
+				attacker.trpSea = Math.round(0.98 * attacker.trpSea)
+				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
+			}
+
+			if (attacker.networth < defender.networth * 0.2 && type !== 'war') {
+				// the attacker is fearful of large empire, troops desert
+				returnText +=
+					'Your army is fearful of fighting such a strong opponent, many desert... '
+				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
+				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
+				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
+				attacker.trpSea = Math.round(0.98 * attacker.trpSea)
+				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
+			}
+
 			if (spell === 'blast') {
 				// blast
 				console.log('blast start')

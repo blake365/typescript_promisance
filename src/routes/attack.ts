@@ -86,7 +86,7 @@ const calcUnitLosses = (
 	// console.log('omod: ', omod)
 	// console.log('dmod: ', dmod)
 
-	let attackLosses = Math.round(
+	const attackLosses = Math.round(
 		Math.min(
 			cauchyRandom(Math.ceil((attackUnits * oper * omod + 1) / 2)),
 			attackUnits
@@ -94,11 +94,11 @@ const calcUnitLosses = (
 	)
 	// console.log('max attacker loss:', Math.ceil(attackUnits * oper * omod) + 1)
 
-	let maxKill =
+	const maxKill =
 		Math.round(0.9 * attackUnits) +
 		getRandomInt(0, Math.round(0.2 * attackUnits) + 1)
 
-	let defendLosses = Math.round(
+	const defendLosses = Math.round(
 		Math.min(
 			cauchyRandom(Math.ceil((defendUnits * dper * dmod + 1) / 2)),
 			defendUnits,
@@ -551,7 +551,7 @@ const attack = async (req: Request, res: Response) => {
 			})
 
 			// console.log(clan)
-			let relations = clan.relation.map((relation) => {
+			const relations = clan.relation.map((relation) => {
 				if (relation.clanRelationFlags === 'war') {
 					return relation.c_id2
 				}
@@ -651,19 +651,19 @@ const attack = async (req: Request, res: Response) => {
 
 		// console.log('can attack', canAttack)
 		if (canAttack) {
-			if (attacker.networth > defender.networth * 2 && type !== 'war') {
-				// the attacker is ashamed, troops desert
+			if (attacker.networth > defender.networth * 2.5 && type !== 'war') {
+				// the attacker is ashamed for attacking a smaller empire, troops desert
 				returnText +=
 					'Your army is ashamed to fight such a weak opponent, many desert... '
-				attacker.trpArm = Math.round(0.97 * attacker.trpArm)
-				attacker.trpLnd = Math.round(0.97 * attacker.trpLnd)
-				attacker.trpFly = Math.round(0.97 * attacker.trpFly)
-				attacker.trpSea = Math.round(0.97 * attacker.trpSea)
-				attacker.trpWiz = Math.round(0.97 * attacker.trpWiz)
+				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
+				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
+				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
+				attacker.trpSea = Math.round(0.98 * attacker.trpSea)
+				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
 			}
 
 			if (attacker.networth < defender.networth * 0.2 && type !== 'war') {
-				// the attacker is fearful, troops desert
+				// the attacker is fearful of large empire, troops desert
 				returnText +=
 					'Your army is fearful of fighting such a strong opponent, many desert... '
 				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
@@ -675,7 +675,7 @@ const attack = async (req: Request, res: Response) => {
 
 			let attackTurns = useTurnInternal(type, 2, attacker, clan, true, game)
 
-			let attackRes = attackTurns[0]
+			const attackRes = attackTurns[0]
 			attackTurns = attackTurns[0]
 			// console.log(attackRes)
 
