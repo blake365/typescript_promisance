@@ -332,7 +332,7 @@ const disbandClan = async (req: Request, res: Response) => {
 }
 
 const kickFromClan = async (req: Request, res: Response) => {
-	let { empireId } = req.body
+	const { empireId } = req.body
 
 	const game: Game = res.locals.game
 
@@ -364,12 +364,11 @@ const kickFromClan = async (req: Request, res: Response) => {
 		await empire.save()
 
 		// create effect
-		let empireEffectName = 'leave clan'
-		let empireEffectValue = game.clanMinRejoin * 60
-		let effectOwnerId = empire.id
+		const empireEffectName = 'leave clan'
+		const empireEffectValue = game.clanMinRejoin * 60
+		const effectOwnerId = empire.id
 
-		let newEffect: EmpireEffect
-		newEffect = new EmpireEffect({
+		const newEffect: EmpireEffect = new EmpireEffect({
 			effectOwnerId,
 			empireEffectName,
 			empireEffectValue,
@@ -377,8 +376,8 @@ const kickFromClan = async (req: Request, res: Response) => {
 		// console.log(effect)
 		await newEffect.save()
 
-		let pubContent = `${empire.name} has been kicked out of ${clan.clanName}!`
-		let content = `You have been kicked out of ${clan.clanName}!`
+		const pubContent = `${empire.name} has been kicked out of ${clan.clanName}!`
+		const content = `You have been kicked out of ${clan.clanName}!`
 
 		await createNewsEvent(
 			content,

@@ -1,7 +1,7 @@
-import Empire from '../../entity/Empire'
+import type Empire from '../../entity/Empire'
 import { raceArray } from '../../config/races'
 import { eraArray } from '../../config/eras'
-import Game from '../../entity/Game'
+import type Game from '../../entity/Game'
 
 export const exploreAlt = (empire: Empire, lucky: boolean) => {
 	let land = giveLand(empire)

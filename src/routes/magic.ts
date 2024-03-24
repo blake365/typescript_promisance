@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import { eraArray } from '../config/eras'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
@@ -24,13 +25,9 @@ import { fight_cast, fight_cost } from './spells/fight'
 import { spy_cast, spy_cost } from './spells/spy'
 
 import { updateEmpire } from './actions/updateEmpire'
-import User from '../entity/User'
-
-// import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from './actions/snaps'
 import { attachGame } from '../middleware/game'
 import type Game from '../entity/Game'
-// import { snapshot } from '../jobs/promTurns'
 // FIXED: internal turns not working
 
 const spellCheck = (empire: Empire, cost: number, turns: number) => {
@@ -768,31 +765,35 @@ const magicAttack = async (req: Request, res: Response) => {
 		// console.log('can attack', canAttack)
 		// handle errors
 		// add break if spell check is false
-		let spellTurns = {}
+		let spellTurns: any = {}
+		let desertions = null
 
 		if (canAttack) {
-			if (attacker.networth > defender.networth * 2.5 && type !== 'war') {
-				// the attacker is ashamed for attacking a smaller empire, troops desert
-				returnText +=
-					'Your army is ashamed to fight such a weak opponent, many desert... '
-				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
-				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
-				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
-				attacker.trpSea = Math.round(0.98 * attacker.trpSea)
-				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
-			}
+			if (spell !== 'spy') {
+				if (attacker.networth > defender.networth * 2.5 && type !== 'war') {
+					// the attacker is ashamed for attacking a smaller empire, troops desert
+					console.log('attacker is ashamed')
+					desertions =
+						'Your army is ashamed to fight such a weak opponent, many desert... '
+					attacker.trpArm = Math.round(0.98 * attacker.trpArm)
+					attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
+					attacker.trpFly = Math.round(0.98 * attacker.trpFly)
+					attacker.trpSea = Math.round(0.98 * attacker.trpSea)
+					attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
+				}
 
-			if (attacker.networth < defender.networth * 0.2 && type !== 'war') {
-				// the attacker is fearful of large empire, troops desert
-				returnText +=
-					'Your army is fearful of fighting such a strong opponent, many desert... '
-				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
-				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
-				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
-				attacker.trpSea = Math.round(0.98 * attacker.trpSea)
-				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
+				if (attacker.networth < defender.networth * 0.2 && type !== 'war') {
+					// the attacker is fearful of large empire, troops desert
+					console.log('attacker is fearful')
+					desertions =
+						'Your army is fearful of fighting such a strong opponent, many desert... '
+					attacker.trpArm = Math.round(0.98 * attacker.trpArm)
+					attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
+					attacker.trpFly = Math.round(0.98 * attacker.trpFly)
+					attacker.trpSea = Math.round(0.98 * attacker.trpSea)
+					attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
+				}
 			}
-
 			if (spell === 'blast') {
 				// blast
 				console.log('blast start')
@@ -850,23 +851,23 @@ const magicAttack = async (req: Request, res: Response) => {
 					return res.json({
 						error: returnText,
 					})
-				} else {
-					spellTurns = await attackSpell(
-						attacker,
-						clan,
-						fight_cost(base),
-						() =>
-							fight_cast(
-								attacker,
-								defender,
-								clan,
-								game.turnsProtection,
-								game.drRate,
-								game
-							),
-						game
-					)
 				}
+
+				spellTurns = await attackSpell(
+					attacker,
+					clan,
+					fight_cost(base),
+					() =>
+						fight_cast(
+							attacker,
+							defender,
+							clan,
+							game.turnsProtection,
+							game.drRate,
+							game
+						),
+					game
+				)
 			} else if (spell === 'spy') {
 				console.log('spy start')
 				spellTurns = await attackSpell(
@@ -890,6 +891,9 @@ const magicAttack = async (req: Request, res: Response) => {
 		await takeSnapshot(attacker, game.turnsProtection)
 		await takeSnapshot(defender, game.turnsProtection)
 		// console.log('test', spellTurns)
+		if (desertions) {
+			spellTurns.messages.desertion = desertions
+		}
 		return res.json(spellTurns)
 	} catch (e) {
 		console.log(e)

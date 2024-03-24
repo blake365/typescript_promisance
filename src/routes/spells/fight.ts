@@ -9,7 +9,7 @@ import {
 import { createNewsEvent } from '../../util/helpers'
 import { getNetworth } from '../actions/actions'
 import { getRepository } from 'typeorm'
-import Game from '../../entity/Game'
+import type Game from '../../entity/Game'
 
 export const fight_cost = (baseCost: number) => {
 	return Math.ceil(22.5 * baseCost)
@@ -97,27 +97,27 @@ export const fight_cast = async (
 
 	if (getPower_enemy(empire, enemyEmpire) >= 2.2) {
 		let returnText = ''
-		if (empire.networth > enemyEmpire.networth * 2 && !war) {
-			// the attacker is ashamed, troops desert
-			returnText +=
-				'Your army is ashamed to fight such a weak opponent, many desert... '
-			empire.trpArm = Math.round(0.97 * empire.trpArm)
-			empire.trpLnd = Math.round(0.97 * empire.trpLnd)
-			empire.trpFly = Math.round(0.97 * empire.trpFly)
-			empire.trpSea = Math.round(0.97 * empire.trpSea)
-			empire.trpWiz = Math.round(0.97 * empire.trpWiz)
-		}
+		// if (empire.networth > enemyEmpire.networth * 2 && !war) {
+		// 	// the attacker is ashamed, troops desert
+		// 	returnText +=
+		// 		'Your army is ashamed to fight such a weak opponent, many desert... '
+		// 	empire.trpArm = Math.round(0.97 * empire.trpArm)
+		// 	empire.trpLnd = Math.round(0.97 * empire.trpLnd)
+		// 	empire.trpFly = Math.round(0.97 * empire.trpFly)
+		// 	empire.trpSea = Math.round(0.97 * empire.trpSea)
+		// 	empire.trpWiz = Math.round(0.97 * empire.trpWiz)
+		// }
 
-		if (empire.networth < enemyEmpire.networth * 0.2 && !war) {
-			// the empire is fearful, troops desert
-			returnText +=
-				'Your army is fearful of fighting such a strong opponent, many desert... '
-			empire.trpArm = Math.round(0.98 * empire.trpArm)
-			empire.trpLnd = Math.round(0.98 * empire.trpLnd)
-			empire.trpFly = Math.round(0.98 * empire.trpFly)
-			empire.trpSea = Math.round(0.98 * empire.trpSea)
-			empire.trpWiz = Math.round(0.98 * empire.trpWiz)
-		}
+		// if (empire.networth < enemyEmpire.networth * 0.2 && !war) {
+		// 	// the empire is fearful, troops desert
+		// 	returnText +=
+		// 		'Your army is fearful of fighting such a strong opponent, many desert... '
+		// 	empire.trpArm = Math.round(0.98 * empire.trpArm)
+		// 	empire.trpLnd = Math.round(0.98 * empire.trpLnd)
+		// 	empire.trpFly = Math.round(0.98 * empire.trpFly)
+		// 	empire.trpSea = Math.round(0.98 * empire.trpSea)
+		// 	empire.trpWiz = Math.round(0.98 * empire.trpWiz)
+		// }
 		// spell casts successfully
 
 		let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.05 + 1))
@@ -227,83 +227,83 @@ export const fight_cast = async (
 		await enemyEmpire.save()
 
 		return attackDescription
-	} else {
-		// spell casts but attack fails
-		let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.08 + 1))
-		let eloss = randomIntFromInterval(
-			0,
-			Math.round(enemyEmpire.trpWiz * 0.04 + 1)
-		)
+	}
 
-		if (uloss > empire.trpWiz) {
-			uloss = empire.trpWiz
-		}
-		if (eloss > 50 * uloss) {
-			eloss = randomIntFromInterval(0, 50 * uloss + 1)
-		}
-		if (eloss > enemyEmpire.trpWiz) {
-			eloss = enemyEmpire.trpWiz
-		}
+	// spell casts but attack fails
+	let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.08 + 1))
+	let eloss = randomIntFromInterval(
+		0,
+		Math.round(enemyEmpire.trpWiz * 0.04 + 1)
+	)
 
-		empire.trpWiz -= uloss
-		enemyEmpire.trpWiz -= eloss
+	if (uloss > empire.trpWiz) {
+		uloss = empire.trpWiz
+	}
+	if (eloss > 50 * uloss) {
+		eloss = randomIntFromInterval(0, 50 * uloss + 1)
+	}
+	if (eloss > enemyEmpire.trpWiz) {
+		eloss = enemyEmpire.trpWiz
+	}
 
-		empire.offTotal++
-		enemyEmpire.defTotal++
-		enemyEmpire.defSucc++
-		enemyEmpire.diminishingReturns = enemyEmpire.diminishingReturns + drRate
-		if (empire.diminishingReturns > 0) {
-			empire.diminishingReturns -= drRate
-		}
+	empire.trpWiz -= uloss
+	enemyEmpire.trpWiz -= eloss
 
-		if (empire.diminishingReturns < 0) {
-			empire.diminishingReturns = 0
-		}
+	empire.offTotal++
+	enemyEmpire.defTotal++
+	enemyEmpire.defSucc++
+	enemyEmpire.diminishingReturns = enemyEmpire.diminishingReturns + drRate
+	if (empire.diminishingReturns > 0) {
+		empire.diminishingReturns -= drRate
+	}
 
-		let returnText = `Your attack was repelled by ${enemyEmpire.name}. /n 
+	if (empire.diminishingReturns < 0) {
+		empire.diminishingReturns = 0
+	}
+
+	let returnText = `Your attack was repelled by ${enemyEmpire.name}. /n 
 			You killed ${eloss.toLocaleString()} ${eraArray[enemyEmpire.era].trpwiz}. /n
 			You lost ${uloss.toLocaleString()} ${eraArray[empire.era].trpwiz}.`
 
-		let attackDescription = {
-			result: 'fail',
-			message: returnText,
-			wizloss: uloss,
-			fight: true,
-		}
+	let attackDescription = {
+		result: 'fail',
+		message: returnText,
+		wizloss: uloss,
+		fight: true,
+	}
 
-		let content = `
+	let content = `
 		You successfully defended your empire. /n
 		${empire.name} attacked you with ${
-			eraArray[empire.era].trpwiz
-		}. /n In the battle you lost: ${eloss.toLocaleString()} ${
-			eraArray[enemyEmpire.era].trpwiz
-		} /n You killed: ${uloss.toLocaleString()} ${eraArray[empire.era].trpwiz}.`
+		eraArray[empire.era].trpwiz
+	}. /n In the battle you lost: ${eloss.toLocaleString()} ${
+		eraArray[enemyEmpire.era].trpwiz
+	} /n You killed: ${uloss.toLocaleString()} ${eraArray[empire.era].trpwiz}.`
 
-		let pubContent = `
+	let pubContent = `
 		${enemyEmpire.name} successfully defended their empire against ${empire.name}.
 			 /n In the battle ${enemyEmpire.name} lost: ${eloss.toLocaleString()} ${
-			eraArray[enemyEmpire.era].trpwiz
-		} /n ${empire.name} lost: ${uloss.toLocaleString()} ${
-			eraArray[empire.era].trpwiz
-		}.`
+		eraArray[enemyEmpire.era].trpwiz
+	} /n ${empire.name} lost: ${uloss.toLocaleString()} ${
+		eraArray[empire.era].trpwiz
+	}.`
 
-		await createNewsEvent(
-			content,
-			pubContent,
-			empire.id,
-			empire.name,
-			enemyEmpire.id,
-			enemyEmpire.name,
-			'spell',
-			'success', // defense succeeds
-			empire.game_id
-		)
+	await createNewsEvent(
+		content,
+		pubContent,
+		empire.id,
+		empire.name,
+		enemyEmpire.id,
+		enemyEmpire.name,
+		'spell',
+		'success', // defense succeeds
+		empire.game_id
+	)
 
-		enemyEmpire.networth = getNetworth(enemyEmpire, game)
+	enemyEmpire.networth = getNetworth(enemyEmpire, game)
 
-		await empire.save()
-		await enemyEmpire.save()
+	await empire.save()
+	await enemyEmpire.save()
 
-		return attackDescription
-	}
+	return attackDescription
 }
