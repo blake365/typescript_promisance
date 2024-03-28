@@ -1,29 +1,14 @@
 import { getConnection, getRepository } from 'typeorm'
-// import ClanInvite from '../entity/ClanInvite'
 import Empire from '../entity/Empire'
 import Market from '../entity/Market'
-// import {
-// 	TURNS_COUNT,
-// 	TURNS_MAXIMUM,
-// 	TURNS_STORED,
-// 	TURNS_UNSTORE,
-// 	MAX_ATTACKS,
-// 	MAX_SPELLS,
-// 	DR_RATE,
-// 	PUBMKT_MAXTIME,
-// 	PUBMKT_START,
-// 	AID_MAXCREDITS,
-// 	LOTTERY_JACKPOT,
-// 	TURNS_PROTECTION,
-// } from '../config/conifg'
 import EmpireEffect from '../entity/EmpireEffect'
-// import User from '../entity/User'
 import { getNetworth } from '../routes/actions/actions'
 import Session from '../entity/Session'
 import { eraArray } from '../config/eras'
 import { createNewsEvent } from '../util/helpers'
 import Lottery from '../entity/Lottery'
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import EmpireSnapshot from '../entity/EmpireSnapshot'
 import User from '../entity/User'
 import Game from '../entity/Game'
@@ -228,7 +213,6 @@ const promTurns = async (req: Request, res: Response) => {
 				// 	.where('sharing > 0 AND id != 0')
 				// 	.execute()
 
-				// clean up expired clan invites
 				console.log('updating ranks')
 				const empires = await Empire.find({
 					where: { game_id: game.game_id },
@@ -238,7 +222,7 @@ const promTurns = async (req: Request, res: Response) => {
 
 				for (let i = 0; i < empires.length; i++) {
 					uRank++
-					let id = empires[i].id
+					const id = empires[i].id
 					await getConnection()
 						.createQueryBuilder()
 						.update(Empire)
@@ -251,8 +235,7 @@ const promTurns = async (req: Request, res: Response) => {
 				}
 
 				const snapEmpires = empires.filter(
-					(emp) =>
-						emp.turnsUsed > game.turnsProtection - 1 && emp.mode !== 'demo'
+					(emp) => emp.turnsUsed >= game.turnsProtection && emp.mode !== 'demo'
 				)
 
 				for (let i = 0; i < snapEmpires.length; i++) {
