@@ -441,11 +441,9 @@ router.get('/auth/google/callback', function (req, res, next) {
 			)
 		} else {
 			console.log('user found')
-			const user = await User.findOne(
-				{ username: gUser.username },
-				{ relations: ['empires'] }
-			)
-
+			console.log(gUser.username)
+			const user = await User.findOne({ username: gUser.username })
+			console.log(user)
 			let username = gUser.username
 			const token = jwt.sign({ username }, process.env.JWT_SECRET!)
 
@@ -487,8 +485,8 @@ router.get('/auth/google/callback', function (req, res, next) {
 
 			return res.redirect(
 				process.env.NODE_ENV === 'production'
-					? 'https://www.neopromisance.com/select'
-					: 'http://localhost:5173/select'
+					? 'https://www.neopromisance.com/select?token=' + token.slice(0, 18)
+					: 'http://localhost:5173/select?token=' + token.slice(0, 18)
 			)
 		}
 	})(req, res, next)
