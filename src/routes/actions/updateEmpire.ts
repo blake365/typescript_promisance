@@ -5,7 +5,7 @@ import {
 	PVTM_TRPFLY,
 	PVTM_TRPLND,
 	PVTM_TRPSEA,
-} from '../../config/conifg'
+} from '../../config/oldConifg'
 import Game from '../../entity/Game'
 
 export const updateEmpire = async (

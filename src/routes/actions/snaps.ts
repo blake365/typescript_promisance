@@ -1,4 +1,4 @@
-import { TURNS_PROTECTION } from '../../config/conifg'
+import { TURNS_PROTECTION } from '../../config/oldConifg'
 import type Empire from '../../entity/Empire'
 import EmpireSnapshot from '../../entity/EmpireSnapshot'
 

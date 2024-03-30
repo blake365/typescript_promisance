@@ -38,7 +38,7 @@ export const blast_cast = async (
 	let pubContent = ''
 	let content = ''
 
-	if (getPower_enemy(empire, enemyEmpire) >= 1.2) {
+	if (getPower_enemy(empire, enemyEmpire) >= 1.5) {
 		// console.table({
 		// 	trpArm: enemyEmpire.trpArm,
 		// 	trpLnd: enemyEmpire.trpLnd,
@@ -48,15 +48,15 @@ export const blast_cast = async (
 		// })
 		let result = {}
 		if (timeLeft > 0) {
-			enemyEmpire.trpArm -= Math.ceil(enemyEmpire.trpArm * 0.0075)
-			enemyEmpire.trpLnd -= Math.ceil(enemyEmpire.trpLnd * 0.0075)
-			enemyEmpire.trpFly -= Math.ceil(enemyEmpire.trpFly * 0.0075)
-			enemyEmpire.trpSea -= Math.ceil(enemyEmpire.trpSea * 0.0075)
+			enemyEmpire.trpArm -= Math.ceil(enemyEmpire.trpArm * 0.01)
+			enemyEmpire.trpLnd -= Math.ceil(enemyEmpire.trpLnd * 0.01)
+			enemyEmpire.trpFly -= Math.ceil(enemyEmpire.trpFly * 0.01)
+			enemyEmpire.trpSea -= Math.ceil(enemyEmpire.trpSea * 0.01)
 
 			result = {
 				result: 'shielded',
 				message:
-					'The spell was successful, but the enemy has a spell shield. /n You eliminated 0.75% of the enemy forces. ',
+					'The spell was successful, but the enemy has a spell shield. /n You eliminated 1% of the enemy forces. ',
 			}
 
 			pubContent = `${empire.name} cast ${
@@ -65,7 +65,7 @@ export const blast_cast = async (
 
 			content = `${empire.name} cast ${
 				eraArray[empire.era].spell_blast
-			} against you. /n Your shield protected you. They eliminated 0.75% of your forces.`
+			} against you. /n Your shield protected you. They eliminated 1% of your forces.`
 
 			await createNewsEvent(
 				content,
@@ -82,16 +82,16 @@ export const blast_cast = async (
 			return result
 		}
 
-		enemyEmpire.trpArm -= Math.ceil(enemyEmpire.trpArm * 0.015)
-		enemyEmpire.trpLnd -= Math.ceil(enemyEmpire.trpLnd * 0.015)
-		enemyEmpire.trpFly -= Math.ceil(enemyEmpire.trpFly * 0.015)
-		enemyEmpire.trpSea -= Math.ceil(enemyEmpire.trpSea * 0.015)
-		enemyEmpire.trpWiz -= Math.ceil(enemyEmpire.trpWiz * 0.005)
+		enemyEmpire.trpArm -= Math.ceil(enemyEmpire.trpArm * 0.02)
+		enemyEmpire.trpLnd -= Math.ceil(enemyEmpire.trpLnd * 0.02)
+		enemyEmpire.trpFly -= Math.ceil(enemyEmpire.trpFly * 0.02)
+		enemyEmpire.trpSea -= Math.ceil(enemyEmpire.trpSea * 0.02)
+		enemyEmpire.trpWiz -= Math.ceil(enemyEmpire.trpWiz * 0.01)
 
 		result = {
 			result: 'success',
 			message:
-				'The spell was successful! /n You eliminated 1.5% of the enemy forces. ',
+				'The spell was successful! /n You eliminated 2% of the enemy forces. ',
 		}
 
 		pubContent = `${empire.name} cast ${eraArray[empire.era].spell_blast} on ${
@@ -100,7 +100,7 @@ export const blast_cast = async (
 
 		content = `${empire.name} cast ${
 			eraArray[empire.era].spell_blast
-		} against you and eliminated 1.5% of your forces.`
+		} against you and eliminated 2% of your forces.`
 
 		await createNewsEvent(
 			content,

@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import Empire from '../entity/Empire'
 import EmpireEffect from '../entity/EmpireEffect'
 import auth from '../middleware/auth'
@@ -7,7 +8,7 @@ import { useTurnInternal } from './useturns'
 import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
 import { createNewsEvent } from '../util/helpers'
-import { cauchyRandom, gaussianRandom, getNetworth } from './actions/actions'
+import { cauchyRandom, getNetworth } from './actions/actions'
 import Clan from '../entity/Clan'
 import User from '../entity/User'
 // import { awardAchievements } from './actions/achievements'
@@ -15,7 +16,7 @@ import { takeSnapshot } from './actions/snaps'
 import { getRepository } from 'typeorm'
 import { attachGame } from '../middleware/game'
 
-let troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
+const troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
 function getRandomInt(min, max) {
 	min = Math.ceil(min)
@@ -910,7 +911,14 @@ const attack = async (req: Request, res: Response) => {
 
 			// let won: boolean
 			let lowLand = 1
-			if (offPower > defPower * 1.05) {
+			console.log('type', attackType)
+			console.log('normal attack ratio', offPower > defPower * 1.05)
+			console.log('pillage ratio', offPower > defPower * 1.33)
+
+			if (
+				(attackType !== 'pillage' && offPower > defPower * 1.05) ||
+				(attackType === 'pillage' && offPower > defPower * 1.33)
+			) {
 				if (
 					defender.land < avgLand * 0.75 &&
 					attacker.land > defender.land * 2 &&
@@ -1026,8 +1034,8 @@ const attack = async (req: Request, res: Response) => {
 				let cash = 0
 				if (attackType === 'pillage') {
 					// steal food and cash
-					food = Math.ceil(defender.food * 0.0912 * 0.63)
-					cash = Math.ceil(defender.cash * 0.1266 * 0.63)
+					food = Math.ceil(defender.food * 0.025)
+					cash = Math.ceil(defender.cash * 0.025)
 					defender.food -= food
 					attacker.food += food
 					defender.cash -= cash

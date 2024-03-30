@@ -1,5 +1,5 @@
 import { eraArray } from '../../config/eras'
-import Empire from '../../entity/Empire'
+import type Empire from '../../entity/Empire'
 import {
 	getPower_enemy,
 	getWizLoss_enemy,
@@ -8,7 +8,7 @@ import {
 import EmpireEffect from '../../entity/EmpireEffect'
 import { createNewsEvent } from '../../util/helpers'
 import { getNetworth } from '../actions/actions'
-import Game from '../../entity/Game'
+import type Game from '../../entity/Game'
 
 export const steal_cost = (baseCost: number) => {
 	return Math.ceil(25.75 * baseCost)

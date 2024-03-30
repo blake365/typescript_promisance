@@ -52,7 +52,12 @@ import {
 } from './jobs/promTurns'
 
 import trim from './middleware/trim'
-import { ROUND_START, TURNS_FREQ, ROUND_END, AID_DELAY } from './config/conifg'
+import {
+	ROUND_START,
+	TURNS_FREQ,
+	ROUND_END,
+	AID_DELAY,
+} from './config/oldConifg'
 
 const app = express()
 

@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
 import type Game from '../entity/Game'
@@ -22,7 +23,7 @@ function calcProvisions(empire: Empire) {
 	let production =
 		10 * empire.freeLand +
 		empire.bldFood *
-			75 *
+			70 *
 			Math.sqrt(1 - (0.75 * empire.bldFood) / Math.max(empire.land, 1))
 
 	production *=
@@ -31,7 +32,7 @@ function calcProvisions(empire: Empire) {
 			eraArray[empire.era].mod_foodpro) /
 		100
 
-	let foodpro = Math.round(production)
+	const foodpro = Math.round(production)
 
 	let consumption =
 		empire.trpArm * 0.0166 +
@@ -42,15 +43,15 @@ function calcProvisions(empire: Empire) {
 
 	consumption *= (100 - raceArray[empire.race].mod_foodcon) / 100
 
-	let foodcon = Math.round(consumption)
+	const foodcon = Math.round(consumption)
 
 	return { foodpro: foodpro, foodcon: foodcon }
 }
 
 function calcFinances(pci: number, empire: Empire, size: number) {
-	let income = Math.round(
+	const income = Math.round(
 		(pci * (empire.tax / 100) * (empire.health / 100) * empire.peasants +
-			empire.bldCash * 550) *
+			empire.bldCash * 500) *
 			Math.max(0.8, size)
 	)
 
@@ -71,7 +72,7 @@ function calcFinances(pci: number, empire: Empire, size: number) {
 	// 	loanpayed = Math.min(Math.round(empire.loan / 200), income - expenses)
 	// }
 	// console.log(loanpayed)
-	let expensesBonus = Math.min(
+	const expensesBonus = Math.min(
 		0.5,
 		(raceArray[empire.race].mod_expenses + 100) / 100 -
 			1 +
@@ -86,10 +87,23 @@ function calcFinances(pci: number, empire: Empire, size: number) {
 function calcCorruption(empire: Empire): number {
 	let corruption = 0
 	if (empire.cash > empire.networth * 110) {
-		let multiples = Math.floor(empire.cash / empire.networth) - 1
+		const multiples = Math.floor(empire.cash / empire.networth) - 1
 		corruption = Math.round(multiples * empire.networth * 0.001 * 0.5)
 	}
 	return corruption
+}
+
+function calcRot(empire: Empire): number {
+	let rot = 0
+	let percentFarms = empire.bldFood / empire.land
+	if (percentFarms < 0.01) percentFarms = 0.01
+	if (empire.food > empire.networth * 35 * percentFarms) {
+		const multiples = Math.floor(empire.food / empire.networth) - 1
+		rot = Math.round(
+			(multiples / 2) * empire.food * 0.001 * 0.01 * (1 - percentFarms)
+		)
+	}
+	return rot
 }
 
 function IndyOutput(
@@ -484,6 +498,7 @@ export const useTurn = async (
 
 		// update food
 		let { foodpro, foodcon } = calcProvisions(empire)
+		const rot = calcRot(empire)
 
 		if (type === 'farm') {
 			foodpro = Math.round(1.25 * foodpro)
@@ -495,7 +510,8 @@ export const useTurn = async (
 			foodpro = Math.round(0.66 * foodpro)
 		}
 
-		let food = Math.round(foodpro - foodcon)
+		let food = Math.round(foodpro - foodcon - rot)
+
 		empire.food += food
 		if (type === 'farm') {
 			turnResult = food
@@ -507,6 +523,8 @@ export const useTurn = async (
 		empire.foodpro += foodpro
 		current['foodcon'] = foodcon
 		empire.foodcon += foodcon
+		current['rot'] = rot
+		// empire.rot += rot
 		current['food'] = food
 
 		if (empire.food <= 0) {
@@ -938,11 +956,12 @@ export const useTurnInternal = (
 
 		// update food
 		let { foodpro, foodcon } = calcProvisions(empire)
-
-		let food = Math.round(foodpro - foodcon)
+		const rot = calcRot(empire)
+		let food = Math.round(foodpro - foodcon - rot)
 
 		current['foodpro'] = foodpro
 		current['foodcon'] = foodcon
+		current['rot'] = rot
 		current['food'] = food
 
 		if (empire.food <= 0) {

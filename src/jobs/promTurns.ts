@@ -16,7 +16,7 @@ import {
 	AID_MAXCREDITS,
 	LOTTERY_JACKPOT,
 	TURNS_PROTECTION,
-} from '../config/conifg'
+} from '../config/oldConifg'
 import EmpireEffect from '../entity/EmpireEffect'
 // import User from '../entity/User'
 import { getNetworth } from '../routes/actions/actions'
