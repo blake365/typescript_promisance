@@ -746,9 +746,9 @@ const test = async (req: Request, res: Response) => {
 const router = Router()
 
 router.get('/test', test)
-router.get('/turns', attachGame, promTurns)
-router.get('/thirty', attachGame, thirtyMinUpdate)
-router.get('/hourly', attachGame, hourlyUpdate)
-router.get('/daily', attachGame, cleanDemoAccounts)
+router.get('/turns', promTurns)
+router.get('/thirty', thirtyMinUpdate)
+router.get('/hourly', hourlyUpdate)
+router.get('/daily', cleanDemoAccounts)
 
 export default router
