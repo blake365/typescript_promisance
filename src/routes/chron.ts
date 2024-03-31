@@ -29,7 +29,8 @@ const promTurns = async (req: Request, res: Response) => {
 		const game = games[i]
 		// check when game was last updated
 		const lastUpdate = new Date(game.lastTurnsUpdate)
-		const timeDiff = now.getTime() - lastUpdate.getTime() - bufferTime
+		console.log('last update', lastUpdate.getTime())
+		const timeDiff = now.getTime() - lastUpdate.getTime() + bufferTime
 		console.log('time diff', timeDiff)
 		// if time difference is greater than or equal to turnsFrequency, run updates
 		// check if round has started or ended
@@ -423,7 +424,7 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 
 		// check when game was last updated
 		const now = new Date()
-		const bufferTime = 5000 // 5 seconds
+		const bufferTime = 50000 // 50 seconds
 		// check if round has started or ended
 		if (now < new Date(game.roundStart) || now > new Date(game.roundEnd)) {
 			console.log('Round is not in progress')
@@ -461,6 +462,7 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 				const lastAidUpdateTime = new Date(game.lastAidUpdate)
 				const timeDiff =
 					now.getTime() - lastAidUpdateTime.getTime() + bufferTime
+
 				if (timeDiff >= game.aidDelay * 60000 * 60) {
 					console.log('adding aid credits')
 					await getConnection()
