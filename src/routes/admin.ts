@@ -1029,6 +1029,8 @@ const createGame = async (req: Request, res: Response) => {
 		aidMaxCredits: req.body.aidMaxCredits,
 		aidDelay: req.body.aidDelay,
 		allowMagicRegress: req.body.allowMagicRegress,
+		lastTurnsUpdate: req.body.roundStart,
+		lastAidUpdate: req.body.roundStart,
 	}
 
 	try {

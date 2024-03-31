@@ -21,17 +21,16 @@ const promTurns = async (req: Request, res: Response) => {
 		return res.status(401).end('Unauthorized')
 	}
 
+	const now = new Date()
+	const bufferTime = 5000 // 5 seconds
 	// get active games, loop over each game and update turns and other items
 	const games = await Game.find({ where: { isActive: true } })
-
 	for (let i = 0; i < games.length; i++) {
 		const game = games[i]
-
 		// check when game was last updated
 		const lastUpdate = new Date(game.lastTurnsUpdate)
-		const now = new Date()
-		const timeDiff = now.getTime() - lastUpdate.getTime()
-		// console.log('time diff', timeDiff)
+		const timeDiff = now.getTime() - lastUpdate.getTime() - bufferTime
+		console.log('time diff', timeDiff)
 		// if time difference is greater than or equal to turnsFrequency, run updates
 		// check if round has started or ended
 		if (now < new Date(game.roundStart) || now > new Date(game.roundEnd)) {
@@ -39,6 +38,8 @@ const promTurns = async (req: Request, res: Response) => {
 		} else if (timeDiff < game.turnsFreq * 60000) {
 			console.log('Turns not ready to be updated')
 		} else {
+			game.lastTurnsUpdate = now
+			await game.save()
 			try {
 				await getConnection()
 					.createQueryBuilder()
@@ -249,8 +250,6 @@ const promTurns = async (req: Request, res: Response) => {
 				}
 
 				console.log(`Turns updated for ${game.name + '-' + game.game_id}`, now)
-				game.lastTurnsUpdate = now
-				await game.save()
 			} catch (err) {
 				console.log(err)
 				// return res.status(500).json({
@@ -424,6 +423,7 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 
 		// check when game was last updated
 		const now = new Date()
+		const bufferTime = 5000 // 5 seconds
 		// check if round has started or ended
 		if (now < new Date(game.roundStart) || now > new Date(game.roundEnd)) {
 			console.log('Round is not in progress')
@@ -457,8 +457,10 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 						})
 						.execute()
 				}
+
 				const lastAidUpdateTime = new Date(game.lastAidUpdate)
-				const timeDiff = now.getTime() - lastAidUpdateTime.getTime()
+				const timeDiff =
+					now.getTime() - lastAidUpdateTime.getTime() + bufferTime
 				if (timeDiff >= game.aidDelay * 60000 * 60) {
 					console.log('adding aid credits')
 					await getConnection()
