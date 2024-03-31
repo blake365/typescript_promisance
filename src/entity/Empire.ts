@@ -78,7 +78,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -129,7 +129,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 100000,
 	})
@@ -163,7 +163,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 10000,
 	})
@@ -244,7 +244,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -254,7 +254,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 4000,
 	})
@@ -263,7 +263,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 2000,
 	})
@@ -272,7 +272,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 100000,
 	})
@@ -281,7 +281,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 100000,
 	})
@@ -290,7 +290,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 3000,
 	})
@@ -299,7 +299,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 1000,
 	})
@@ -329,8 +329,8 @@ export default class Empire extends Model {
 	})
 	mktPerSea: number
 
-	@Column({ unique: true })
-	@Length(3, 255, { message: 'Must be at least 3 characters long' })
+	@Column()
+	@Length(3, 50, { message: 'Must be at least 3 characters long' })
 	name: string
 
 	@Column({
@@ -342,7 +342,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 655360,
 	})
@@ -363,7 +363,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 500,
 	})
@@ -390,7 +390,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -417,7 +417,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 100,
 	})
@@ -426,7 +426,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 20,
 	})
@@ -435,7 +435,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 50,
 	})
@@ -444,7 +444,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 10,
 	})
@@ -453,7 +453,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 10,
 	})
@@ -516,7 +516,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -525,7 +525,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -534,7 +534,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -543,7 +543,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -552,7 +552,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -561,7 +561,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -570,7 +570,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -579,7 +579,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -588,7 +588,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -597,7 +597,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -606,7 +606,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -615,7 +615,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -624,7 +624,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -633,7 +633,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -642,7 +642,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -651,7 +651,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -660,7 +660,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -669,7 +669,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -678,7 +678,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})
@@ -687,7 +687,7 @@ export default class Empire extends Model {
 	@Column('bigint', {
 		transformer: {
 			to: (value) => value,
-			from: (value) => parseInt(value),
+			from: (value) => Number.parseInt(value),
 		},
 		default: 0,
 	})

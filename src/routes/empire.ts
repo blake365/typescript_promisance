@@ -29,7 +29,6 @@ const createEmpire = async (req: Request, res: Response) => {
 		turnsInitial,
 		turnsMax,
 		roundStart,
-		empiresPerUser,
 		maxAttacks,
 		maxSpells,
 		turnsDemo,
@@ -48,6 +47,20 @@ const createEmpire = async (req: Request, res: Response) => {
 	let attacks = 0
 	let spells = 0
 	const game_id: number = res.locals.game.game_id
+
+	// get names of already created empires in game
+	const empireNames = await Empire.find({
+		select: ['name'],
+		where: { game_id },
+	})
+	console.log(empireNames)
+	if (
+		empireNames.some(
+			(empire) => empire.name.toLowerCase() === name.toLowerCase()
+		)
+	) {
+		return res.status(400).json({ error: 'Empire name already exists' })
+	}
 
 	// see how many days have passed since round started
 	// if more than 1 day, add turns that would have been gained to initial turns
@@ -79,7 +92,7 @@ const createEmpire = async (req: Request, res: Response) => {
 	}
 
 	if (name.trim() === '') {
-		return res.status(400).json({ name: 'Name must not be empty' })
+		return res.status(400).json({ error: 'Name must not be empty' })
 	}
 
 	try {
@@ -897,6 +910,7 @@ const getAchievements = async (req: Request, res: Response) => {
 const nameChange = async (req: Request, res: Response) => {
 	const { uuid } = req.params
 	const { name } = req.body
+	const game_id = res.locals.game.game_id
 
 	if (name.trim() === '') {
 		return res.status(400).json({ error: 'Name must not be empty' })
@@ -904,6 +918,20 @@ const nameChange = async (req: Request, res: Response) => {
 
 	try {
 		const empire = await Empire.findOneOrFail({ uuid })
+
+		// get names of already created empires in game
+		const empireNames = await Empire.find({
+			select: ['name'],
+			where: { game_id },
+		})
+		// console.log(empireNames)
+		if (
+			empireNames.some(
+				(empire) => empire.name.toLowerCase() === name.toLowerCase()
+			)
+		) {
+			return res.status(400).json({ error: 'Empire name already exists' })
+		}
 
 		if (empire.changeName < 1) {
 			if (!containsOnlySymbols(name)) {
@@ -919,7 +947,7 @@ const nameChange = async (req: Request, res: Response) => {
 		return res.status(400).json({ error: 'Name change already used' })
 	} catch (error) {
 		console.log(error)
-		return res.status(404).json({ error: 'error changing name' })
+		return res.status(404).json({ error: 'Error changing name' })
 	}
 }
 
@@ -944,7 +972,7 @@ router.post('/:uuid/profile', user, auth, updateProfile)
 router.post('/:uuid/icon', user, auth, updateIcon)
 router.post('/:uuid/bonus', user, auth, attachGame, bonusTurns)
 router.post('/:uuid/changeRace', user, auth, attachGame, changeRace)
-router.post('/:uuid/nameChange', user, auth, nameChange)
+router.post('/:uuid/nameChange', user, auth, attachGame, nameChange)
 router.delete('/:uuid', user, auth, deleteEmpire)
 
 export default router
