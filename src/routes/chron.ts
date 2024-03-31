@@ -248,10 +248,9 @@ const promTurns = async (req: Request, res: Response) => {
 					await snapshot.save()
 				}
 
-				console.log(
-					`Turns updated for ${game.name + '-' + game.game_id}`,
-					new Date()
-				)
+				console.log(`Turns updated for ${game.name + '-' + game.game_id}`, now)
+				game.lastTurnsUpdate = now
+				await game.save()
 			} catch (err) {
 				console.log(err)
 				// return res.status(500).json({
@@ -479,6 +478,9 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 						)
 						.execute()
 				}
+
+				game.lastAidUpdate = now
+				await game.save()
 			} catch (err) {
 				console.log(err)
 				// return res
@@ -499,9 +501,8 @@ function isOld(updatedAt, effectValue) {
 
 	if (effectAge > effectValue) {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 const cleanDemoAccounts = async (req: Request, res: Response) => {
