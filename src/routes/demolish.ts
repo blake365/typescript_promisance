@@ -1,12 +1,12 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
 import { useTurnInternal } from './useturns'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
-import { calcSizeBonus, getNetworth } from './actions/actions'
-import User from '../entity/User'
+import { calcSizeBonus } from './actions/actions'
 import { takeSnapshot } from './actions/snaps'
 import { attachGame } from '../middleware/game'
 import type Game from '../entity/Game'
@@ -15,18 +15,15 @@ import { updateEmpire } from './actions/updateEmpire'
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
 const getDemolishAmounts = (empire: Empire, cost: number) => {
-	let size = calcSizeBonus(empire)
-	let demolishCost = Math.round(((cost + empire.land * 0.2) * (size / 3)) / 5)
+	const size = calcSizeBonus(empire)
+	const demolishCost = Math.round(((cost + empire.land * 0.2) * (size / 3)) / 5)
 
-	let demolishRate = Math.round(
-		Math.min(
-			Math.floor(empire.land * 0.02 + 2) *
-				((100 + raceArray[empire.race].mod_buildrate) / 100),
-			200
-		)
+	let demolishRate = Math.round(empire.land * 0.008 + 4)
+	demolishRate = Math.round(
+		((100 + raceArray[empire.race].mod_buildrate) / 100) * demolishRate
 	)
 
-	let canDemolish = Math.min(
+	const canDemolish = Math.min(
 		demolishRate * empire.turns,
 		empire.land - empire.freeLand
 	)
@@ -67,7 +64,7 @@ const demolish = async (req: Request, res: Response) => {
 		game.buildCost
 	)
 
-	let demoTotal =
+	const demoTotal =
 		demoCash + demoPop + demoCost + demoDef + demoFood + demoTroop + demoWiz
 
 	if (demoTotal > canDemolish) {
@@ -93,11 +90,11 @@ const demolish = async (req: Request, res: Response) => {
 	// let totalTurns = buildTotal / buildRate
 
 	const demoLoop = async () => {
-		let resultArray = []
+		const resultArray = []
 		for (let i = 0; i < demoArray.length; i++) {
 			// console.log(buildArray[i])
-			let key: string = Object.keys(demoArray[i])[0]
-			let value: number = Object.values(demoArray[i])[0]
+			const key: string = Object.keys(demoArray[i])[0]
+			const value: number = Object.values(demoArray[i])[0]
 			let turns = 0
 			if (value < demolishRate) {
 				turns = 1
@@ -115,9 +112,9 @@ const demolish = async (req: Request, res: Response) => {
 					demoAmount = demolishRate
 				}
 				// use one turn
-				let oneTurn = useTurnInternal('demolish', 1, empire, clan, true, game)
+				const oneTurn = useTurnInternal('demolish', 1, empire, clan, true, game)
 				// console.log(oneTurn)
-				let turnRes = oneTurn[0]
+				const turnRes = oneTurn[0]
 				// extract turn info from result and put individual object in result array
 				if (!turnRes?.messages?.desertion) {
 					resultArray.push(turnRes)
@@ -145,7 +142,7 @@ const demolish = async (req: Request, res: Response) => {
 		return resultArray
 	}
 
-	let returnArray = await demoLoop()
+	const returnArray = await demoLoop()
 
 	return res.json(returnArray)
 }
