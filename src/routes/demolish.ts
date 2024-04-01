@@ -68,7 +68,7 @@ const demolish = async (req: Request, res: Response) => {
 		demoCash + demoPop + demoCost + demoDef + demoFood + demoTroop + demoWiz
 
 	if (demoTotal > canDemolish) {
-		return res.json({ error: "Can't build that many structures" })
+		return res.json({ error: "Can't demolish that many structures" })
 	}
 
 	// console.log(buildRate)
@@ -84,8 +84,19 @@ const demolish = async (req: Request, res: Response) => {
 		{ bldWiz: demoWiz },
 	]
 
-	// console.log(buildArray)
 	demoArray = demoArray.filter((object) => Object.values(object)[0] > 0)
+
+	for (const obj of demoArray) {
+		if (Object.values(obj)[0] > empire[Object.keys(obj)[0]]) {
+			console.log('not enough buildings')
+			// skip this object
+			demoArray = demoArray.filter(
+				(object) => Object.keys(object)[0] !== Object.keys(obj)[0]
+			)
+		}
+	}
+
+	// console.log(buildArray)
 
 	// let totalTurns = buildTotal / buildRate
 
