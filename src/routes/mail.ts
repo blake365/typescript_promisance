@@ -1,10 +1,11 @@
 import EmpireMessage from '../entity/EmpireMessage'
 import ClanMessage from '../entity/ClanMessage'
-import { Router, Request, Response } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
 import { getConnection } from 'typeorm'
-import User from '../entity/User'
+import type User from '../entity/User'
 import { containsOnlySymbols } from './actions/actions'
 import { attachGame } from '../middleware/game'
 
@@ -15,7 +16,7 @@ export const concatenateIntegers = (a, b) => {
 	const strA = a.toString()
 	const strB = b.toString()
 
-	return parseInt(strA + strB)
+	return Number.parseInt(strA + strB)
 }
 
 const getConversations = async (req: Request, res: Response) => {
@@ -78,10 +79,9 @@ function reverseConversationId(conversationId, participantId) {
 			.join(participantId.toString())
 
 		return Number(reversedConversationId)
-	} else {
-		// If participantId is not found in conversationId, return an error message or handle accordingly
-		throw new Error('Participant not found in conversationId')
 	}
+	// If participantId is not found in conversationId, return an error message or handle accordingly
+	throw new Error('Participant not found in conversationId')
 }
 
 const getMessages = async (req: Request, res: Response) => {
@@ -131,9 +131,9 @@ const postMessage = async (req: Request, res: Response) => {
 	const user: User = res.locals.user
 	const { game_id } = res.locals.game
 
-	if (user.empires[0].id !== sourceId) {
-		return res.status(401).json({ message: 'Unauthorized' })
-	}
+	// if (user.empires[0].id !== sourceId) {
+	// 	return res.status(401).json({ message: 'Unauthorized' })
+	// }
 
 	if (!destinationName) {
 		let splitter = destinationId.split(',')
@@ -233,11 +233,11 @@ const checkForNew = async (req: Request, res: Response) => {
 	console.log('checking for new mail')
 	const { id } = req.params
 
-	const user: User = res.locals.user
+	// const user: User = res.locals.user
 
-	if (user.empires[0].id !== parseInt(id)) {
-		return res.status(401).json({ message: 'Unauthorized' })
-	}
+	// if (user.empires[0].id !== Number.parseInt(id)) {
+	// 	return res.status(401).json({ message: 'Unauthorized' })
+	// }
 
 	try {
 		const news = await EmpireMessage.find({
