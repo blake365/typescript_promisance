@@ -228,15 +228,10 @@ const getOtherEmpires = async (req: Request, res: Response) => {
 	// console.log('get other empires')
 	// console.log(req.body)
 	const { gameId } = req.query
-	const empire_id = res.locals.user.empires[0].id
 	// console.log(res.locals.user)
 	// console.log(empire_id)
 	const { empireId } = req.body
 	// console.log(empire_id)
-
-	if (empire_id !== empireId) {
-		return res.status(500).json({ error: 'Empire ID mismatch' })
-	}
 
 	const otherEmpires = await Empire.find({
 		select: [
@@ -253,7 +248,7 @@ const getOtherEmpires = async (req: Request, res: Response) => {
 			'turnsUsed',
 			'diminishingReturns',
 		],
-		where: { empireId: Not(empire_id), game_id: gameId },
+		where: { empireId: Not(empireId), game_id: gameId },
 		order: {
 			networth: 'DESC',
 		},
