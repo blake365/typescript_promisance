@@ -12,31 +12,7 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import { ToadScheduler, SimpleIntervalJob, AsyncTask } from 'toad-scheduler'
 import passport from 'passport'
-import authRoutes from './routes/auth'
-import empireRoutes from './routes/empire'
-import useTurns from './routes/useturns'
-import build from './routes/build'
-import demolish from './routes/demolish'
-import drop from './routes/dropLand'
-import magic from './routes/magic'
-import privateMarket from './routes/privateMarket'
-import publicMarket from './routes/publicMarket'
-// import otherEmpires from './routes/empire'
-import attack from './routes/attack'
-import news from './routes/news'
-import effects from './routes/effects'
-import intel from './routes/intel'
-import mail from './routes/mail'
-import session from './routes/sessions'
-import admin from './routes/admin'
-import aid from './routes/aid'
-import clans from './routes/clan'
-import lottery from './routes/lottery'
-import cron from './routes/chron'
-import archive from './routes/archives'
-import snapshots from './routes/snapshots'
 import apiRoutes from './routes'
-import timeRoutes from './routes/time'
 // import testMail from './util/mail'
 
 import {
@@ -105,29 +81,6 @@ app.get('/api/perpetual/hello', (req, res) => {
 	res.send('hello perpetual')
 })
 
-app.use('/api/time', timeRoutes)
-app.use('/api/auth', authRoutes)
-app.use('/api/empire', empireRoutes)
-app.use('/api/useturns', useTurns)
-app.use('/api/build', build)
-app.use('/api/demolish', demolish)
-app.use('/api/drop', drop)
-app.use('/api/magic', magic)
-app.use('/api/privatemarket', privateMarket)
-app.use('/api/publicmarket', publicMarket)
-app.use('/api/attack', attack)
-app.use('/api/news', news)
-app.use('/api/effects', effects)
-app.use('/api/intel', intel)
-app.use('/api/messages', mail)
-app.use('/api/session', session)
-app.use('/api/admin', admin)
-app.use('/api/aid', aid)
-app.use('/api/clans', clans)
-app.use('/api/lottery', lottery)
-app.use('/api/cron', cron)
-app.use('/api/archives', archive)
-app.use('/api/snapshots', snapshots)
 app.use('/api', apiRoutes)
 
 app.get('/debug-sentry', function mainHandler(req, res) {

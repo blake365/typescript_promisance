@@ -9,7 +9,7 @@ import Clan from '../entity/Clan'
 import bcrypt from 'bcrypt'
 import { createNewsEvent } from '../util/helpers'
 import ClanRelation from '../entity/ClanRelation'
-import { containsOnlySymbols } from './actions/actions'
+import { containsOnlySymbols } from '../services/actions/actions'
 import { attachGame } from '../middleware/game'
 import type Game from '../entity/Game'
 
@@ -506,7 +506,7 @@ const getClans = async (req: Request, res: Response) => {
 
 const getClansData = async (req: Request, res: Response) => {
 	const { gameId } = req.query
-
+	console.log(gameId)
 	try {
 		const clans = await Clan.find({
 			select: [
@@ -528,29 +528,29 @@ const getClansData = async (req: Request, res: Response) => {
 
 		if (clans.length === 0) {
 			return res.status(400).json({ error: 'No clans found' })
-		} else {
-			const clanNetworths = await Promise.all(
-				clans.map(async (clan) => {
-					let avgNetworth = 0
-					let totalNetworth = 0
-					let leader = { name: '', id: 0 }
-					const empires = await Empire.find({
-						where: { clanId: clan.id },
-					})
-
-					empires.forEach((empire) => {
-						totalNetworth += empire.networth
-						leader = { name: empire.name, id: empire.id }
-					})
-
-					avgNetworth = totalNetworth / clan.clanMembers
-
-					return { clan, avgNetworth, totalNetworth, leader }
-				})
-			)
-
-			return res.json(clanNetworths)
 		}
+
+		const clanNetworths = await Promise.all(
+			clans.map(async (clan) => {
+				let avgNetworth = 0
+				let totalNetworth = 0
+				let leader = { name: '', id: 0 }
+				const empires = await Empire.find({
+					where: { clanId: clan.id },
+				})
+
+				empires.forEach((empire) => {
+					totalNetworth += empire.networth
+					leader = { name: empire.name, id: empire.id }
+				})
+
+				avgNetworth = totalNetworth / clan.clanMembers
+
+				return { clan, avgNetworth, totalNetworth, leader }
+			})
+		)
+
+		return res.json(clanNetworths)
 	} catch (err) {
 		console.log(err)
 		return res

@@ -8,7 +8,7 @@ import {
 	calcSizeBonus,
 	exploreAlt,
 	getNetworth,
-} from './actions/actions'
+} from '../services/actions/actions'
 // import Empire from '../entity/Empire'
 import { raceArray } from '../config/races'
 import { eraArray } from '../config/eras'
@@ -16,7 +16,7 @@ import { eraArray } from '../config/eras'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
 // import { awardAchievements } from './actions/achievements'
-import { takeSnapshot } from './actions/snaps'
+import { takeSnapshot } from '../services/actions/snaps'
 import { attachGame } from '../middleware/game'
 
 function calcProvisions(empire: Empire) {

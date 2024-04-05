@@ -5,27 +5,35 @@ import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
 
 import { useTurnInternal } from './useturns'
-import { baseCost } from './spells/general'
-import { regress_allow, regress_cast, regress_cost } from './spells/regress'
-import { advance_allow, advance_cast, advance_cost } from './spells/advance'
-import { food_cast, food_cost } from './spells/food'
-import { cash_cast, cash_cost } from './spells/cash'
+import { baseCost } from '../services/spells/general'
+import {
+	regress_allow,
+	regress_cast,
+	regress_cost,
+} from '../services/spells/regress'
+import {
+	advance_allow,
+	advance_cast,
+	advance_cost,
+} from '../services/spells/advance'
+import { food_cast, food_cost } from '../services/spells/food'
+import { cash_cast, cash_cost } from '../services/spells/cash'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
-import { shield_cast, shield_cost } from './spells/shield'
-import { gate_cast, gate_cost } from './spells/gate'
-import { ungate_cast, ungate_cost } from './spells/ungate'
+import { shield_cast, shield_cost } from '../services/spells/shield'
+import { gate_cast, gate_cost } from '../services/spells/gate'
+import { ungate_cast, ungate_cost } from '../services/spells/ungate'
 import EmpireEffect from '../entity/EmpireEffect'
-import { blast_cast, blast_cost } from './spells/blast'
-import { struct_cast, struct_cost } from './spells/struct'
-import { storm_cast, storm_cost } from './spells/storm'
-import { steal_cast, steal_cost } from './spells/steal'
-import { runes_cast, runes_cost } from './spells/runes'
-import { fight_cast, fight_cost } from './spells/fight'
-import { spy_cast, spy_cost } from './spells/spy'
+import { blast_cast, blast_cost } from '../services/spells/blast'
+import { struct_cast, struct_cost } from '../services/spells/struct'
+import { storm_cast, storm_cost } from '../services/spells/storm'
+import { steal_cast, steal_cost } from '../services/spells/steal'
+import { runes_cast, runes_cost } from '../services/spells/runes'
+import { fight_cast, fight_cost } from '../services/spells/fight'
+import { spy_cast, spy_cost } from '../services/spells/spy'
 
-import { updateEmpire } from './actions/updateEmpire'
-import { takeSnapshot } from './actions/snaps'
+import { updateEmpire } from '../services/actions/updateEmpire'
+import { takeSnapshot } from '../services/actions/snaps'
 import { attachGame } from '../middleware/game'
 import type Game from '../entity/Game'
 // FIXED: internal turns not working

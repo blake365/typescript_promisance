@@ -6,11 +6,11 @@ import Clan from '../entity/Clan'
 import { useTurnInternal } from './useturns'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
-import { calcSizeBonus } from './actions/actions'
-import { takeSnapshot } from './actions/snaps'
+import { calcSizeBonus } from '../services/actions/actions'
+import { takeSnapshot } from '../services/actions/snaps'
 import { attachGame } from '../middleware/game'
 import type Game from '../entity/Game'
-import { updateEmpire } from './actions/updateEmpire'
+import { updateEmpire } from '../services/actions/updateEmpire'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 

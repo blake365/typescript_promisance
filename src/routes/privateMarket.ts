@@ -1,11 +1,11 @@
 import { Request, Response, Router } from 'express'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
-import { getNetworth } from './actions/actions'
+import { getNetworth } from '../services/actions/actions'
 import User from '../entity/User'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
-import { takeSnapshot } from './actions/snaps'
+import { takeSnapshot } from '../services/actions/snaps'
 import { attachGame } from '../middleware/game'
 import type Game from '../entity/Game'
 

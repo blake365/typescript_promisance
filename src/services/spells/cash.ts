@@ -1,6 +1,6 @@
 import { raceArray } from '../../config/races'
 import { eraArray } from '../../config/eras'
-import Empire from '../../entity/Empire'
+import type Empire from '../../entity/Empire'
 import { calcSizeBonus } from '../actions/actions'
 import { getPower_self, getWizLoss_self } from './general'
 
@@ -10,7 +10,7 @@ export const cash_cost = (baseCost: number) => {
 
 export const cash_cast = (empire: Empire) => {
 	if (getPower_self(empire) >= 30) {
-		let cash = Math.round(
+		const cash = Math.round(
 			empire.trpWiz *
 				(empire.health / 100) *
 				Math.max(0.8, calcSizeBonus(empire)) *
@@ -20,7 +20,7 @@ export const cash_cast = (empire: Empire) => {
 				Math.max(0.8, calcSizeBonus(empire))
 		)
 
-		let result = {
+		const result = {
 			result: 'success',
 			message: `The spell was successful, your ${
 				eraArray[empire.era].trpwiz
@@ -30,15 +30,14 @@ export const cash_cast = (empire: Empire) => {
 			descriptor: null,
 		}
 		return result
-	} else {
-		let wizloss = getWizLoss_self(empire)
-		let result = {
-			result: 'fail',
-			message: 'Spell failed',
-			wizloss: wizloss,
-			cash: 0,
-			descriptor: eraArray[empire.era].trpwiz,
-		}
-		return result
 	}
+	const wizloss = getWizLoss_self(empire)
+	const result = {
+		result: 'fail',
+		message: 'Spell failed',
+		wizloss: wizloss,
+		cash: 0,
+		descriptor: eraArray[empire.era].trpwiz,
+	}
+	return result
 }

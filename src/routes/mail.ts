@@ -6,7 +6,7 @@ import user from '../middleware/user'
 import auth from '../middleware/auth'
 import { getConnection } from 'typeorm'
 import type User from '../entity/User'
-import { containsOnlySymbols } from './actions/actions'
+import { containsOnlySymbols } from '../services/actions/actions'
 import { attachGame } from '../middleware/game'
 
 const Filter = require('bad-words')

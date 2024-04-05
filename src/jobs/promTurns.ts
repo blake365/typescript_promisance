@@ -19,7 +19,7 @@ import {
 } from '../config/oldConifg'
 import EmpireEffect from '../entity/EmpireEffect'
 // import User from '../entity/User'
-import { getNetworth } from '../routes/actions/actions'
+import { getNetworth } from '../services/actions/actions'
 import Session from '../entity/Session'
 import { eraArray } from '../config/eras'
 import { createNewsEvent } from '../util/helpers'

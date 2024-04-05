@@ -6,9 +6,9 @@ import { useTurnInternal } from './useturns'
 import Clan from '../entity/Clan'
 import { eraArray } from '../config/eras'
 import { createNewsEvent } from '../util/helpers'
-import { getNetworth } from './actions/actions'
-import { takeSnapshot } from './actions/snaps'
-import { updateEmpire } from './actions/updateEmpire'
+import { getNetworth } from '../services/actions/actions'
+import { takeSnapshot } from '../services/actions/snaps'
+import { updateEmpire } from '../services/actions/updateEmpire'
 import { attachGame } from '../middleware/game'
 
 // send aid to another empire
