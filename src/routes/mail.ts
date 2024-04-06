@@ -128,7 +128,7 @@ const postMessage = async (req: Request, res: Response) => {
 
 	console.log(message)
 
-	const user: User = res.locals.user
+	// const user: User = res.locals.user
 	const { game_id } = res.locals.game
 
 	// if (user.empires[0].id !== sourceId) {

@@ -88,7 +88,7 @@ const createClan = async (req: Request, res: Response) => {
 }
 
 const joinClan = async (req: Request, res: Response) => {
-	let { clanName, clanPassword, empireId } = req.body
+	const { clanName, clanPassword, empireId } = req.body
 
 	const game: Game = res.locals.game
 
@@ -102,7 +102,7 @@ const joinClan = async (req: Request, res: Response) => {
 			order: { createdAt: 'DESC' },
 		})
 
-		let now = new Date()
+		const now = new Date()
 		let timeLeft = 0
 
 		if (effect) {
@@ -154,12 +154,11 @@ const joinClan = async (req: Request, res: Response) => {
 		await empire.save()
 
 		// create effect
-		let empireEffectName = 'join clan'
-		let empireEffectValue = game.clanMinJoin * 60
-		let effectOwnerId = empire.id
+		const empireEffectName = 'join clan'
+		const empireEffectValue = game.clanMinJoin * 60
+		const effectOwnerId = empire.id
 
-		let newEffect: EmpireEffect
-		newEffect = new EmpireEffect({
+		const newEffect: EmpireEffect = new EmpireEffect({
 			effectOwnerId,
 			empireEffectName,
 			empireEffectValue,
@@ -401,7 +400,7 @@ const kickFromClan = async (req: Request, res: Response) => {
 }
 
 const getClan = async (req: Request, res: Response) => {
-	let { clanId } = req.body
+	const { clanId } = req.body
 
 	try {
 		const clan = await Clan.find({
@@ -433,7 +432,7 @@ const getClan = async (req: Request, res: Response) => {
 }
 
 const getClanMembers = async (req: Request, res: Response) => {
-	let { clanId } = req.body
+	const { clanId } = req.body
 	// console.log(req.body)
 	try {
 		const empires = await Empire.find({
@@ -467,6 +466,7 @@ const getClanMembers = async (req: Request, res: Response) => {
 				'turns',
 				'storedturns',
 				'diminishingReturns',
+				'game_id',
 			],
 			where: { clanId },
 			order: { networth: 'DESC' },
@@ -493,9 +493,9 @@ const getClans = async (req: Request, res: Response) => {
 
 		if (clans.length === 0) {
 			return res.status(400).json({ error: 'No clans found' })
-		} else {
-			return res.json(clans)
 		}
+
+		return res.json(clans)
 	} catch (err) {
 		console.log(err)
 		return res
@@ -613,7 +613,7 @@ const assignClanRole = async (req: Request, res: Response) => {
 
 // remove empire from clan role
 const removeClanRole = async (req: Request, res: Response) => {
-	let { empireId, clanRole } = req.body
+	const { empireId, clanRole } = req.body
 
 	try {
 		const empire = await Empire.findOneOrFail({
@@ -854,8 +854,8 @@ const offerPeace = async (req: Request, res: Response) => {
 				}
 			})
 			// peace news event
-			let content = `${clan.clanName} has accepted the peace offering to end the war!`
-			let pubContent = `${clan.clanName} has accepted the peace offering to end the war with ${enemyClan.clanName}!`
+			const content = `${clan.clanName} has accepted the peace offering to end the war!`
+			const pubContent = `${clan.clanName} has accepted the peace offering to end the war with ${enemyClan.clanName}!`
 
 			await createNewsEvent(
 				content,

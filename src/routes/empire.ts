@@ -210,6 +210,7 @@ const getEmpires = async (req: Request, res: Response) => {
 				'mode',
 				'turnsUsed',
 				'diminishingReturns',
+				'game_id',
 			],
 			where: { game_id: gameId },
 			order: {
@@ -247,6 +248,7 @@ const getOtherEmpires = async (req: Request, res: Response) => {
 			'mode',
 			'turnsUsed',
 			'diminishingReturns',
+			'game_id',
 		],
 		where: { empireId: Not(empireId), game_id: gameId },
 		order: {
