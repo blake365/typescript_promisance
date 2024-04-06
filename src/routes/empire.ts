@@ -285,6 +285,7 @@ const getScores = async (req: Request, res: Response) => {
 				'offTotal',
 				'defSucc',
 				'defTotal',
+				'game_id',
 			],
 			where: { game_id: gameId },
 			order: {
