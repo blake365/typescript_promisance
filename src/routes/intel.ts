@@ -53,12 +53,6 @@ const getClanIntel = async (req: Request, res: Response) => {
 const getEmpireIntel = async (req: Request, res: Response) => {
 	const { spiedEmpireId, ownerId } = req.body
 
-	const user: User = res.locals.user
-
-	if (user.empires[0].id !== ownerId) {
-		return res.status(400).json({ error: 'unauthorized' })
-	}
-
 	// console.log(req.body)
 	try {
 		const intel = await EmpireIntel.find({
