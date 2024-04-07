@@ -497,8 +497,9 @@ const magic = async (req: Request, res: Response) => {
 						true,
 						game
 					)
-					let spellRes = spellTurns[0]
+					const spellRes = spellTurns[0]
 					spellTurns = spellTurns[0]
+					// console.log(spellRes)
 					if (spellRes?.messages?.desertion) {
 						await updateEmpire(empire, spellRes, turns, game)
 						console.log(spellRes.messages.desertion)
@@ -508,15 +509,14 @@ const magic = async (req: Request, res: Response) => {
 						}
 						resultArray.push(spellTurns)
 						break
-					} else {
-						let cast: Cast = await ungate_cast(empire)
-						// console.log(cast)
-
-						if (cast.result === 'fail') {
-							empire.trpWiz -= cast.wizloss
-						}
-						spellTurns['cast'] = cast
 					}
+					const cast: Cast = await ungate_cast(empire)
+					// console.log(cast)
+
+					if (cast.result === 'fail') {
+						empire.trpWiz -= cast.wizloss
+					}
+					spellTurns['cast'] = cast
 
 					resultArray.push(spellTurns)
 

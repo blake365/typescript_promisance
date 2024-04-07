@@ -127,6 +127,9 @@ const postMessage = async (req: Request, res: Response) => {
 		req.body
 
 	console.log(message)
+	if (!message) {
+		return res.status(400).json({ message: 'Message is required' })
+	}
 
 	// const user: User = res.locals.user
 	const { game_id } = res.locals.game

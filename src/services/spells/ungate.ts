@@ -1,5 +1,5 @@
 import { eraArray } from '../../config/eras'
-import Empire from '../../entity/Empire'
+import type Empire from '../../entity/Empire'
 import EmpireEffect from '../../entity/EmpireEffect'
 import { getPower_self, getWizLoss_self } from './general'
 
@@ -8,12 +8,13 @@ export const ungate_cost = (baseCost: number) => {
 }
 
 export const ungate_cast = async (empire: Empire) => {
-	let now = new Date()
+	const now = new Date()
 	const effect = await EmpireEffect.findOne({
 		where: { effectOwnerId: empire.id, empireEffectName: 'time gate' },
 		order: { createdAt: 'DESC' },
 	})
 
+	// console.log(effect)
 	// figure out age of effect and see if it is expired
 	// if expired, create new effect
 	// if not expired, renew or extend effect
@@ -31,22 +32,23 @@ export const ungate_cast = async (empire: Empire) => {
 		if (effect) {
 			if (timeLeft < effect.empireEffectValue) {
 				effect.remove()
-				let result = {
+				const result = {
 					result: 'success',
 					message: `You closed your ${eraArray[empire.era].spell_gate}`,
 				}
 				return result
 			}
 		} else {
-			let result = {
+			console.log('no effect found')
+			const result = {
 				result: 'fail',
 				message: `You do not have a ${eraArray[empire.era].spell_gate} open`,
 			}
 			return result
 		}
 	} else {
-		let wizloss = getWizLoss_self(empire)
-		let result = {
+		const wizloss = getWizLoss_self(empire)
+		const result = {
 			result: 'fail',
 			message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
 				eraArray[empire.era].spell_gate

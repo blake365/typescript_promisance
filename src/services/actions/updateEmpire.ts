@@ -1,16 +1,10 @@
-import Empire from '../../entity/Empire'
+import type Empire from '../../entity/Empire'
 import { getNetworth } from './actions'
-import {
-	PVTM_TRPARM,
-	PVTM_TRPFLY,
-	PVTM_TRPLND,
-	PVTM_TRPSEA,
-} from '../../config/oldConifg'
-import Game from '../../entity/Game'
+import type Game from '../../entity/Game'
 
 export const updateEmpire = async (
 	empire: Empire,
-	spellRes: any,
+	spellRes,
 	turns: number,
 	game: Game
 ) => {
