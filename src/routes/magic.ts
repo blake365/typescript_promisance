@@ -555,7 +555,7 @@ const attackSpell = async (
 		attacker.health -= 8
 		// use two turns to cast spell
 		let spellTurns = useTurnInternal('magic', turns, attacker, clan, true, game)
-		let spellRes = spellTurns[0]
+		const spellRes = spellTurns[0]
 		spellTurns = spellTurns[0]
 
 		if (spellRes?.messages?.desertion) {
@@ -567,25 +567,23 @@ const attackSpell = async (
 				message: 'The spell could not be cast.',
 			}
 			return spellTurns
-		} else {
-			console.log('spell casting')
-			let cast: Cast = await spell()
-			// console.log(cast)
-			if (cast.result === 'fail') {
-				attacker.trpWiz -= cast.wizloss
-			}
-			spellTurns['cast'] = cast
-			// console.log('spellTurns', spellTurns)
-			// cast the spell and get result
-			// console.log('spellRes', spellRes)
-			await updateEmpire(attacker, spellRes, turns, game)
-			// console.log('returning with spellTurns')
-			return spellTurns
 		}
-	} else {
-		let spellTurns = spellCheck(attacker, cost, turns)
+		console.log('spell casting')
+		const cast: Cast = await spell()
+		// console.log(cast)
+		if (cast.result === 'fail') {
+			attacker.trpWiz -= cast.wizloss
+		}
+		spellTurns['cast'] = cast
+		// console.log('spellTurns', spellTurns)
+		// cast the spell and get result
+		// console.log('spellRes', spellRes)
+		await updateEmpire(attacker, spellRes, turns, game)
+		// console.log('returning with spellTurns')
 		return spellTurns
 	}
+	const spellTurns = spellCheck(attacker, cost, turns)
+	return spellTurns
 }
 
 // route to cast spells on enemy
