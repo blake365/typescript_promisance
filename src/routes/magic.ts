@@ -551,6 +551,8 @@ const attackSpell = async (
 	const turns = 2
 	if (spellCheck(attacker, cost, turns) === 'passed') {
 		attacker.runes -= cost
+		attacker.spells++
+		attacker.health -= 8
 		// use two turns to cast spell
 		let spellTurns = useTurnInternal('magic', turns, attacker, clan, true, game)
 		let spellRes = spellTurns[0]
