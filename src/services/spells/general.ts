@@ -1,4 +1,4 @@
-import Empire from '../../entity/Empire'
+import type Empire from '../../entity/Empire'
 import { raceArray } from '../../config/races'
 import { calcSizeBonus } from '../actions/actions'
 
@@ -28,15 +28,14 @@ export const getPower_self = (empire: Empire) => {
 // getPower_enemy
 // Determine wizard power when casting spells on an enemy
 export const getPower_enemy = (yourEmpire: Empire, enemyEmpire: Empire) => {
-	let uratio =
+	const uratio =
 		(yourEmpire.trpWiz / ((yourEmpire.land + enemyEmpire.land) / 2)) *
 		((100 + raceArray[yourEmpire.race].mod_magic) / 100)
 
-	let eratio = Math.max(
-		(enemyEmpire.trpWiz / enemyEmpire.land) *
-			1.05 *
-			((100 + raceArray[enemyEmpire.race].mod_magic) / 100)
-	)
+	const eratio =
+		(Math.max(enemyEmpire.trpWiz, 1) / enemyEmpire.land) *
+		1.05 *
+		((100 + raceArray[enemyEmpire.race].mod_magic) / 100)
 
 	return uratio / eratio
 }
