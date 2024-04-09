@@ -1,11 +1,11 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import { raceArray } from '../config/races'
 import Empire from '../entity/Empire'
 import Clan from '../entity/Clan'
 import { useTurnInternal } from './useturns'
 import user from '../middleware/user'
 import auth from '../middleware/auth'
-import User from '../entity/User'
 import { takeSnapshot } from '../services/actions/snaps'
 import { updateEmpire } from '../services/actions/updateEmpire'
 import type Game from '../entity/Game'
@@ -25,7 +25,7 @@ const getDropAmounts = (empire: Empire) => {
 		dropRate = Math.round(dropRate / empire.attacks)
 	}
 
-	let canDrop = Math.min(
+	const canDrop = Math.min(
 		dropRate * empire.turns,
 		empire.freeLand,
 		Math.max(0, empire.land - 1000)
@@ -34,7 +34,7 @@ const getDropAmounts = (empire: Empire) => {
 	return { dropRate, canDrop }
 }
 
-const drop = async (req: Request, res: Response) => {
+const dropLand = async (req: Request, res: Response) => {
 	// request will have object with type of building and number to build
 	const { type, empireId, drop } = req.body
 	const game: Game = res.locals.game
@@ -63,12 +63,12 @@ const drop = async (req: Request, res: Response) => {
 		turns = 1
 	}
 
+	let leftToDrop = drop
+
 	const dropLoop = async () => {
-		let resultArray = []
+		const resultArray = []
 		for (let i = 0; i < turns; i++) {
-			console.log(turns)
-			let value = drop
-			let leftToDrop = value
+			// console.log(turns)
 
 			let dropAmount: number
 			if (leftToDrop < dropRate) {
@@ -76,15 +76,19 @@ const drop = async (req: Request, res: Response) => {
 			} else {
 				dropAmount = dropRate
 			}
+
+			console.log('dropAmount', dropAmount)
+			console.log('leftToDrop', leftToDrop)
 			// use one turn
-			let oneTurn = useTurnInternal('drop', 1, empire, clan, true, game)
+			const oneTurn = useTurnInternal('drop', 1, empire, clan, true, game)
 			// console.log(oneTurn)
-			let turnRes = oneTurn[0]
+			const turnRes = oneTurn[0]
 			// extract turn info from result and put individual object in result array
 			if (!turnRes?.messages?.desertion) {
 				resultArray.push(turnRes)
 				// add value to empire.key
 				empire.freeLand -= dropAmount
+				empire.land -= dropAmount
 				leftToDrop -= dropAmount
 				await updateEmpire(empire, turnRes, 1, game)
 			} else {
@@ -99,13 +103,13 @@ const drop = async (req: Request, res: Response) => {
 		return resultArray
 	}
 
-	let returnArray = await dropLoop()
+	const returnArray = await dropLoop()
 
 	return res.json(returnArray)
 }
 
 const router = Router()
 
-router.post('/', user, auth, attachGame, drop)
+router.post('/', user, auth, attachGame, dropLand)
 
 export default router

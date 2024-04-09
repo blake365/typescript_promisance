@@ -747,15 +747,15 @@ export const useTurnInternal = (
 	condensed: boolean,
 	game: Game
 ) => {
-	let taken: number = 0
-	let overall = {}
-	let statsArray = []
-	let message = {
+	let taken = 0
+	const overall = {}
+	const statsArray = []
+	const message = {
 		error: '',
 		production: '',
 		desertion: '',
 	}
-	let turnResult = 0
+	// const turnResult = 0
 
 	// console.log(type)
 	let interruptable = false
@@ -782,14 +782,16 @@ export const useTurnInternal = (
 		message.error = 'not enough turns available'
 		statsArray.push(message)
 		return statsArray
-	} else if (turns === 0) {
+	}
+
+	if (turns === 0) {
 		message.error = 'specify number of turns to use'
 		statsArray.push(message)
 		return statsArray
 	}
 
 	while (taken < turns) {
-		let current = {}
+		const current = {}
 		taken++
 		let trouble = 0
 		let troubleFood = false
@@ -802,7 +804,7 @@ export const useTurnInternal = (
 		// }
 
 		// size bonus penalty
-		let size = calcSizeBonus(empire)
+		const size = calcSizeBonus(empire)
 
 		if (empire.health < 0) {
 			empire.health = 0
@@ -816,13 +818,13 @@ export const useTurnInternal = (
 		// console.log('bank:', empire.bank)
 		// savings interest
 		if (empire.turnsUsed > game.turnsProtection) {
-			let bankMax = empire.networth * 100
+			const bankMax = empire.networth * 100
 			if (empire.bank > bankMax) {
 				withdraw = empire.bank - bankMax
 				empire.bank -= withdraw
 				empire.cash += withdraw
 			} else {
-				let saveRate = game.bankSaveRate - size
+				const saveRate = game.bankSaveRate - size
 				bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
 				if (empire.bank + bankInterest > bankMax) {
 					bankInterest = bankMax - empire.bank
@@ -855,8 +857,8 @@ export const useTurnInternal = (
 			// console.log('calculate war tax')
 			// passive wartax
 			// console.log(clan)
-			if (clan && clan.relation) {
-				let relations = clan.relation.map((relation) => {
+			if (clan?.relation) {
+				const relations = clan.relation.map((relation) => {
 					if (relation.clanRelationFlags === 'war') {
 						return relation.c_id2
 					}
@@ -873,7 +875,7 @@ export const useTurnInternal = (
 			wartax = Math.ceil(wartax)
 		}
 
-		let corruption = calcCorruption(empire)
+		const corruption = calcCorruption(empire)
 
 		// net income
 		let money = Math.round(income - (expenses + wartax + corruption))
@@ -888,7 +890,7 @@ export const useTurnInternal = (
 
 		//more loan stuff
 		let loanpayed: number
-		let loanEmergencyLimit = loanMax * 2
+		const loanEmergencyLimit = loanMax * 2
 		if (trouble && troubleCash && empire.loan > loanEmergencyLimit) {
 			console.log('extreme cash trouble')
 			message['desertion'] =
@@ -903,7 +905,7 @@ export const useTurnInternal = (
 				'You have run out of money! You rush to the bank to take out a loan.'
 			loanpayed = Math.min(Math.round(empire.loan / 200), empire.cash)
 		} else {
-			console.log('no troubleCash')
+			// console.log('no troubleCash')
 			loanpayed = Math.min(Math.round(empire.loan / 200), empire.cash)
 		}
 
@@ -938,9 +940,9 @@ export const useTurnInternal = (
 		current['money'] = money
 
 		// industry
-		let indMultiplier = 1
+		const indMultiplier = 1
 
-		let { trparm, trplnd, trpfly, trpsea } = IndyOutput(
+		const { trparm, trplnd, trpfly, trpsea } = IndyOutput(
 			empire,
 			indMultiplier,
 			game.industryMult
@@ -957,9 +959,9 @@ export const useTurnInternal = (
 		current['trpSea'] = trpsea
 
 		// update food
-		let { foodpro, foodcon } = calcProvisions(empire)
+		const { foodpro, foodcon } = calcProvisions(empire)
 		const rot = calcRot(empire)
-		let food = Math.round(foodpro - foodcon - rot)
+		const food = Math.round(foodpro - foodcon - rot)
 
 		current['foodpro'] = foodpro
 		current['foodcon'] = foodcon
@@ -979,27 +981,27 @@ export const useTurnInternal = (
 		}
 
 		// update population
-		let taxrate = empire.tax / 100
-		let taxpenalty = calcTaxPenalty(taxrate)
+		const taxrate = empire.tax / 100
+		const taxpenalty = calcTaxPenalty(taxrate)
 
-		let popBase = Math.round(
+		const popBase = Math.round(
 			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 65) /
 				(0.95 + taxrate + taxpenalty)
 		) // 14495
 
-		let peasants = calcPeasants(empire, popBase)
+		const peasants = calcPeasants(empire, popBase)
 		// empire.peasants += peasants
 		current['peasants'] = peasants
 
 		// gain magic energy
-		let runeMultiplier = 1
+		const runeMultiplier = 1
 
-		let runes = calculateRunes(empire, runeMultiplier)
+		const runes = calculateRunes(empire, runeMultiplier)
 
 		current['runes'] = runes
 
 		// add/lose wizards
-		let trpWiz = calcWizards(empire)
+		const trpWiz = calcWizards(empire)
 
 		current['trpWiz'] = trpWiz
 
@@ -1038,7 +1040,7 @@ export const useTurnInternal = (
 			desertionTurns++
 			if (!interruptable) {
 				// let percent = condensed ? Math.round((1 - deserted) * 100) : 3
-				let percent = 3 * desertionTurns
+				const percent = 3 * desertionTurns
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
 				}, Troops, and ${
@@ -1048,7 +1050,7 @@ export const useTurnInternal = (
 				statsArray.push(current)
 			} else {
 				// let percent = condensed ? Math.round((1 - deserted) * 100) : 3
-				let percent = 3 * desertionTurns
+				const percent = 3 * desertionTurns
 				// console.log(percent)
 				message['desertion'] = `${percent}% of your ${
 					eraArray[empire.era].peasants
