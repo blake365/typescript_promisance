@@ -64,12 +64,12 @@ const buyTicket = async (req: Request, res: Response) => {
 }
 
 const getJackpot = async (req: Request, res: Response) => {
-	const allTickets = await Lottery.find()
-
 	const game: Game = res.locals.game
 
+	const allTickets = await Lottery.find({ where: { game_id: game.id } })
+
 	let jackpot = 0
-	const jackpotTracker = await Lottery.findOne({ ticket: 0 })
+	const jackpotTracker = await Lottery.findOne({ ticket: 0, game_id: game.id })
 	// console.log(jackpotTracker)
 	if (!jackpotTracker) {
 		jackpot += game.lotteryJackpot
@@ -97,8 +97,10 @@ const getTickets = async (req: Request, res: Response) => {
 }
 
 const getTotalTickets = async (req: Request, res: Response) => {
+	const { gameId } = req.query
+	console.log(gameId)
 	const tickets = await Lottery.findAndCount({
-		where: { ticket: Not(0) },
+		where: { ticket: Not(0), game_id: gameId },
 	})
 
 	return res.json({ success: tickets[1] })
