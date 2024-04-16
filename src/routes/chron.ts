@@ -570,10 +570,15 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 				// that empire wins the prize
 				console.log('checking lottery')
 
-				const allTickets = await Lottery.find()
+				const allTickets = await Lottery.find({
+					where: { game_id: game.game_id },
+				})
 
 				let jackpot = 0
-				const jackpotTracker = await Lottery.findOne({ ticket: 0 })
+				const jackpotTracker = await Lottery.findOne({
+					ticket: 0,
+					game_id: game.game_id,
+				})
 				// console.log(jackpotTracker)
 				if (!jackpotTracker) {
 					for (let i = 0; i < allTickets.length; i++) {
@@ -623,12 +628,12 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 
 					// news event for no lottery winner
 					// create news entry
-					let sourceId = 0
-					let sourceName = ''
-					let destinationId = 0
-					let destinationName = ''
-					let content: string = ''
-					let pubContent: string = `No one won the lottery. The base jackpot has increased to $${jackpot.toLocaleString()}.`
+					const sourceId = 0
+					const sourceName = ''
+					const destinationId = 0
+					const destinationName = ''
+					const content: string = ''
+					const pubContent: string = `No one won the lottery. The base jackpot has increased to $${jackpot.toLocaleString()}.`
 
 					// create news event
 					await createNewsEvent(
@@ -652,12 +657,12 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 
 					// news event for lottery winner
 					// create news entry
-					let sourceId = empire.id
-					let sourceName = empire.name
-					let destinationId = empire.id
-					let destinationName = empire.name
-					let content: string = `You won $${jackpot.toLocaleString()} in the lottery!`
-					let pubContent: string = `${
+					const sourceId = empire.id
+					const sourceName = empire.name
+					const destinationId = empire.id
+					const destinationName = empire.name
+					const content: string = `You won $${jackpot.toLocaleString()} in the lottery!`
+					const pubContent: string = `${
 						empire.name
 					} won $${jackpot.toLocaleString()} in the lottery!`
 
