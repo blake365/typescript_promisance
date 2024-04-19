@@ -371,219 +371,250 @@ export const aidCredits = new AsyncTask('aid credits', async () => {
 
 // })
 
+function isOld(updatedAt, effectValue) {
+	let effectAge = (Date.now().valueOf() - new Date(updatedAt).getTime()) / 60000
+	effectAge = Math.floor(effectAge)
+
+	// console.log(effectAge)
+	// console.log(effectValue)
+
+	if (effectAge > effectValue) {
+		return true
+	}
+	return false
+}
+
 export const cleanDemoAccounts = new AsyncTask(
 	'clean demo accounts and effects',
 	async () => {
 		console.log('cleaning demo accounts and effects')
 
-		await getConnection()
-			.createQueryBuilder()
-			.delete()
-			.from(Empire)
-			.where('mode = :gamemode AND turnsUsed < :protection', {
-				gamemode: 'demo',
-				protection: TURNS_PROTECTION,
-			})
-			.execute()
+		const games = await Game.find({ where: { isActive: true } })
 
-		// let emptyUsers = await User.find({
-		// 	relations: ['empires'],
-		// 	where: { empires: [] },
-		// })
+		for (let i = 0; i < games.length; i++) {
+			const game = games[i]
+			console.log(game.game_id)
+			const now = new Date()
 
-		// emptyUsers.forEach(async (user) => {
-		// 	await user.remove()
-		// })
-
-		let effects = await EmpireEffect.find()
-
-		function isOld(updatedAt, effectValue) {
-			let effectAge =
-				(Date.now().valueOf() - new Date(updatedAt).getTime()) / 60000
-			effectAge = Math.floor(effectAge)
-
-			// console.log(effectAge)
-			// console.log(effectValue)
-
-			if (effectAge > effectValue) {
-				return true
+			if (now < new Date(game.roundStart) || now > new Date(game.roundEnd)) {
+				console.log('Round is not in progress')
 			} else {
-				return false
-			}
-		}
+				try {
+					console.log('cleaning demo accounts and effects')
+					await getConnection()
+						.createQueryBuilder()
+						.delete()
+						.from(Empire)
+						.where('mode = :gamemode AND turnsUsed < :protection', {
+							gamemode: 'demo',
+							protection: game.turnsProtection,
+						})
+						.execute()
 
-		effects.forEach(async (effect) => {
-			let old = isOld(effect.updatedAt, effect.empireEffectValue)
-			if (old) {
-				effect.remove()
-			}
-		})
+					// let emptyUsers = await User.find({
+					// 	relations: ['empires'],
+					// 	where: { empires: [] },
+					// })
 
-		// clear old sessions
-		// if createdAt date is older than 1 day, delete
-		await getConnection()
-			.createQueryBuilder()
-			.delete()
-			.from(Session)
-			.where('createdAt < :date', { date: new Date(Date.now() - 86400000) })
-			.execute()
+					// emptyUsers.forEach(async (user) => {
+					// 	await user.remove()
+					// })
 
-		// determine how to pick a winner
-		// get total number of tickets, multiply by 1.25, round up, that is the number of tickets to draw
-		// pick a random number between 1 and the total number of tickets
-		// find the ticket with that number
-		// that empire wins the prize
-		console.log('checking lottery')
+					let effects = await EmpireEffect.find()
 
-		const allTickets = await Lottery.find()
-		console.log(allTickets)
-		let jackpot = 0
-		const jackpotTracker = await Lottery.findOne({ ticket: 0 })
-		console.log(jackpotTracker)
-		if (!jackpotTracker) {
-			for (let i = 0; i < allTickets.length; i++) {
-				jackpot += Number(allTickets[i].cash)
-			}
-			jackpot += LOTTERY_JACKPOT
-		} else {
-			for (let i = 0; i < allTickets.length; i++) {
-				if (allTickets[i].ticket != 0) {
-					jackpot += Number(allTickets[i].cash)
+					effects.forEach(async (effect) => {
+						let old = isOld(effect.updatedAt, effect.empireEffectValue)
+						if (old) {
+							effect.remove()
+						}
+					})
+
+					// clear old sessions
+					// if createdAt date is older than 1 day, delete
+					await getConnection()
+						.createQueryBuilder()
+						.delete()
+						.from(Session)
+						.where('createdAt < :date', {
+							date: new Date(Date.now() - 86400000),
+						})
+						.execute()
+
+					// determine how to pick a winner
+					// get total number of tickets, multiply by 1.25, round up, that is the number of tickets to draw
+					// pick a random number between 1 and the total number of tickets
+					// find the ticket with that number
+					// that empire wins the prize
+					console.log('checking lottery')
+
+					const allTickets = await Lottery.find({
+						where: { game_id: game.game_id },
+					})
+
+					let jackpot = 0
+					const jackpotTracker = await Lottery.findOne({
+						ticket: 0,
+						game_id: game.game_id,
+					})
+					// console.log(jackpotTracker)
+					if (!jackpotTracker) {
+						for (let i = 0; i < allTickets.length; i++) {
+							jackpot += Number(allTickets[i].cash)
+						}
+						jackpot += game.lotteryJackpot
+					} else {
+						for (let i = 0; i < allTickets.length; i++) {
+							if (allTickets[i].ticket != 0) {
+								jackpot += Number(allTickets[i].cash)
+							}
+						}
+						jackpot += Number(jackpotTracker.cash)
+					}
+
+					// console.log('jackpot', jackpot)
+
+					const totalTickets = allTickets.length
+					if (totalTickets > 1) {
+						// console.log('total tickets', totalTickets)
+						let ticketsToDraw = Math.ceil(totalTickets * 1.35)
+						if (ticketsToDraw < 15) ticketsToDraw = 15
+						// console.log('tickets to draw', ticketsToDraw)
+						const winningTicket = Math.ceil(Math.random() * ticketsToDraw)
+						// console.log('winning ticket', winningTicket)
+
+						// check if all tickets contains a ticket with the winning number
+						// console.log(allTickets)
+						const winner = allTickets.find(
+							({ ticket }) => ticket === winningTicket
+						)
+						// console.log('winner', winner)
+
+						if (!winner || totalTickets < 1 || winningTicket < 1) {
+							console.log('no winner')
+							// remove old tickets
+							await getConnection()
+								.createQueryBuilder()
+								.delete()
+								.from(Lottery)
+								.where('game_id = :game_id', { game_id: game.game_id })
+								.execute()
+
+							// create jackpot entry as ticket 0
+							const ticket = new Lottery()
+							ticket.empire_id = 0
+							ticket.cash = jackpot
+							ticket.ticket = 0
+							await ticket.save()
+
+							// news event for no lottery winner
+							// create news entry
+							const sourceId = 0
+							const sourceName = ''
+							const destinationId = 0
+							const destinationName = ''
+							const content: string = ''
+							const pubContent: string = `No one won the lottery. The base jackpot has increased to $${jackpot.toLocaleString()}.`
+
+							// create news event
+							await createNewsEvent(
+								content,
+								pubContent,
+								sourceId,
+								sourceName,
+								destinationId,
+								destinationName,
+								'lottery',
+								'fail',
+								ticket.game_id
+							)
+						} else {
+							console.log('winner', winner)
+							// console.log(jackpot)
+							const empire = await Empire.findOne({ id: winner.empire_id })
+							// console.log(empire)
+							empire.cash += jackpot
+							await empire.save()
+
+							// news event for lottery winner
+							// create news entry
+							const sourceId = empire.id
+							const sourceName = empire.name
+							const destinationId = empire.id
+							const destinationName = empire.name
+							const content: string = `You won $${jackpot.toLocaleString()} in the lottery!`
+							const pubContent: string = `${
+								empire.name
+							} won $${jackpot.toLocaleString()} in the lottery!`
+
+							// create news event
+							await createNewsEvent(
+								content,
+								pubContent,
+								sourceId,
+								sourceName,
+								destinationId,
+								destinationName,
+								'lottery',
+								'success',
+								empire.game_id
+							)
+
+							// remove all tickets
+							await getConnection()
+								.createQueryBuilder()
+								.delete()
+								.from(Lottery)
+								.where('game_id = :game_id', { game_id: game.game_id })
+								.execute()
+						}
+					}
+					// sync achievements to user
+					try {
+						const empires = await Empire.find({
+							select: ['id', 'achievements'],
+							relations: ['user'],
+						})
+
+						// loop through empires, sync achievements to user
+						for (let i = 0; i < empires.length; i++) {
+							const empire = empires[i]
+							const user = await User.findOne({ id: empire.user.id })
+
+							// compare empire achievements to user achievements
+							// if an achievement was earned on the empire, add it to the user
+
+							let newUserAchievements
+							if (Object.keys(user.achievements).length === 0) {
+								newUserAchievements = empire.achievements
+							} else {
+								newUserAchievements = user.achievements
+							}
+
+							Object.keys(empire.achievements).forEach((key) => {
+								// console.log(empire.achievements[key])
+								// console.log(newUserAchievements[key])
+								if (
+									empire.achievements[key].awarded === true &&
+									newUserAchievements[key].awarded === false
+								) {
+									newUserAchievements[key].awarded = true
+									newUserAchievements[key].timeAwarded =
+										empire.achievements[key].timeAwarded
+								}
+							})
+
+							user.achievements = newUserAchievements
+							await user.save()
+						}
+					} catch (err) {
+						console.log(err)
+					}
+				} catch (err) {
+					console.log(err)
 				}
 			}
-			jackpot += Number(jackpotTracker.cash)
 		}
-
-		console.log('jackpot', jackpot)
-
-		const totalTickets = allTickets.length
-		if (totalTickets < 1) return
-		// console.log('total tickets', totalTickets)
-		let ticketsToDraw = Math.ceil(totalTickets * 1.35)
-		if (ticketsToDraw < 15) ticketsToDraw = 15
-		// console.log('tickets to draw', ticketsToDraw)
-		const winningTicket = Math.ceil(Math.random() * ticketsToDraw)
-		// console.log('winning ticket', winningTicket)
-
-		// check if all tickets contains a ticket with the winning number
-		// console.log(allTickets)
-		const winner = allTickets.find(({ ticket }) => ticket == winningTicket)
-		// console.log('winner', winner)
-
-		if (!winner || totalTickets < 1 || winningTicket < 1) {
-			console.log('no winner')
-			// remove old tickets
-			await getConnection()
-				.createQueryBuilder()
-				.delete()
-				.from(Lottery)
-				.execute()
-
-			// create jackpot entry as ticket 0
-			const ticket = new Lottery()
-			ticket.empire_id = 0
-			ticket.cash = jackpot
-			ticket.ticket = 0
-			await ticket.save()
-
-			// news event for no lottery winner
-			// create news entry
-			let sourceId = 0
-			let sourceName = ''
-			let destinationId = 0
-			let destinationName = ''
-			let content: string = ''
-			let pubContent: string = `No one won the lottery. The base jackpot has increased to $${jackpot.toLocaleString()}.`
-
-			// create news event
-			await createNewsEvent(
-				content,
-				pubContent,
-				sourceId,
-				sourceName,
-				destinationId,
-				destinationName,
-				'lottery',
-				'fail',
-				ticket.game_id
-			)
-		} else {
-			console.log('winner', winner)
-			// console.log(jackpot)
-			const empire = await Empire.findOne({ id: winner.empire_id })
-			// console.log(empire)
-			empire.cash += jackpot
-			await empire.save()
-
-			// news event for lottery winner
-			// create news entry
-			let sourceId = empire.id
-			let sourceName = empire.name
-			let destinationId = empire.id
-			let destinationName = empire.name
-			let content: string = `You won $${jackpot.toLocaleString()} in the lottery!`
-			let pubContent: string = `${
-				empire.name
-			} won $${jackpot.toLocaleString()} in the lottery!`
-
-			// create news event
-			await createNewsEvent(
-				content,
-				pubContent,
-				sourceId,
-				sourceName,
-				destinationId,
-				destinationName,
-				'lottery',
-				'success',
-				empire.game_id
-			)
-
-			// remove all tickets
-			await getConnection()
-				.createQueryBuilder()
-				.delete()
-				.from(Lottery)
-				.execute()
-		}
-
-		// sync achievements to user
-		const empires = await Empire.find({
-			select: ['id', 'achievements'],
-			relations: ['user'],
-		})
-
-		// loop through empires, sync achievements to user
-		for (let i = 0; i < empires.length; i++) {
-			const empire = empires[i]
-			const user = await User.findOne({ id: empire.user.id })
-
-			// compare empire achievements to user achievements
-			// if an achievement was earned on the empire, add it to the user
-
-			let newUserAchievements
-			if (Object.keys(user.achievements).length === 0) {
-				newUserAchievements = empire.achievements
-			} else {
-				newUserAchievements = user.achievements
-			}
-
-			Object.keys(empire.achievements).forEach((key) => {
-				// console.log(empire.achievements[key])
-				// console.log(newUserAchievements[key])
-				if (
-					empire.achievements[key].awarded === true &&
-					newUserAchievements[key].awarded === false
-				) {
-					newUserAchievements[key].awarded = true
-					newUserAchievements[key].timeAwarded =
-						empire.achievements[key].timeAwarded
-				}
-			})
-
-			user.achievements = newUserAchievements
-			await user.save()
-		}
+		console.log('Demo accounts cleaned, Lottery, achievements sync')
 	}
 )
 

@@ -597,96 +597,100 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 				// console.log('jackpot', jackpot)
 
 				const totalTickets = allTickets.length
-				if (totalTickets < 1) return
-				// console.log('total tickets', totalTickets)
-				let ticketsToDraw = Math.ceil(totalTickets * 1.35)
-				if (ticketsToDraw < 15) ticketsToDraw = 15
-				// console.log('tickets to draw', ticketsToDraw)
-				const winningTicket = Math.ceil(Math.random() * ticketsToDraw)
-				// console.log('winning ticket', winningTicket)
+				if (totalTickets > 1) {
+					// console.log('total tickets', totalTickets)
+					let ticketsToDraw = Math.ceil(totalTickets * 1.35)
+					if (ticketsToDraw < 15) ticketsToDraw = 15
+					// console.log('tickets to draw', ticketsToDraw)
+					const winningTicket = Math.ceil(Math.random() * ticketsToDraw)
+					// console.log('winning ticket', winningTicket)
 
-				// check if all tickets contains a ticket with the winning number
-				// console.log(allTickets)
-				const winner = allTickets.find(({ ticket }) => ticket == winningTicket)
-				// console.log('winner', winner)
-
-				if (!winner || totalTickets < 1 || winningTicket < 1) {
-					console.log('no winner')
-					// remove old tickets
-					await getConnection()
-						.createQueryBuilder()
-						.delete()
-						.from(Lottery)
-						.execute()
-
-					// create jackpot entry as ticket 0
-					const ticket = new Lottery()
-					ticket.empire_id = 0
-					ticket.cash = jackpot
-					ticket.ticket = 0
-					await ticket.save()
-
-					// news event for no lottery winner
-					// create news entry
-					const sourceId = 0
-					const sourceName = ''
-					const destinationId = 0
-					const destinationName = ''
-					const content: string = ''
-					const pubContent: string = `No one won the lottery. The base jackpot has increased to $${jackpot.toLocaleString()}.`
-
-					// create news event
-					await createNewsEvent(
-						content,
-						pubContent,
-						sourceId,
-						sourceName,
-						destinationId,
-						destinationName,
-						'lottery',
-						'fail',
-						ticket.game_id
+					// check if all tickets contains a ticket with the winning number
+					// console.log(allTickets)
+					const winner = allTickets.find(
+						({ ticket }) => ticket == winningTicket
 					)
-				} else {
 					// console.log('winner', winner)
-					// console.log(jackpot)
-					const empire = await Empire.findOne({ id: winner.empire_id })
-					// console.log(empire)
-					empire.cash += jackpot
-					await empire.save()
 
-					// news event for lottery winner
-					// create news entry
-					const sourceId = empire.id
-					const sourceName = empire.name
-					const destinationId = empire.id
-					const destinationName = empire.name
-					const content: string = `You won $${jackpot.toLocaleString()} in the lottery!`
-					const pubContent: string = `${
-						empire.name
-					} won $${jackpot.toLocaleString()} in the lottery!`
+					if (!winner || totalTickets < 1 || winningTicket < 1) {
+						console.log('no winner')
+						// remove old tickets
+						await getConnection()
+							.createQueryBuilder()
+							.delete()
+							.from(Lottery)
+							.where('game_id = :game_id', { game_id: game.game_id })
+							.execute()
 
-					// create news event
-					await createNewsEvent(
-						content,
-						pubContent,
-						sourceId,
-						sourceName,
-						destinationId,
-						destinationName,
-						'lottery',
-						'success',
-						empire.game_id
-					)
+						// create jackpot entry as ticket 0
+						const ticket = new Lottery()
+						ticket.empire_id = 0
+						ticket.cash = jackpot
+						ticket.ticket = 0
+						await ticket.save()
 
-					// remove all tickets
-					await getConnection()
-						.createQueryBuilder()
-						.delete()
-						.from(Lottery)
-						.execute()
+						// news event for no lottery winner
+						// create news entry
+						const sourceId = 0
+						const sourceName = ''
+						const destinationId = 0
+						const destinationName = ''
+						const content: string = ''
+						const pubContent: string = `No one won the lottery. The base jackpot has increased to $${jackpot.toLocaleString()}.`
+
+						// create news event
+						await createNewsEvent(
+							content,
+							pubContent,
+							sourceId,
+							sourceName,
+							destinationId,
+							destinationName,
+							'lottery',
+							'fail',
+							ticket.game_id
+						)
+					} else {
+						console.log('winner', winner)
+						// console.log(jackpot)
+						const empire = await Empire.findOne({ id: winner.empire_id })
+						// console.log(empire)
+						empire.cash += jackpot
+						await empire.save()
+
+						// news event for lottery winner
+						// create news entry
+						const sourceId = empire.id
+						const sourceName = empire.name
+						const destinationId = empire.id
+						const destinationName = empire.name
+						const content: string = `You won $${jackpot.toLocaleString()} in the lottery!`
+						const pubContent: string = `${
+							empire.name
+						} won $${jackpot.toLocaleString()} in the lottery!`
+
+						// create news event
+						await createNewsEvent(
+							content,
+							pubContent,
+							sourceId,
+							sourceName,
+							destinationId,
+							destinationName,
+							'lottery',
+							'success',
+							empire.game_id
+						)
+
+						// remove all tickets
+						await getConnection()
+							.createQueryBuilder()
+							.delete()
+							.from(Lottery)
+							.where('game_id = :game_id', { game_id: game.game_id })
+							.execute()
+					}
 				}
-
 				// sync achievements to user
 				try {
 					const empires = await Empire.find({
