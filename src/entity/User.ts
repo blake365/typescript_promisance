@@ -54,6 +54,9 @@ export default class User extends Model {
 	})
 	role: string
 
+	@Column({ default: true })
+	showTutorials: boolean
+
 	@Column({
 		default: 'email',
 	})

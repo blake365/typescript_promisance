@@ -58,6 +58,7 @@ const buyTicket = async (req: Request, res: Response) => {
 	ticket.empire_id = empireId
 	ticket.cash = ticketCost * 10
 	ticket.ticket = allTickets.length + 1
+	ticket.game_id = game.game_id
 	await ticket.save()
 
 	return res.json({ success: 'Ticket Purchased!' })
