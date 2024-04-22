@@ -12,7 +12,6 @@ import { Router } from 'express'
 import EmpireSnapshot from '../entity/EmpireSnapshot'
 import User from '../entity/User'
 import Game from '../entity/Game'
-import { attachGame } from '../middleware/game'
 
 // perform standard turn update events
 const promTurns = async (req: Request, res: Response) => {
@@ -354,7 +353,7 @@ const thirtyMinUpdate = async (req: Request, res: Response) => {
 
 				console.log(items)
 
-				let itemsArray = [
+				const itemsArray = [
 					'trpArm',
 					'trpLnd',
 					'trpFly',
@@ -365,7 +364,7 @@ const thirtyMinUpdate = async (req: Request, res: Response) => {
 
 				for (let i = 0; i < items.length; i++) {
 					//return unsold goods
-					let item = items[i]
+					const item = items[i]
 					console.log(item)
 					const itemName = itemsArray[item.type]
 					console.log(itemName)
@@ -375,14 +374,14 @@ const thirtyMinUpdate = async (req: Request, res: Response) => {
 
 					// news event for expired market item
 					// create news entry
-					let sourceId = empire.id
-					let sourceName = empire.name
-					let destinationId = empire.id
-					let destinationName = empire.name
-					let content: string = `Your ${
+					const sourceId = empire.id
+					const sourceName = empire.name
+					const destinationId = empire.id
+					const destinationName = empire.name
+					const content = `Your ${
 						eraArray[empire.era][itemName.toLowerCase()]
 					} on the public market have expired and 75% have been returned to you.`
-					let pubContent: string = `${empire.name} failed to sell their items on the public market.`
+					const pubContent = `${empire.name} failed to sell their items on the public market.`
 
 					// create news event for seller that goods have been purchased
 					await createNewsEvent(
@@ -496,18 +495,18 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 	return res.status(200).json({ message: 'Hourly update' })
 }
 
-function isOld(updatedAt, effectValue) {
-	let effectAge = (Date.now().valueOf() - new Date(updatedAt).getTime()) / 60000
-	effectAge = Math.floor(effectAge)
+// function isOld(updatedAt, effectValue) {
+// 	let effectAge = (Date.now().valueOf() - new Date(updatedAt).getTime()) / 60000
+// 	effectAge = Math.floor(effectAge)
 
-	// console.log(effectAge)
-	// console.log(effectValue)
+// 	// console.log(effectAge)
+// 	// console.log(effectValue)
 
-	if (effectAge > effectValue) {
-		return true
-	}
-	return false
-}
+// 	if (effectAge > effectValue) {
+// 		return true
+// 	}
+// 	return false
+// }
 
 const cleanDemoAccounts = async (req: Request, res: Response) => {
 	if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -535,25 +534,17 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 						protection: game.turnsProtection,
 					})
 					.execute()
+				console.log('demo accounts cleaned')
 
-				// let emptyUsers = await User.find({
-				// 	relations: ['empires'],
-				// 	where: { empires: [] },
-				// })
-
-				// emptyUsers.forEach(async (user) => {
-				// 	await user.remove()
-				// })
-
-				let effects = await EmpireEffect.find()
-
-				effects.forEach(async (effect) => {
-					let old = isOld(effect.updatedAt, effect.empireEffectValue)
-					if (old) {
-						effect.remove()
-					}
-				})
-
+				await getConnection()
+					.createQueryBuilder()
+					.delete()
+					.from(EmpireEffect)
+					.where(
+						'EXTRACT(EPOCH FROM (NOW() - "updatedAt")) / 60 > "empireEffectValue"'
+					)
+					.execute()
+				console.log('effects cleaned')
 				// clear old sessions
 				// if createdAt date is older than 1 day, delete
 				await getConnection()
@@ -562,6 +553,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 					.from(Session)
 					.where('createdAt < :date', { date: new Date(Date.now() - 86400000) })
 					.execute()
+				console.log('sessions cleaned')
 
 				// determine how to pick a winner
 				// get total number of tickets, multiply by 1.25, round up, that is the number of tickets to draw
@@ -691,6 +683,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 							.execute()
 					}
 				}
+				console.log('lottery checked')
 				// sync achievements to user
 				try {
 					const empires = await Empire.find({
@@ -732,6 +725,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 				} catch (err) {
 					console.log(err)
 				}
+				console.log('achievements synced')
 			} catch (err) {
 				console.log(err)
 			}

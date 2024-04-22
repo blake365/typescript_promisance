@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import Empire from '../entity/Empire'
 import { getNetworth } from '../services/actions/actions'
 import Market from '../entity/Market'
@@ -178,7 +179,18 @@ const pubSell = async (req: Request, res: Response) => {
 	} = req.body
 
 	if (type !== 'sell') {
-		return res.json({ error: 'Something went wrong' })
+		return res.status(500).json({ error: 'Something went wrong' })
+	}
+
+	if (
+		sellArm < 1 &&
+		sellLnd < 1 &&
+		sellFly < 1 &&
+		sellSea < 1 &&
+		sellFood < 1 &&
+		sellRunes < 1
+	) {
+		return res.status(500).json({ error: 'No items to sell' })
 	}
 
 	const game: Game = res.locals.game
@@ -195,7 +207,7 @@ const pubSell = async (req: Request, res: Response) => {
 
 	const empire = await Empire.findOne({ id: empireId })
 	// console.log(empire.networth)
-	let priceArray = [
+	const priceArray = [
 		priceArm,
 		priceLnd,
 		priceFly,
@@ -210,8 +222,8 @@ const pubSell = async (req: Request, res: Response) => {
 		}
 	})
 
-	let sellArray = [sellArm, sellLnd, sellFly, sellSea, sellFood, sellRunes]
-	let trpArray = [
+	const sellArray = [sellArm, sellLnd, sellFly, sellSea, sellFood, sellRunes]
+	const trpArray = [
 		empire.trpArm,
 		empire.trpLnd,
 		empire.trpFly,
@@ -220,7 +232,7 @@ const pubSell = async (req: Request, res: Response) => {
 		empire.runes,
 	]
 
-	let itemsEraArray = [
+	const itemsEraArray = [
 		eraArray[empire.era].trparm,
 		eraArray[empire.era].trplnd,
 		eraArray[empire.era].trpfly,
@@ -232,14 +244,14 @@ const pubSell = async (req: Request, res: Response) => {
 	// console.log(sellArray)
 	// console.log(priceArray)
 
-	let resultSellArm: ReturnObject = { amount: null, price: null }
-	let resultSellLnd: ReturnObject = { amount: null, price: null }
-	let resultSellFly: ReturnObject = { amount: null, price: null }
-	let resultSellSea: ReturnObject = { amount: null, price: null }
-	let resultSellFood: ReturnObject = { amount: null, price: null }
-	let resultSellRunes: ReturnObject = { amount: null, price: null }
+	const resultSellArm: ReturnObject = { amount: null, price: null }
+	const resultSellLnd: ReturnObject = { amount: null, price: null }
+	const resultSellFly: ReturnObject = { amount: null, price: null }
+	const resultSellSea: ReturnObject = { amount: null, price: null }
+	const resultSellFood: ReturnObject = { amount: null, price: null }
+	const resultSellRunes: ReturnObject = { amount: null, price: null }
 
-	let returnArray = [
+	const returnArray = [
 		resultSellArm,
 		resultSellLnd,
 		resultSellFly,
@@ -249,7 +261,7 @@ const pubSell = async (req: Request, res: Response) => {
 	]
 
 	for (let index = 0; index < sellArray.length; index++) {
-		let item: number = sellArray[index]
+		const item: number = sellArray[index]
 		// console.log(item)
 		// console.log(index)
 		if (item < 1) {
@@ -287,14 +299,14 @@ const pubSell = async (req: Request, res: Response) => {
 		} else {
 			console.log('making sale')
 			let marketItem: Market = null
-			let type: number = index
-			let amount: number = item
-			let price: number = priceArray[index]
+			const type: number = index
+			const amount: number = item
+			const price: number = priceArray[index]
 			// console.log(index)
 			// console.log(price)
 			// console.log(amount)
-			let game_id = game.game_id
-			let empire_id = empire.id
+			const game_id = game.game_id
+			const empire_id = empire.id
 			returnArray[index].amount = amount
 			returnArray[index].price = price
 			// trpArray[index] -= amount
