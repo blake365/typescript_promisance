@@ -541,7 +541,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 					.delete()
 					.from(EmpireEffect)
 					.where(
-						'EXTRACT(EPOCH FROM (NOW() - "updatedAt")) / 60 > "empireEffectValue"'
+						'EXTRACT(EPOCH FROM (NOW() - "updated_at")) / 60 > "empire_effect_value"'
 					)
 					.execute()
 				console.log('effects cleaned')

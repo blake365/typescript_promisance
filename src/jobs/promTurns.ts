@@ -420,14 +420,15 @@ export const cleanDemoAccounts = new AsyncTask(
 					// 	await user.remove()
 					// })
 
-					let effects = await EmpireEffect.find()
-
-					effects.forEach(async (effect) => {
-						let old = isOld(effect.updatedAt, effect.empireEffectValue)
-						if (old) {
-							effect.remove()
-						}
-					})
+					await getConnection()
+						.createQueryBuilder()
+						.delete()
+						.from(EmpireEffect)
+						.where(
+							'EXTRACT(EPOCH FROM (NOW() - "updated_at")) / 60 > "empire_effect_value"'
+						)
+						.execute()
+					console.log('effects cleaned')
 
 					// clear old sessions
 					// if createdAt date is older than 1 day, delete
