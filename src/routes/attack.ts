@@ -10,7 +10,6 @@ import { raceArray } from '../config/races'
 import { createNewsEvent } from '../util/helpers'
 import { cauchyRandom, getNetworth } from '../services/actions/actions'
 import Clan from '../entity/Clan'
-import User from '../entity/User'
 // import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from '../services/actions/snaps'
 import { getRepository } from 'typeorm'
@@ -35,7 +34,7 @@ const calcUnitPower = (empire: Empire, unit: string, mode: string) => {
 	// convert unit from trparm to trpArm
 	// console.log('unit: ', unit)
 
-	let unitM =
+	const unitM =
 		unit.substring(0, 3) + unit.charAt(3).toUpperCase() + unit.substring(4)
 
 	let lookup = ''
@@ -331,7 +330,8 @@ const attack = async (req: Request, res: Response) => {
 
 	let returnText = ''
 	let attackDescription = {}
-	let resultArray = []
+	const resultArray = []
+	const now = new Date()
 
 	try {
 		const attacker = await Empire.findOneOrFail({ id: empireId })
@@ -426,11 +426,9 @@ const attack = async (req: Request, res: Response) => {
 
 			if (effect) {
 				// console.log('found effect on your empire')
-				let now = new Date()
-
-				let effectAge =
+				const effectAge =
 					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
-				let timeLeft = effect.empireEffectValue - effectAge
+				const timeLeft = effect.empireEffectValue - effectAge
 
 				if (timeLeft > 0) {
 					canAttack = true
@@ -448,10 +446,9 @@ const attack = async (req: Request, res: Response) => {
 					// console.log(defEffect)
 
 					if (defEffect) {
-						let now = new Date()
-						let effectAge =
+						const effectAge =
 							(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
-						let timeLeft = defEffect.empireEffectValue - effectAge
+						const timeLeft = defEffect.empireEffectValue - effectAge
 						if (timeLeft > 0) {
 							canAttack = true
 							defenderTimegate = true
@@ -486,10 +483,9 @@ const attack = async (req: Request, res: Response) => {
 				// console.log(defEffect)
 
 				if (defEffect) {
-					let now = new Date()
-					let effectAge =
+					const effectAge =
 						(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
-					let timeLeft = defEffect.empireEffectValue - effectAge
+					const timeLeft = defEffect.empireEffectValue - effectAge
 					if (timeLeft > 0) {
 						canAttack = true
 						defenderTimegate = true
@@ -578,7 +574,7 @@ const attack = async (req: Request, res: Response) => {
 			// let clan = await Clan.findOne({ id: defender.clanId })
 
 			// get clan members
-			let clanMembers = await Empire.find({ clanId: defender.clanId })
+			const clanMembers = await Empire.find({ clanId: defender.clanId })
 			// console.log(clanMembers)
 
 			let defBonus = 0
@@ -597,7 +593,6 @@ const attack = async (req: Request, res: Response) => {
 
 					if (effect) {
 						// console.log('found effect on your empire')
-						let now = new Date()
 
 						let effectAge =
 							(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
@@ -672,6 +667,11 @@ const attack = async (req: Request, res: Response) => {
 				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
 				attacker.trpSea = Math.round(0.98 * attacker.trpSea)
 				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
+			}
+
+			attacker.health -= 8
+			if (attackType === 'surprise') {
+				attacker.health -= 5
 			}
 
 			let attackTurns = useTurnInternal(type, 2, attacker, clan, true, game)
@@ -766,10 +766,10 @@ const attack = async (req: Request, res: Response) => {
 			console.log('defPower', defPower)
 			let omod = Math.sqrt(defPower / (offPower + 1))
 			// modification to enemy losses
-			let dmod = Math.sqrt(offPower / (defPower + 1))
+			const dmod = Math.sqrt(offPower / (defPower + 1))
 
-			let attackLosses: attackLosses = {}
-			let defenseLosses: defendLosses = {}
+			const attackLosses: attackLosses = {}
+			const defenseLosses: defendLosses = {}
 			let result: UnitLoss
 
 			switch (attackType) {
@@ -823,16 +823,16 @@ const attack = async (req: Request, res: Response) => {
 					break
 				//surprise attack and standard attack losses
 				case 'surprise':
-					console.log('surprise attack')
+					// console.log('surprise attack')
 					omod *= 1.2
 					console.log('omod', omod)
 				case 'pillage':
-					console.log('pillage attack')
+					// console.log('pillage attack')
 					omod *= 1.2
 					console.log('omod', omod)
 				case 'standard':
-					console.log('omod', omod)
-					console.log('standard attack')
+					// console.log('omod', omod)
+					// console.log('standard attack')
 					result = calcUnitLosses(
 						attacker.trpArm,
 						defender.trpArm,
@@ -841,7 +841,7 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					console.log(result)
+					// console.log(result)
 					attackLosses['trparm'] = result.attackLosses
 					defenseLosses['trparm'] = result.defendLosses
 					result = calcUnitLosses(
@@ -852,7 +852,7 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					console.log(result)
+					// console.log(result)
 					attackLosses['trplnd'] = result.attackLosses
 					defenseLosses['trplnd'] = result.defendLosses
 					result = calcUnitLosses(
@@ -863,7 +863,7 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					console.log(result)
+					// console.log(result)
 					attackLosses['trpfly'] = result.attackLosses
 					defenseLosses['trpfly'] = result.defendLosses
 					result = calcUnitLosses(
@@ -874,7 +874,7 @@ const attack = async (req: Request, res: Response) => {
 						omod,
 						dmod
 					)
-					console.log(result)
+					// console.log(result)
 					attackLosses['trpsea'] = result.attackLosses
 					defenseLosses['trpsea'] = result.defendLosses
 			}
@@ -896,9 +896,9 @@ const attack = async (req: Request, res: Response) => {
 				attackType === 'standard' ||
 				attackType === 'pillage'
 			) {
-				console.log('surprise, standard, pillage attack')
-				console.log(attackLosses)
-				console.log(defenseLosses)
+				// console.log('surprise, standard, pillage attack')
+				// console.log(attackLosses)
+				// console.log(defenseLosses)
 				attacker.trpArm -= attackLosses.trparm
 				defender.trpArm -= defenseLosses.trparm
 				attacker.trpLnd -= attackLosses.trplnd
@@ -1216,8 +1216,6 @@ const attack = async (req: Request, res: Response) => {
 
 				// check for kill
 			} else {
-				let landLoss = 0
-
 				if (
 					attackType !== 'surprise' &&
 					attackType !== 'standard' &&
@@ -1332,12 +1330,7 @@ const attack = async (req: Request, res: Response) => {
 				)
 			}
 
-			attacker.health -= 6
-			if (attackType === 'surprise') {
-				attacker.health -= 5
-			}
-
-			let adjustedDR =
+			const adjustedDR =
 				game.drRate + Math.round((defender.bldDef / defender.land) * 100) / 100
 
 			// console.log('adjusted DR', adjustedDR)
