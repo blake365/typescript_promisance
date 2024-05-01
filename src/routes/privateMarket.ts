@@ -182,7 +182,7 @@ const sell = async (req: Request, res: Response) => {
 		getValue(empire, game.pvtmTrpLnd, 0.4, game.pvtmShopBonus),
 		getValue(empire, game.pvtmTrpFly, 0.42, game.pvtmShopBonus),
 		getValue(empire, game.pvtmTrpSea, 0.44, game.pvtmShopBonus),
-		game.pvtmFood * 0.3,
+		game.pvtmFood * 0.38,
 		game.pvtmRunes * 0.2,
 	]
 

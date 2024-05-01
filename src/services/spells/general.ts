@@ -19,9 +19,12 @@ export const baseCost = (empire: Empire) => {
 }
 
 export const getPower_self = (empire: Empire) => {
-	return Math.round(
-		(empire.trpWiz * ((100 + raceArray[empire.race].mod_magic) / 100)) /
-			Math.max(empire.bldWiz, 1)
+	return Math.max(
+		Math.round(
+			(empire.trpWiz * ((100 + raceArray[empire.race].mod_magic) / 100)) /
+				Math.max(empire.bldWiz, 1)
+		),
+		100 + raceArray[empire.race].mod_magic
 	)
 }
 

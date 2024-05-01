@@ -32,6 +32,8 @@ function calcProvisions(empire: Empire) {
 			eraArray[empire.era].mod_foodpro) /
 		100
 
+	// production *= Math.max(0.8, calcSizeBonus(empire))
+
 	const foodpro = Math.round(production)
 
 	let consumption =
@@ -50,10 +52,11 @@ function calcProvisions(empire: Empire) {
 
 function calcFinances(pci: number, empire: Empire, size: number) {
 	const income = Math.round(
-		(pci * (empire.tax / 100) * (empire.health / 100) * empire.peasants +
-			empire.bldCash * 500) *
-			Math.max(0.8, size)
+		pci * (empire.tax / 100) * (empire.health / 100) * empire.peasants +
+			empire.bldCash * 500
 	)
+
+	// income *= Math.max(0.8, size)
 
 	// let loan = Math.round(empire.loan / 200)
 
@@ -111,12 +114,18 @@ function calcRot(empire: Empire): number {
 function IndyOutput(
 	empire: Empire,
 	indMultiplier: number,
-	configMultiplier: number
+	configMultiplier: number,
+	size: number
 ) {
-	let trparm = Math.ceil(
+	const sizeMultiplier = 1
+
+	// Math.max(0.8, size)
+
+	const trparm = Math.ceil(
 		empire.bldTroop *
 			(empire.indArmy / 100) *
 			1.2 *
+			sizeMultiplier *
 			configMultiplier *
 			indMultiplier *
 			((100 +
@@ -124,10 +133,11 @@ function IndyOutput(
 				eraArray[empire.era].mod_industry) /
 				100)
 	)
-	let trplnd = Math.ceil(
+	const trplnd = Math.ceil(
 		empire.bldTroop *
 			(empire.indLnd / 100) *
 			0.6 *
+			sizeMultiplier *
 			configMultiplier *
 			indMultiplier *
 			((100 +
@@ -135,10 +145,11 @@ function IndyOutput(
 				eraArray[empire.era].mod_industry) /
 				100)
 	)
-	let trpfly = Math.ceil(
+	const trpfly = Math.ceil(
 		empire.bldTroop *
 			(empire.indFly / 100) *
 			0.3 *
+			sizeMultiplier *
 			configMultiplier *
 			indMultiplier *
 			((100 +
@@ -146,10 +157,11 @@ function IndyOutput(
 				eraArray[empire.era].mod_industry) /
 				100)
 	)
-	let trpsea = Math.ceil(
+	const trpsea = Math.ceil(
 		empire.bldTroop *
 			(empire.indSea / 100) *
 			0.2 *
+			sizeMultiplier *
 			configMultiplier *
 			indMultiplier *
 			((100 +
@@ -214,7 +226,7 @@ function calcWizards(empire: Empire): number {
 		trpWiz *
 			Math.sqrt(
 				1 -
-					((trpWiz / Math.max(1, Math.abs(trpWiz))) * 0.75 * empire.bldWiz) /
+					((trpWiz / Math.max(1, Math.abs(trpWiz))) * 0.66 * empire.bldWiz) /
 						empire.land
 			)
 	)
@@ -299,10 +311,10 @@ export const useTurn = async (
 		empire.networth = getNetworth(empire, game)
 
 		// size bonus penalty
-		let size = calcSizeBonus(empire)
+		const size = calcSizeBonus(empire)
 
-		let luck = game.baseLuck / size
-		let lucky = Math.random() * 100 <= luck
+		const luck = game.baseLuck / size
+		const lucky = Math.random() * 100 <= luck
 
 		if (empire.health < 0) {
 			empire.health = 0
@@ -319,14 +331,14 @@ export const useTurn = async (
 
 		// savings interest
 		if (empire.turnsUsed > game.turnsProtection) {
-			let bankMax = empire.networth * 100
+			const bankMax = empire.networth * 100
 			if (empire.bank > bankMax) {
 				withdraw = empire.bank - bankMax
 				empire.bank -= withdraw
 				empire.cash += withdraw
 			} else {
-				let saveRate = game.bankSaveRate - size
-				let bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
+				const saveRate = game.bankSaveRate - size
+				const bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
 				empire.bank = Math.min(empire.bank + bankInterest, bankMax)
 			}
 		}
@@ -335,9 +347,9 @@ export const useTurn = async (
 		current['withdraw'] = withdraw
 
 		// loan interest
-		let loanMax = empire.networth * 50
-		let loanRate = game.bankLoanRate + size
-		let loanInterest = Math.round(empire.loan * (loanRate / 52 / 100))
+		const loanMax = empire.networth * 50
+		const loanRate = game.bankLoanRate + size
+		const loanInterest = Math.round(empire.loan * (loanRate / 52 / 100))
 		empire.loan += loanInterest
 		current['loanInterest'] = loanInterest
 
@@ -357,13 +369,13 @@ export const useTurn = async (
 		//war tax
 		let wartax = 0
 		if (empire.clanId !== 0) {
-			let clan = await Clan.findOneOrFail({
+			const clan = await Clan.findOneOrFail({
 				where: { id: empire.clanId },
 				relations: ['relation'],
 			})
 
 			// console.log(clan)
-			let relations = clan.relation.map((relation) => {
+			const relations = clan.relation.map((relation) => {
 				if (relation.clanRelationFlags === 'war') {
 					return relation.c_id2
 				}
@@ -379,7 +391,7 @@ export const useTurn = async (
 			wartax = Math.ceil(wartax)
 		}
 
-		let corruption = calcCorruption(empire)
+		const corruption = calcCorruption(empire)
 
 		// net income
 		let money = Math.round(income - (expenses + wartax + corruption))
@@ -399,7 +411,7 @@ export const useTurn = async (
 
 		//more loan stuff
 		let loanpayed: number
-		let loanEmergencyLimit = loanMax * 2
+		const loanEmergencyLimit = loanMax * 2
 
 		if (trouble && troubleCash && empire.loan > loanEmergencyLimit) {
 			console.log('extreme cash trouble')
@@ -468,10 +480,11 @@ export const useTurn = async (
 			indMultiplier = 0.66
 		}
 
-		let { trparm, trplnd, trpfly, trpsea } = IndyOutput(
+		const { trparm, trplnd, trpfly, trpsea } = IndyOutput(
 			empire,
 			indMultiplier,
-			game.industryMult
+			game.industryMult,
+			size
 		)
 
 		empire.trpArm += trparm
@@ -512,7 +525,7 @@ export const useTurn = async (
 			foodpro = Math.round(0.66 * foodpro)
 		}
 
-		let food = Math.round(foodpro - foodcon - rot)
+		const food = Math.round(foodpro - foodcon - rot)
 
 		empire.food += food
 		if (type === 'farm') {
@@ -555,16 +568,16 @@ export const useTurn = async (
 		}
 
 		// update population
-		let taxrate = empire.tax / 100
+		const taxrate = empire.tax / 100
 
-		let taxpenalty = calcTaxPenalty(taxrate)
+		const taxpenalty = calcTaxPenalty(taxrate)
 
-		let popBase = Math.round(
+		const popBase = Math.round(
 			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 65) /
 				(0.95 + taxrate + taxpenalty)
 		) // 14495
 
-		let peasants = calcPeasants(empire, popBase)
+		const peasants = calcPeasants(empire, popBase)
 
 		empire.peasants += peasants
 		current['peasants'] = peasants
@@ -581,7 +594,7 @@ export const useTurn = async (
 			runeMultiplier = 0.66
 		}
 
-		let runes = calculateRunes(empire, runeMultiplier)
+		const runes = calculateRunes(empire, runeMultiplier)
 
 		empire.runes += runes
 		current['runes'] = runes
@@ -594,7 +607,7 @@ export const useTurn = async (
 		}
 
 		// add/lose wizards
-		let trpWiz = calcWizards(empire)
+		const trpWiz = calcWizards(empire)
 
 		// console.log(trpWiz)
 		empire.trpWiz += trpWiz
@@ -945,7 +958,8 @@ export const useTurnInternal = (
 		const { trparm, trplnd, trpfly, trpsea } = IndyOutput(
 			empire,
 			indMultiplier,
-			game.industryMult
+			game.industryMult,
+			size
 		)
 
 		// empire.trpArm += trparm

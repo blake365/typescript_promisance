@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { Router } from 'express'
+import e, { Router } from 'express'
 import { validate, isEmpty } from 'class-validator'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
@@ -54,7 +54,7 @@ const register = async (req: Request, res: Response) => {
 }
 
 const login = async (req: Request, res: Response) => {
-	const { username, password } = req.body
+	const { username, password, stayLoggedIn } = req.body
 	// console.log(username, password)
 	try {
 		let errors: any = {}
@@ -78,7 +78,16 @@ const login = async (req: Request, res: Response) => {
 		const token = jwt.sign({ username }, process.env.JWT_SECRET!)
 
 		// const data = token
-		const time = 3600
+		let time = 3600
+		if (stayLoggedIn === '1 day') {
+			time = 86400
+		} else if (stayLoggedIn === '1 week') {
+			time = 604800
+		} else if (stayLoggedIn === '1 month') {
+			time = 2678400
+		} else if (stayLoggedIn === '6 months') {
+			time = 15552000
+		}
 		// console.log(token)
 		try {
 			res.set(

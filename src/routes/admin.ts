@@ -1050,7 +1050,7 @@ const editGame = async (req: Request, res: Response) => {
 		})
 	}
 
-	// console.log(req.body)
+	console.log(req.body)
 
 	try {
 		// console.log(req.body)
@@ -1058,7 +1058,7 @@ const editGame = async (req: Request, res: Response) => {
 			where: { game_id: Number(req.query.gameId) },
 		})
 
-		// console.log(game)
+		console.log(game)
 		// request body should have game details object from form
 
 		game.name = req.body.name
@@ -1104,7 +1104,7 @@ const editGame = async (req: Request, res: Response) => {
 		game.pvtmTrpLnd = req.body.pvtmTrpLnd
 		game.pvtmTrpFly = req.body.pvtmTrpFly
 		game.pvtmTrpSea = req.body.pvtmTrpSea
-		game.pvtmFood = req.body.pvtmTrpWiz
+		game.pvtmFood = req.body.pvtmFood
 		game.pvtmRunes = req.body.pvtmRunes
 		game.industryMult = req.body.industryMult
 		game.maxAttacks = req.body.maxAttacks
@@ -1116,6 +1116,7 @@ const editGame = async (req: Request, res: Response) => {
 		game.aidDelay = req.body.aidDelay
 		game.allowMagicRegress = req.body.allowMagicRegress
 
+		console.log(game)
 		await game.save()
 		return res.json({ message: 'Game Edited' })
 	} catch (error) {
