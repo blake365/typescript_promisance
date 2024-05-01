@@ -30,7 +30,7 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 		// console.log(event.entity.name)
 		// console.log('starting', event.entity.achievements)
 		const theAchievements = achievements
-		if (event.entity.id > 0) {
+		if (event?.entity?.id > 0) {
 			// console.log('empire found', event.entity.id)
 			// console.log(event.entity.achievements)
 			let newAchievements = JSON.parse(

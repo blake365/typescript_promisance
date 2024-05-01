@@ -670,10 +670,15 @@ const resetGame = async (req: Request, res: Response) => {
 		// save clan data into clan history
 		// delete empires, intel, clans, clan relations, messages, clan messages, news, market, sessions, lottery, etc...
 		// update user stats
-		let users = await User.find()
+		let users = await User.find({
+			relations: ['empires'],
+		})
 
 		// filter out users with no empires in this game
 		users = users.filter((user) => {
+			if (user.empires.length === 0) {
+				return false
+			}
 			user.empires = user.empires.filter((empire) => {
 				return empire.game_id === Number(game.game_id)
 			})
@@ -1050,7 +1055,7 @@ const editGame = async (req: Request, res: Response) => {
 		})
 	}
 
-	console.log(req.body)
+	// console.log(req.body)
 
 	try {
 		// console.log(req.body)
@@ -1058,7 +1063,7 @@ const editGame = async (req: Request, res: Response) => {
 			where: { game_id: Number(req.query.gameId) },
 		})
 
-		console.log(game)
+		// console.log(game)
 		// request body should have game details object from form
 
 		game.name = req.body.name
