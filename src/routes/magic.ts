@@ -58,11 +58,14 @@ const spellCheck = (empire: Empire, cost: number, turns: number) => {
 				eraArray[empire.era].runes
 			} to cast this spell.`,
 		}
-	} else if (empire.turns < turns) {
+	}
+	if (empire.turns < turns) {
 		return { error: 'You do not have enough turns to cast this spell.' }
-	} else if (empire.health < 20) {
+	}
+	if (empire.health < 20) {
 		return { error: 'You do not have enough health to cast this spell.' }
-	} else return 'passed'
+	}
+	return 'passed'
 }
 
 interface Cast {

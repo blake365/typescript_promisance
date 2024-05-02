@@ -146,10 +146,10 @@ const logout = async (_: Request, res: Response) => {
 		})
 	)
 
-	const session = await Session.findOne({ user_id: res.locals.user.id })
+	// const session = await Session.findOne({ user_id: res.locals.user.id })
 
-	session.time = 0
-	await session.save()
+	// session.time = 0
+	// await session.save()
 
 	return res.status(200).json({ success: true })
 }

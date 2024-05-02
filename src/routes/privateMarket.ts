@@ -182,8 +182,8 @@ const sell = async (req: Request, res: Response) => {
 		getValue(empire, game.pvtmTrpLnd, 0.4, game.pvtmShopBonus),
 		getValue(empire, game.pvtmTrpFly, 0.42, game.pvtmShopBonus),
 		getValue(empire, game.pvtmTrpSea, 0.44, game.pvtmShopBonus),
-		game.pvtmFood * 0.38,
-		game.pvtmRunes * 0.2,
+		Math.round(game.pvtmFood * 0.38),
+		Math.round(game.pvtmRunes * 0.2),
 	]
 
 	let sellArray = [sellArm, sellLnd, sellFly, sellSea, sellFood, sellRunes]
@@ -251,14 +251,14 @@ const sell = async (req: Request, res: Response) => {
 	// await awardAchievements(empire)
 	await takeSnapshot(empire, game.turnsProtection)
 
-	let resultSellArm = { amount: sellArm, price: spendArray[0] }
-	let resultSellLnd = { amount: sellLnd, price: spendArray[1] }
-	let resultSellFly = { amount: sellFly, price: spendArray[2] }
-	let resultSellSea = { amount: sellSea, price: spendArray[3] }
-	let resultSellFood = { amount: sellFood, price: spendArray[4] }
-	let resultSellRunes = { amount: sellRunes, price: spendArray[5] }
+	const resultSellArm = { amount: sellArm, price: spendArray[0] }
+	const resultSellLnd = { amount: sellLnd, price: spendArray[1] }
+	const resultSellFly = { amount: sellFly, price: spendArray[2] }
+	const resultSellSea = { amount: sellSea, price: spendArray[3] }
+	const resultSellFood = { amount: sellFood, price: spendArray[4] }
+	const resultSellRunes = { amount: sellRunes, price: spendArray[5] }
 
-	let shoppingResult = {
+	const shoppingResult = {
 		resultSellArm,
 		resultSellLnd,
 		resultSellFly,
