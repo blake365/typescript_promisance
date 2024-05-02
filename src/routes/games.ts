@@ -37,7 +37,7 @@ const getGames = async (req: Request, res: Response) => {
 // }
 
 const games = async (req: Request, res: Response) => {
-	const games = await Game.find({ order: { createdAt: 'ASC' } })
+	const games = await Game.find({ order: { createdAt: 'DESC' } })
 
 	// add stats to each game
 	for (const game of games) {
