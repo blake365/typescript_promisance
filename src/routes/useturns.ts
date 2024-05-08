@@ -173,18 +173,6 @@ function IndyOutput(
 	return { trparm: trparm, trplnd: trplnd, trpfly: trpfly, trpsea: trpsea }
 }
 
-function calcTaxPenalty(taxrate: number): number {
-	let taxpenalty = 0
-	if (taxrate > 0.4) {
-		taxpenalty = (taxrate - 0.4) / 2
-	} else if (taxrate < 0.2) {
-		taxpenalty = (taxrate - 0.2) / 2
-	} else {
-		taxpenalty = 0
-	}
-	return taxpenalty
-}
-
 function calculateRunes(empire: Empire, runeMultiplier: number): number {
 	let runes: number
 	if (empire.bldWiz / empire.land > 0.15) {
@@ -234,19 +222,39 @@ function calcWizards(empire: Empire): number {
 	return trpWiz
 }
 
+function calcTaxPenalty(taxrate: number): number {
+	let taxpenalty = 0
+	if (taxrate > 0.8) {
+		taxpenalty = (taxrate - 0.8) / 2
+	} else if (taxrate > 0.4) {
+		taxpenalty = (taxrate - 0.5) / 2
+	} else if (taxrate < 0.2) {
+		taxpenalty = (taxrate - 0.2) / 2
+	} else {
+		taxpenalty = 0
+	}
+	return taxpenalty
+}
+
 function calcPeasants(empire: Empire, popBase: number): number {
 	let peasants = 0
 	let peasantsMult = 1
+	let taxReplacement = empire.tax
+	if (empire.tax < 5) {
+		taxReplacement = 5
+	} else if (empire.tax > 95) {
+		taxReplacement = 95
+	}
 
 	if (empire.peasants !== popBase) {
 		peasants = (popBase - empire.peasants) / 20
 	}
 
 	if (peasants > 0) {
-		peasantsMult = 4 / ((empire.tax + 15) / 20) - 7 / 9
+		peasantsMult = 4 / ((taxReplacement + 15) / 20) - 7 / 9
 	}
 	if (peasants < 0) {
-		peasantsMult = 1 / (4 / (empire.tax + 15) / 20 - 7 / 9)
+		peasantsMult = 1 / (4 / (taxReplacement + 15) / 20 - 7 / 9)
 	}
 
 	peasants = Math.round(peasants * peasantsMult * peasantsMult)
@@ -324,6 +332,21 @@ export const useTurn = async (
 			turnResult = exploreAlt(empire, lucky)
 			// console.log(turnResult)
 		}
+
+		// update population
+		const taxrate = empire.tax / 100
+
+		const taxpenalty = calcTaxPenalty(taxrate)
+
+		const popBase = Math.round(
+			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 60) /
+				(0.95 + taxrate + taxpenalty)
+		) // 14495
+
+		const peasants = calcPeasants(empire, popBase)
+
+		empire.peasants += peasants
+		current['peasants'] = peasants
 
 		// console.log(lucky)
 		// savings interest
@@ -567,21 +590,6 @@ export const useTurn = async (
 			empire.health = 100
 		}
 
-		// update population
-		const taxrate = empire.tax / 100
-
-		const taxpenalty = calcTaxPenalty(taxrate)
-
-		const popBase = Math.round(
-			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 65) /
-				(0.95 + taxrate + taxpenalty)
-		) // 14495
-
-		const peasants = calcPeasants(empire, popBase)
-
-		empire.peasants += peasants
-		current['peasants'] = peasants
-
 		// gain magic energy
 		let runeMultiplier = 1
 		if (type === 'meditate') {
@@ -823,6 +831,19 @@ export const useTurnInternal = (
 			empire.health = 0
 		}
 
+		// update population
+		const taxrate = empire.tax / 100
+		const taxpenalty = calcTaxPenalty(taxrate)
+
+		const popBase = Math.round(
+			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 60) /
+				(0.95 + taxrate + taxpenalty)
+		) // 14495
+
+		const peasants = calcPeasants(empire, popBase)
+		// empire.peasants += peasants
+		current['peasants'] = peasants
+
 		// savings interest
 		let withdraw = 0
 		let bankInterest = 0
@@ -993,19 +1014,6 @@ export const useTurnInternal = (
 		if (empire.health < 100 - Math.max((empire.tax - 25) / 2, 0)) {
 			empire.health++
 		}
-
-		// update population
-		const taxrate = empire.tax / 100
-		const taxpenalty = calcTaxPenalty(taxrate)
-
-		const popBase = Math.round(
-			(empire.land * 2 + empire.freeLand * 5 + empire.bldPop * 65) /
-				(0.95 + taxrate + taxpenalty)
-		) // 14495
-
-		const peasants = calcPeasants(empire, popBase)
-		// empire.peasants += peasants
-		current['peasants'] = peasants
 
 		// gain magic energy
 		const runeMultiplier = 1
