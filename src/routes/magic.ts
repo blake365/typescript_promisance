@@ -611,6 +611,10 @@ const magicAttack = async (req: Request, res: Response) => {
 			return res.status(400).json({ error: 'Unauthorized' })
 		}
 
+		if (attacker.turns < 2) {
+			return res.json({ error: 'Not have enough turns to cast spells' })
+		}
+
 		let clan = null
 		if (attacker.clanId !== 0) {
 			clan = await Clan.findOneOrFail({
@@ -682,7 +686,7 @@ const magicAttack = async (req: Request, res: Response) => {
 			})
 		}
 
-		if (attacker.era === defender.era && attacker.turns > 2) {
+		if (attacker.era === defender.era && attacker.turns >= 2) {
 			canAttack = true
 		} else if (attacker.era !== defender.era) {
 			// use attacker time gate first then try defender
@@ -780,6 +784,12 @@ const magicAttack = async (req: Request, res: Response) => {
 		let desertions = null
 
 		if (canAttack) {
+			let points = 1
+			const ratio = defender.networth / Math.max(1, attacker.networth)
+			if (ratio > 1) {
+				points = 1 + Math.floor((ratio - 1) * 2)
+			}
+
 			if (spell !== 'spy') {
 				if (attacker.networth > defender.networth * 2.5 && type !== 'war') {
 					// the attacker is ashamed for attacking a smaller empire, troops desert
@@ -812,7 +822,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					blast_cost(base),
-					() => blast_cast(attacker, defender, game),
+					() => blast_cast(attacker, defender, game, points),
 					game
 				)
 				// console.log(spellTurns)
@@ -823,7 +833,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					struct_cost(base),
-					() => struct_cast(attacker, defender, game),
+					() => struct_cast(attacker, defender, game, points),
 					game
 				)
 				console.log(spellTurns)
@@ -833,7 +843,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					storm_cost(base),
-					() => storm_cast(attacker, defender, game),
+					() => storm_cast(attacker, defender, game, points),
 					game
 				)
 			} else if (spell === 'steal') {
@@ -842,7 +852,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					steal_cost(base),
-					() => steal_cast(attacker, defender, game),
+					() => steal_cast(attacker, defender, game, points),
 					game
 				)
 			} else if (spell === 'runes') {
@@ -851,7 +861,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					attacker,
 					clan,
 					runes_cost(base),
-					() => runes_cast(attacker, defender, game),
+					() => runes_cast(attacker, defender, game, points),
 					game
 				)
 			} else if (spell === 'fight') {
@@ -875,7 +885,8 @@ const magicAttack = async (req: Request, res: Response) => {
 							clan,
 							game.turnsProtection,
 							game.drRate,
-							game
+							game,
+							points
 						),
 					game
 				)
@@ -892,9 +903,7 @@ const magicAttack = async (req: Request, res: Response) => {
 		} else {
 			// console.log('not allowed')
 			return res.json({
-				error: `${
-					eraArray[attacker.era].effectname_gate
-				} is required to cast a spell on this empire.`,
+				error: 'An error occurred. Please try again.',
 			})
 		}
 

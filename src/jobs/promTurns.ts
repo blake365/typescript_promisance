@@ -31,174 +31,165 @@ import Game from '../entity/Game'
 // perform standard turn update events
 export const promTurns = new AsyncTask('prom turns', async () => {
 	// max turns 500, max stored turns 250
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update turns
-			turns: () =>
-				`turns + ${TURNS_COUNT} + LEAST(storedTurns, ${TURNS_UNSTORE}), storedTurns = storedTurns - LEAST(storedTurns, ${TURNS_UNSTORE})`,
-		})
-		.where('vacation = 0 AND id != 0 AND mode != :mode', { mode: 'demo' })
-		.execute()
+	const games = await Game.find({ where: { isActive: true } })
 
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update stored turns
-			storedturns: () =>
-				`LEAST(${TURNS_STORED}, storedTurns + turns - ${TURNS_MAXIMUM}), turns = ${TURNS_MAXIMUM} `,
-		})
-		.where('turns > :turnsMax AND id != 0 AND mode != :mode', {
-			mode: 'demo',
-			turnsMax: TURNS_MAXIMUM,
-		})
-		.execute()
+	for (let i = 0; i < games.length; i++) {
+		const game = games[i]
+		console.log(game.game_id)
+		const now = new Date()
 
-	// Reduce maximum private market sell percentage (by 1% base, up to 2% if the player has nothing but bldcash)
-	// TODO: can't figure out what this is doing...
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			mktPerArm: () =>
-				'mkt_per_arm - LEAST(mkt_per_arm, 100 * (1 + bld_cash / land))',
-			mktPerLnd: () =>
-				'mkt_per_lnd - LEAST(mkt_per_lnd, 100 * (1 + bld_cash / land))',
-			mktPerFly: () =>
-				'mkt_per_fly - LEAST(mkt_per_fly, 100 * (1 + bld_cash / land))',
-			mktPerSea: () =>
-				'mkt_per_sea - LEAST(mkt_per_sea, 100 * (1 + bld_cash / land))',
-		})
-		.where('land != 0 AND id != 0')
-		.execute()
+		if (now < new Date(game.roundStart) || now > new Date(game.roundEnd)) {
+			console.log('Round is not in progress')
+		} else {
+			try {
+				await getConnection()
+					.createQueryBuilder()
+					.update(Empire)
+					.set({
+						// update turns
+						turns: () =>
+							`turns + ${game.turnsCount} + LEAST(storedTurns, ${game.turnsUnstore}), storedTurns = storedTurns - LEAST(storedTurns, ${game.turnsUnstore})`,
+					})
+					.where(
+						'vacation = 0 AND id != 0 AND mode != :mode AND game_id = :game_id',
+						{ mode: 'demo', game_id: game.game_id }
+					)
+					.execute()
 
-	// await getConnection()
-	// 	.createQueryBuilder()
-	// 	.update(Empire)
-	// 	.set({
-	// 		// update price on private market
-	// 		mktPerLnd: () =>
-	// 			'mkt_Per_Lnd - LEAST(mkt_Per_Lnd, 100 * (1 + bld_Cash / land))',
-	// 	})
-	// 	.where('land != 0 AND id != 0')
-	// 	.execute()
+				await getConnection()
+					.createQueryBuilder()
+					.update(Empire)
+					.set({
+						// update stored turns
+						storedturns: () =>
+							`LEAST(${game.turnsStored}, storedTurns + turns - ${game.turnsMax}), turns = ${game.turnsMax} `,
+					})
+					.where(
+						'turns > :turnsMax AND id != 0 AND mode != :mode AND game_id = :game_id',
+						{
+							mode: 'demo',
+							turnsMax: game.turnsMax,
+							game_id: game.game_id,
+						}
+					)
+					.execute()
 
-	// await getConnection()
-	// 	.createQueryBuilder()
-	// 	.update(Empire)
-	// 	.set({
-	// 		// update price on private market
-	// 		mktPerFly: () =>
-	// 			'mkt_Per_Fly - LEAST(mkt_Per_Fly, 100 * (1 + bld_Cash / land))',
-	// 	})
-	// 	.where('land != 0 AND id != 0')
-	// 	.execute()
+				// Reduce maximum private market sell percentage (by 1% base, up to 2% if the player has nothing but bldcash)
+				// TODO: can't figure out what this is doing...
 
-	// await getConnection()
-	// 	.createQueryBuilder()
-	// 	.update(Empire)
-	// 	.set({
-	// 		// update price on private market
-	// 		mktPerSea: () =>
-	// 			'mkt_Per_Sea - LEAST(mkt_Per_Sea, 100 * (1 + bld_Cash / land))',
-	// 	})
-	// 	.where('land != 0 AND id != 0')
-	// 	.execute()
+				// refill private market based on bldCost, except for food bldFood
+				await getConnection()
+					.createQueryBuilder()
+					.update(Empire)
+					.set({
+						// update available quantity on market
+						mktArm: () => 'mkt_arm + (8 * (land + bld_cost)*0.75)',
+					})
+					.where(
+						'mkt_arm / 250 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
+						{ game_id: game.game_id }
+					)
+					.execute()
 
-	// refill private market based on bldCost, except for food bldFood
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update available quantity on market
-			mktArm: () => 'mkt_arm + (8 * (land + bld_cost)*0.75)',
-		})
-		.where('mkt_arm / 250 < land + 2 * bld_cost AND id != 0')
-		.execute()
+				await getConnection()
+					.createQueryBuilder()
+					.update(Empire)
+					.set({
+						// update available quantity on market
+						mktLnd: () => 'mkt_lnd + (5 * (land + bld_cost)*0.75)',
+					})
+					.where(
+						'mkt_lnd / 250 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
+						{ game_id: game.game_id }
+					)
+					.execute()
 
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update available quantity on market
-			mktLnd: () => 'mkt_lnd + (5 * (land + bld_cost)*0.75)',
-		})
-		.where('mkt_lnd / 250 < land + 2 * bld_cost AND id != 0')
-		.execute()
+				await getConnection()
+					.createQueryBuilder()
+					.update(Empire)
+					.set({
+						// update available quantity on market
+						mktFly: () => 'mkt_fly + (3 * (land + bld_cost)*0.75)',
+					})
+					.where(
+						'mkt_fly / 250 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
+						{ game_id: game.game_id }
+					)
+					.execute()
 
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update available quantity on market
-			mktFly: () => 'mkt_fly + (3 * (land + bld_cost)*0.75)',
-		})
-		.where('mkt_fly / 250 < land + 2 * bld_cost AND id != 0')
-		.execute()
+				await getConnection()
+					.createQueryBuilder()
+					.update(Empire)
+					.set({
+						// update available quantity on market
+						mktSea: () => 'mkt_sea + (2 * (land + bld_cost)*0.75)',
+					})
+					.where(
+						'mkt_sea / 250 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
+						{ game_id: game.game_id }
+					)
+					.execute()
 
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update available quantity on market
-			mktSea: () => 'mkt_sea + (2 * (land + bld_cost)*0.75)',
-		})
-		.where('mkt_sea / 250 < land + 2 * bld_cost AND id != 0')
-		.execute()
+				await getConnection()
+					.createQueryBuilder()
+					.update(Empire)
+					.set({
+						// update available quantity on market
+						mktFood: () => 'mkt_food + (50 * (land + bld_cost) * 0.8)',
+					})
+					.where(
+						'mkt_food / 3500 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
+						{ game_id: game.game_id }
+					)
+					.execute()
 
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update available quantity on market
-			mktFood: () => 'mkt_food + (50 * (land + bld_cost) * 0.8)',
-		})
-		.where('mkt_food / 3500 < land + 2 * bld_cost AND id != 0')
-		.execute()
+				await getConnection()
+					.createQueryBuilder()
+					.update(Empire)
+					.set({
+						// update available quantity on market
+						mktRunes: () => 'mkt_runes + (6 * (land + bld_cost)*0.8)',
+					})
+					.where(
+						'mkt_runes / 100 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
+						{ game_id: game.game_id }
+					)
+					.execute()
 
-	await getConnection()
-		.createQueryBuilder()
-		.update(Empire)
-		.set({
-			// update available quantity on market
-			mktRunes: () => 'mkt_runes + (8 * (land + bld_cost)*0.9)',
-		})
-		.where('mkt_runes / 200 < land + 2 * bld_cost AND id != 0')
-		.execute()
+				console.log('updating ranks')
+				let empires = []
+				let uRank = 0
+				if (game.scoreEnabled) {
+					empires = await Empire.find({
+						where: { game_id: game.game_id },
+						order: { score: 'DESC' },
+					})
+				} else {
+					empires = await Empire.find({
+						where: { game_id: game.game_id },
+						order: { networth: 'DESC' },
+					})
+				}
+				for (let i = 0; i < empires.length; i++) {
+					uRank++
+					const id = empires[i].id
+					await getConnection()
+						.createQueryBuilder()
+						.update(Empire)
+						.set({
+							// update rank
+							rank: uRank,
+						})
+						.where('id = :id', { id: id })
+						.execute()
+				}
 
-	// clan troop sharing
-	// await getConnection()
-	// 	.createQueryBuilder()
-	// 	.update(Empire)
-	// 	.set({
-	// 		// update available quantity on market
-	// 		sharing: () => 'sharing - 1',
-	// 	})
-	// 	.where('sharing > 0 AND id != 0')
-	// 	.execute()
-
-	// clean up expired clan invites
-	console.log('updating ranks')
-	const empires = await Empire.find({ order: { networth: 'DESC' } })
-	let uRank = 0
-
-	for (let i = 0; i < empires.length; i++) {
-		uRank++
-		let id = empires[i].id
-		await getConnection()
-			.createQueryBuilder()
-			.update(Empire)
-			.set({
-				// update rank
-				rank: uRank,
-			})
-			.where('id = :id', { id: id })
-			.execute()
+				console.log('Turns update', new Date())
+			} catch (err) {
+				console.log(err)
+			}
+		}
 	}
-
-	console.log('Turns update', new Date())
 })
 
 export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
@@ -400,6 +391,22 @@ export const cleanDemoAccounts = new AsyncTask(
 				console.log('Round is not in progress')
 			} else {
 				try {
+					if (game.scoreEnabled) {
+						console.log('give score based on networth')
+						await getConnection()
+							.createQueryBuilder()
+							.update(Empire)
+							.set({
+								// update score
+								score: () => 'score + (networth / 10000000)',
+							})
+							.where('id != 0 AND mode != :mode AND game_id = :game_id', {
+								mode: 'demo',
+								game_id: game.game_id,
+							})
+							.execute()
+					}
+
 					console.log('cleaning demo accounts and effects')
 					await getConnection()
 						.createQueryBuilder()

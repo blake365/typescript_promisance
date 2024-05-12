@@ -397,7 +397,7 @@ export default class Empire extends Model {
 	runes: number
 
 	@Column({
-		type: 'int',
+		type: 'integer',
 		default: 0,
 	})
 	score: number

@@ -1,9 +1,9 @@
-import {
-	EventSubscriber,
+import type {
 	EntitySubscriberInterface,
 	UpdateEvent,
 	EntityManager,
 } from 'typeorm'
+import { EventSubscriber } from 'typeorm'
 import Empire from '../entity/Empire'
 import { achievements } from '../config/achievements'
 
@@ -33,16 +33,16 @@ export class EmpireSubscriber implements EntitySubscriberInterface {
 		if (event?.entity?.id > 0) {
 			// console.log('empire found', event.entity.id)
 			// console.log(event.entity.achievements)
-			let newAchievements = JSON.parse(
+			const newAchievements = JSON.parse(
 				JSON.stringify(event.entity.achievements)
 			) // loop through achievements
 			// check if a key is true, if so exclude it from the array
 			// recombine array
 			const achieve = theAchievements.map((achievement) => {
-				let newAchievement = { ...achievement }
-				let keys = achievement.keys
+				const newAchievement = { ...achievement }
+				const keys = achievement.keys
 				// console.log(keys)
-				let newKeys = keys.filter((key) => {
+				const newKeys = keys.filter((key) => {
 					return event.entity.achievements[key]?.awarded === false
 				})
 				newAchievement.keys = newKeys

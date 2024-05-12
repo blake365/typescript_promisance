@@ -43,10 +43,11 @@ const destroyBuildings = async (
 export const fight_cast = async (
 	empire: Empire,
 	enemyEmpire: Empire,
-	clan: any,
+	clan,
 	turnsProtection: number,
 	drRate: number,
-	game: Game
+	game: Game,
+	points: number
 ) => {
 	const { totalLand, empireCount } = await getRepository(Empire)
 		.createQueryBuilder('empire')
@@ -60,7 +61,7 @@ export const fight_cast = async (
 
 	let war = false
 	if (clan) {
-		let relations = clan.relation.map((relation) => {
+		const relations = clan.relation.map((relation) => {
 			if (relation.clanRelationFlags === 'war') {
 				return relation.c_id2
 			}
@@ -73,14 +74,14 @@ export const fight_cast = async (
 		}
 	}
 
-	console.log(totalLand, empireCount)
+	// console.log(totalLand, empireCount)
 	const avgLand = totalLand / empireCount
-	console.log(avgLand)
+	// console.log(avgLand)
 
 	if (getPower_self(empire) < 50) {
 		// spell failed to cast
-		let wizloss = getWizLoss_enemy(empire)
-		let result = {
+		const wizloss = getWizLoss_enemy(empire)
+		const result = {
 			result: 'fail',
 			message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
 				eraArray[empire.era].spell_fight
@@ -97,27 +98,6 @@ export const fight_cast = async (
 
 	if (getPower_enemy(empire, enemyEmpire) >= 2.2) {
 		let returnText = ''
-		// if (empire.networth > enemyEmpire.networth * 2 && !war) {
-		// 	// the attacker is ashamed, troops desert
-		// 	returnText +=
-		// 		'Your army is ashamed to fight such a weak opponent, many desert... '
-		// 	empire.trpArm = Math.round(0.97 * empire.trpArm)
-		// 	empire.trpLnd = Math.round(0.97 * empire.trpLnd)
-		// 	empire.trpFly = Math.round(0.97 * empire.trpFly)
-		// 	empire.trpSea = Math.round(0.97 * empire.trpSea)
-		// 	empire.trpWiz = Math.round(0.97 * empire.trpWiz)
-		// }
-
-		// if (empire.networth < enemyEmpire.networth * 0.2 && !war) {
-		// 	// the empire is fearful, troops desert
-		// 	returnText +=
-		// 		'Your army is fearful of fighting such a strong opponent, many desert... '
-		// 	empire.trpArm = Math.round(0.98 * empire.trpArm)
-		// 	empire.trpLnd = Math.round(0.98 * empire.trpLnd)
-		// 	empire.trpFly = Math.round(0.98 * empire.trpFly)
-		// 	empire.trpSea = Math.round(0.98 * empire.trpSea)
-		// 	empire.trpWiz = Math.round(0.98 * empire.trpWiz)
-		// }
 		// spell casts successfully
 
 		let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.05 + 1))
@@ -190,20 +170,20 @@ export const fight_cast = async (
 			You killed ${eloss.toLocaleString()} ${eraArray[enemyEmpire.era].trpwiz}. /n
 			You lost ${uloss.toLocaleString()} ${eraArray[empire.era].trpwiz}.`
 
-		let attackDescription = {
+		const attackDescription = {
 			result: 'success',
 			message: returnText,
 			wizloss: uloss,
 			fight: true,
 		}
 
-		let content = `${empire.name} attacked you with ${
+		const content = `${empire.name} attacked you with ${
 			eraArray[empire.era].trpwiz
 		} and captured ${bldLoss.toLocaleString()} acres of land. /n In the battle you lost: ${eloss.toLocaleString()} ${
 			eraArray[enemyEmpire.era].trpwiz
 		} /n You killed: ${uloss.toLocaleString()} ${eraArray[empire.era].trpwiz}.`
 
-		let pubContent = `${empire.name} attacked ${enemyEmpire.name} with ${
+		const pubContent = `${empire.name} attacked ${enemyEmpire.name} with ${
 			eraArray[empire.era].trpwiz
 		} and captured ${bldLoss.toLocaleString()} acres of land. /n In the battle ${
 			enemyEmpire.name
@@ -222,6 +202,8 @@ export const fight_cast = async (
 			'fail', // defense fails
 			empire.game_id
 		)
+
+		empire.score += points
 
 		await empire.save()
 		await enemyEmpire.save()
@@ -261,18 +243,18 @@ export const fight_cast = async (
 		empire.diminishingReturns = 0
 	}
 
-	let returnText = `Your attack was repelled by ${enemyEmpire.name}. /n 
+	const returnText = `Your attack was repelled by ${enemyEmpire.name}. /n 
 			You killed ${eloss.toLocaleString()} ${eraArray[enemyEmpire.era].trpwiz}. /n
 			You lost ${uloss.toLocaleString()} ${eraArray[empire.era].trpwiz}.`
 
-	let attackDescription = {
+	const attackDescription = {
 		result: 'fail',
 		message: returnText,
 		wizloss: uloss,
 		fight: true,
 	}
 
-	let content = `
+	const content = `
 		You successfully defended your empire. /n
 		${empire.name} attacked you with ${
 		eraArray[empire.era].trpwiz
@@ -280,7 +262,7 @@ export const fight_cast = async (
 		eraArray[enemyEmpire.era].trpwiz
 	} /n You killed: ${uloss.toLocaleString()} ${eraArray[empire.era].trpwiz}.`
 
-	let pubContent = `
+	const pubContent = `
 		${enemyEmpire.name} successfully defended their empire against ${empire.name}.
 			 /n In the battle ${enemyEmpire.name} lost: ${eloss.toLocaleString()} ${
 		eraArray[enemyEmpire.era].trpwiz
@@ -301,6 +283,7 @@ export const fight_cast = async (
 	)
 
 	enemyEmpire.networth = getNetworth(enemyEmpire, game)
+	enemyEmpire.score += points
 
 	await empire.save()
 	await enemyEmpire.save()

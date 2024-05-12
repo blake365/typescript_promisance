@@ -919,6 +919,7 @@ const attack = async (req: Request, res: Response) => {
 				(attackType !== 'pillage' && offPower > defPower * 1.05) ||
 				(attackType === 'pillage' && offPower > defPower * 1.33)
 			) {
+				// attacker wins
 				if (
 					defender.land < avgLand * 0.75 &&
 					attacker.land > defender.land * 2 &&
@@ -1099,6 +1100,14 @@ const attack = async (req: Request, res: Response) => {
 				// attacker off success
 				attacker.offSucc++
 
+				// give points to attacker
+				const ratio = defender.networth / Math.max(1, attacker.networth)
+				if (ratio <= 1) {
+					attacker.score += 1
+				} else {
+					attacker.score += 1 + Math.floor((ratio - 1) * 2)
+				}
+
 				// console.log(defenseLosses)
 				// console.log(attackLosses)
 				// console.log(buildGain)
@@ -1216,6 +1225,7 @@ const attack = async (req: Request, res: Response) => {
 
 				// check for kill
 			} else {
+				// defender wins
 				if (
 					attackType !== 'surprise' &&
 					attackType !== 'standard' &&
@@ -1243,6 +1253,13 @@ const attack = async (req: Request, res: Response) => {
 				}
 				// defender def success
 				defender.defSucc++
+				// give points to defender
+				const ratio = attacker.networth / Math.max(1, defender.networth)
+				if (ratio <= 1) {
+					defender.score += 1
+				} else {
+					defender.score += 1 + Math.floor((ratio - 1) * 2)
+				}
 
 				let content = ''
 				let pubContent = ''

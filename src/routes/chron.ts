@@ -215,12 +215,19 @@ const promTurns = async (req: Request, res: Response) => {
 				// 	.execute()
 
 				console.log('updating ranks')
-				const empires = await Empire.find({
-					where: { game_id: game.game_id },
-					order: { networth: 'DESC' },
-				})
+				let empires = []
 				let uRank = 0
-
+				if (game.scoreEnabled) {
+					empires = await Empire.find({
+						where: { game_id: game.game_id },
+						order: { score: 'DESC' },
+					})
+				} else {
+					empires = await Empire.find({
+						where: { game_id: game.game_id },
+						order: { networth: 'DESC' },
+					})
+				}
 				for (let i = 0; i < empires.length; i++) {
 					uRank++
 					const id = empires[i].id
@@ -508,6 +515,7 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 // 	return false
 // }
 
+// runs once a day
 const cleanDemoAccounts = async (req: Request, res: Response) => {
 	if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
 		return res.status(401).end('Unauthorized')
@@ -524,6 +532,22 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 			console.log('Round is not in progress')
 		} else {
 			try {
+				if (game.scoreEnabled) {
+					console.log('give score based on networth')
+					await getConnection()
+						.createQueryBuilder()
+						.update(Empire)
+						.set({
+							// update score
+							score: () => 'score + (networth / 10000000)',
+						})
+						.where('id != 0 AND mode != :mode AND game_id = :game_id', {
+							mode: 'demo',
+							game_id: game.game_id,
+						})
+						.execute()
+				}
+
 				console.log('cleaning demo accounts and effects')
 				await getConnection()
 					.createQueryBuilder()

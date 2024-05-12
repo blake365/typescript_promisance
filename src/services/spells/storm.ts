@@ -1,10 +1,10 @@
 import { eraArray } from '../../config/eras'
-import Empire from '../../entity/Empire'
+import type Empire from '../../entity/Empire'
 import { getPower_enemy, getWizLoss_enemy } from './general'
 import EmpireEffect from '../../entity/EmpireEffect'
 import { createNewsEvent } from '../../util/helpers'
 import { getNetworth } from '../actions/actions'
-import Game from '../../entity/Game'
+import type Game from '../../entity/Game'
 
 export const storm_cost = (baseCost: number) => {
 	return Math.ceil(7.25 * baseCost)
@@ -13,7 +13,8 @@ export const storm_cost = (baseCost: number) => {
 export const storm_cast = async (
 	empire: Empire,
 	enemyEmpire: Empire,
-	game: Game
+	game: Game,
+	points: number
 ) => {
 	const enemyEffect = await EmpireEffect.findOne({
 		where: { effectOwnerId: enemyEmpire.id, empireEffectName: 'spell shield' },
@@ -23,7 +24,7 @@ export const storm_cast = async (
 	let timeLeft = 0
 
 	if (enemyEffect) {
-		let now = new Date()
+		const now = new Date()
 
 		let effectAge =
 			(now.valueOf() - new Date(enemyEffect.updatedAt).getTime()) / 60000
@@ -35,11 +36,16 @@ export const storm_cast = async (
 		console.log(enemyEffect)
 	}
 
+	let pubContent = ''
+	let content = ''
+
+	let score = 0
+
 	if (getPower_enemy(empire, enemyEmpire) > 1.21) {
 		let result = {}
 		if (timeLeft > 0) {
-			let food = Math.ceil(enemyEmpire.food * 0.0304)
-			let cash = Math.ceil(enemyEmpire.cash * 0.0422)
+			const food = Math.ceil(enemyEmpire.food * 0.0304)
+			const cash = Math.ceil(enemyEmpire.cash * 0.0422)
 			enemyEmpire.food -= food
 			enemyEmpire.cash -= cash
 
@@ -50,11 +56,11 @@ export const storm_cast = async (
 				}. `,
 			}
 
-			let pubContent = `${empire.name} cast ${
+			pubContent = `${empire.name} cast ${
 				eraArray[empire.era].spell_storm
 			} on ${enemyEmpire.name}.`
 
-			let content = `${empire.name} cast ${
+			content = `${empire.name} cast ${
 				eraArray[empire.era].spell_storm
 			} against you. /n Your shield protected you but they destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
 				eraArray[enemyEmpire.era].food
@@ -71,9 +77,14 @@ export const storm_cast = async (
 				'shielded',
 				empire.game_id
 			)
+
+			score = Math.ceil(points * 0.3)
+			if (score > 0) {
+				empire.score += points / 2
+			}
 		} else {
-			let food = Math.ceil(enemyEmpire.food * 0.0912)
-			let cash = Math.ceil(enemyEmpire.cash * 0.1266)
+			const food = Math.ceil(enemyEmpire.food * 0.0912)
+			const cash = Math.ceil(enemyEmpire.cash * 0.1266)
 			enemyEmpire.food -= food
 			enemyEmpire.cash -= cash
 
@@ -84,11 +95,11 @@ export const storm_cast = async (
 				}.`,
 			}
 
-			let pubContent = `${empire.name} cast ${
+			pubContent = `${empire.name} cast ${
 				eraArray[empire.era].spell_storm
 			} on ${enemyEmpire.name}.`
 
-			let content = `${empire.name} cast ${
+			content = `${empire.name} cast ${
 				eraArray[empire.era].spell_storm
 			} against you and destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
 				eraArray[enemyEmpire.era].food
@@ -105,6 +116,11 @@ export const storm_cast = async (
 				'fail',
 				empire.game_id
 			)
+
+			score = Math.ceil(points * 0.3)
+			if (score > 0) {
+				empire.score += points
+			}
 		}
 
 		empire.offSucc++
@@ -115,44 +131,45 @@ export const storm_cast = async (
 		await empire.save()
 		await enemyEmpire.save()
 		return result
-	} else {
-		let wizloss = getWizLoss_enemy(empire)
-		let result = {
-			result: 'fail',
-			message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
-				eraArray[empire.era].spell_storm
-			} on your opponent.`,
-			wizloss: wizloss,
-			descriptor: eraArray[empire.era].trpwiz,
-		}
-
-		empire.offTotal++
-		enemyEmpire.defSucc++
-		enemyEmpire.defTotal++
-
-		await empire.save()
-		await enemyEmpire.save()
-
-		let content = `${empire.name} attempted to cast ${
-			eraArray[empire.era].spell_storm
-		} against you and failed. `
-
-		let pubContent = `${empire.name} attempted to cast ${
-			eraArray[empire.era].spell_storm
-		} on ${enemyEmpire.name} and failed.`
-
-		await createNewsEvent(
-			content,
-			pubContent,
-			empire.id,
-			empire.name,
-			enemyEmpire.id,
-			enemyEmpire.name,
-			'spell',
-			'success',
-			empire.game_id
-		)
-
-		return result
 	}
+
+	const wizloss = getWizLoss_enemy(empire)
+	const result = {
+		result: 'fail',
+		message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
+			eraArray[empire.era].spell_storm
+		} on your opponent.`,
+		wizloss: wizloss,
+		descriptor: eraArray[empire.era].trpwiz,
+	}
+
+	empire.offTotal++
+	enemyEmpire.defSucc++
+	enemyEmpire.defTotal++
+	enemyEmpire.score += 1
+
+	await empire.save()
+	await enemyEmpire.save()
+
+	content = `${empire.name} attempted to cast ${
+		eraArray[empire.era].spell_storm
+	} against you and failed. `
+
+	pubContent = `${empire.name} attempted to cast ${
+		eraArray[empire.era].spell_storm
+	} on ${enemyEmpire.name} and failed.`
+
+	await createNewsEvent(
+		content,
+		pubContent,
+		empire.id,
+		empire.name,
+		enemyEmpire.id,
+		enemyEmpire.name,
+		'spell',
+		'success',
+		empire.game_id
+	)
+
+	return result
 }

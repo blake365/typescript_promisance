@@ -41,6 +41,9 @@ export default class Game extends Model {
 	@Column({ default: 'competition' })
 	type: string
 
+	@Column({ default: 'false' })
+	scoreEnabled: boolean
+
 	@Column({ default: false })
 	experimental: boolean
 

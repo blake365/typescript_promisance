@@ -13,7 +13,8 @@ export const blast_cost = (baseCost: number) => {
 export const blast_cast = async (
 	empire: Empire,
 	enemyEmpire: Empire,
-	game: Game
+	game: Game,
+	points: number
 ) => {
 	const enemyEffect = await EmpireEffect.findOne({
 		where: { effectOwnerId: enemyEmpire.id, empireEffectName: 'spell shield' },
@@ -38,14 +39,9 @@ export const blast_cast = async (
 	let pubContent = ''
 	let content = ''
 
+	let score = 0
+
 	if (getPower_enemy(empire, enemyEmpire) >= 1.5) {
-		// console.table({
-		// 	trpArm: enemyEmpire.trpArm,
-		// 	trpLnd: enemyEmpire.trpLnd,
-		// 	trpFly: enemyEmpire.trpFly,
-		// 	trpSea: enemyEmpire.trpSea,
-		// 	trpWiz: enemyEmpire.trpWiz,
-		// })
 		let result = {}
 		if (timeLeft > 0) {
 			enemyEmpire.trpArm -= Math.ceil(enemyEmpire.trpArm * 0.01)
@@ -78,6 +74,19 @@ export const blast_cast = async (
 				'shielded',
 				empire.game_id
 			)
+
+			empire.offSucc++
+			empire.offTotal++
+			enemyEmpire.defTotal++
+			enemyEmpire.networth = getNetworth(enemyEmpire, game)
+
+			score = Math.ceil(points * 0.2)
+			if (score > 0) {
+				empire.score += points / 2
+			}
+
+			await empire.save()
+			await enemyEmpire.save()
 
 			return result
 		}
@@ -127,6 +136,11 @@ export const blast_cast = async (
 		enemyEmpire.defTotal++
 		enemyEmpire.networth = getNetworth(enemyEmpire, game)
 
+		score = Math.ceil(points * 0.2)
+		if (score > 0) {
+			empire.score += points
+		}
+
 		await empire.save()
 		await enemyEmpire.save()
 		// console.log(result)
@@ -146,6 +160,8 @@ export const blast_cast = async (
 	empire.offTotal++
 	enemyEmpire.defSucc++
 	enemyEmpire.defTotal++
+
+	enemyEmpire.score += 1
 
 	await empire.save()
 	await enemyEmpire.save()
