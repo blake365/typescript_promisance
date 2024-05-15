@@ -1,5 +1,5 @@
 import { eraArray } from '../../config/eras'
-import Empire from '../../entity/Empire'
+import type Empire from '../../entity/Empire'
 import EmpireEffect from '../../entity/EmpireEffect'
 import { getPower_self, getWizLoss_self } from './general'
 
@@ -10,7 +10,7 @@ export const advance_cost = (baseCost: number) => {
 export const advance_allow = async ({ era, id }) => {
 	console.log('casting advance')
 
-	let now = new Date()
+	const now = new Date()
 	const effect = await EmpireEffect.findOne({
 		where: { effectOwnerId: id, empireEffectName: 'era delay' },
 		order: { updatedAt: 'DESC' },
@@ -39,8 +39,8 @@ export const advance_allow = async ({ era, id }) => {
 		console.log('expired')
 	} else if (timeLeft > 0) {
 		// convert timeLeft to hours and minutes
-		let hours = Math.floor(timeLeft / 60)
-		let minutes = Math.round(timeLeft % 60)
+		const hours = Math.floor(timeLeft / 60)
+		const minutes = Math.round(timeLeft % 60)
 
 		errorMessage = `You must wait ${hours} hours and ${minutes} minutes before changing eras again.`
 	}
@@ -49,11 +49,11 @@ export const advance_allow = async ({ era, id }) => {
 
 	if (eraArray[era].era_next < 0) {
 		return false
-	} else if (errorMessage !== null) {
-		return errorMessage
-	} else {
-		return true
 	}
+	if (errorMessage !== null) {
+		return errorMessage
+	}
+	return true
 }
 
 export const advance_cast = (empire: Empire) => {
@@ -66,21 +66,20 @@ export const advance_cast = (empire: Empire) => {
 		})
 		effect.save()
 
-		let result = {
+		const result = {
 			result: 'success',
 			message: 'You have advanced to the next era.',
 			wizloss: 0,
 			descriptor: null,
 		}
 		return result
-	} else {
-		let wizloss = getWizLoss_self(empire)
-		let result = {
-			result: 'fail',
-			message: 'Spell failed',
-			wizloss: wizloss,
-			descriptor: eraArray[empire.era].trpwiz,
-		}
-		return result
 	}
+	const wizloss = getWizLoss_self(empire)
+	const result = {
+		result: 'fail',
+		message: 'Spell failed',
+		wizloss: wizloss,
+		descriptor: eraArray[empire.era].trpwiz,
+	}
+	return result
 }

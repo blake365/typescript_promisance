@@ -14,6 +14,7 @@ import Clan from '../entity/Clan'
 import { takeSnapshot } from '../services/actions/snaps'
 import { getRepository } from 'typeorm'
 import { attachGame } from '../middleware/game'
+import { time } from 'console'
 
 const troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
 
@@ -342,19 +343,52 @@ const attack = async (req: Request, res: Response) => {
 			return res.status(403).json({ error: 'Unauthorized' })
 		}
 
-		const { totalLand, empireCount } = await getRepository(Empire)
-			.createQueryBuilder('empire')
-			.select('SUM(empire.land)', 'totalLand')
-			.addSelect('COUNT(empire.id)', 'empireCount')
-			.where('empire.turnsUsed > :turnsUsed AND empire.mode != :demo', {
-				turnsUsed: game.turnsProtection,
-				demo: 'demo',
-			})
-			.getRawOne()
+		let avgLand = 1
+		if (!game.scoreEnabled) {
+			const { totalLand, empireCount } = await getRepository(Empire)
+				.createQueryBuilder('empire')
+				.select('SUM(empire.land)', 'totalLand')
+				.addSelect('COUNT(empire.id)', 'empireCount')
+				.where('empire.turnsUsed > :turnsUsed AND empire.mode != :demo', {
+					turnsUsed: game.turnsProtection,
+					demo: 'demo',
+				})
+				.getRawOne()
 
-		console.log(totalLand, empireCount)
-		const avgLand = totalLand / empireCount
-		console.log(avgLand)
+			// console.log(totalLand, empireCount)
+			avgLand = totalLand / empireCount
+		}
+
+		const landCutoff = 10000
+		let aboveCutoff = false
+		let defeated = false
+		if (game.scoreEnabled) {
+			if (defender.land >= landCutoff) {
+				aboveCutoff = true
+			}
+
+			const effect = await EmpireEffect.findOne({
+				where: { effectOwnerId: defender.id, empireEffectName: 'defeated' },
+				order: { updatedAt: 'DESC' },
+			})
+
+			let timeLeft = 0
+			if (effect) {
+				let effectAge =
+					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+				timeLeft = effect.empireEffectValue - effectAge
+				// age in minutes
+				effectAge = Math.floor(effectAge)
+				if (timeLeft > 0) {
+					aboveCutoff = false
+					defeated = true
+					returnText +=
+						'This empire has been recently defeated, no points will be given...'
+				}
+			}
+		}
+
+		// console.log(avgLand)
 
 		if (attacker.attacks >= game.maxAttacks) {
 			canAttack = false
@@ -911,9 +945,9 @@ const attack = async (req: Request, res: Response) => {
 
 			// let won: boolean
 			let lowLand = 1
-			console.log('type', attackType)
-			console.log('normal attack ratio', offPower > defPower * 1.05)
-			console.log('pillage ratio', offPower > defPower * 1.33)
+			// console.log('type', attackType)
+			// console.log('normal attack ratio', offPower > defPower * 1.05)
+			// console.log('pillage ratio', offPower > defPower * 1.33)
 
 			if (
 				(attackType !== 'pillage' && offPower > defPower * 1.05) ||
@@ -932,8 +966,8 @@ const attack = async (req: Request, res: Response) => {
 					lowLand = 0.5
 				}
 				// won = true
-				let buildLoss: buildLoss = {}
-				let buildGain: buildGain = {}
+				const buildLoss: buildLoss = {}
+				const buildGain: buildGain = {}
 
 				destroyBuildings(
 					attackType,
@@ -1101,13 +1135,26 @@ const attack = async (req: Request, res: Response) => {
 				attacker.offSucc++
 
 				// give points to attacker
-				const ratio = defender.networth / Math.max(1, attacker.networth)
-				if (ratio <= 1) {
-					attacker.score += 1
-				} else {
-					attacker.score += 1 + Math.floor((ratio - 1) * 2)
-				}
+				if (game.scoreEnabled && !defeated) {
+					const ratio = defender.networth / Math.max(1, attacker.networth)
+					if (ratio <= 1) {
+						attacker.score += 1
+					} else {
+						attacker.score += 1 + Math.floor((ratio - 1) * 2)
+					}
 
+					if (defender.land < landCutoff && aboveCutoff) {
+						attacker.score += 100
+
+						let effect: EmpireEffect = null
+						effect = new EmpireEffect({
+							effectOwnerId: defender.id,
+							empireEffectName: 'defeated',
+							empireEffectValue: 12960,
+						})
+						await effect.save()
+					}
+				}
 				// console.log(defenseLosses)
 				// console.log(attackLosses)
 				// console.log(buildGain)
