@@ -1135,7 +1135,7 @@ const attack = async (req: Request, res: Response) => {
 				attacker.offSucc++
 
 				// give points to attacker
-				if (game.scoreEnabled && !defeated) {
+				if (game.scoreEnabled) {
 					const ratio = defender.networth / Math.max(1, attacker.networth)
 					if (ratio <= 1) {
 						attacker.score += 1
@@ -1143,7 +1143,7 @@ const attack = async (req: Request, res: Response) => {
 						attacker.score += 1 + Math.floor((ratio - 1) * 2)
 					}
 
-					if (defender.land < landCutoff && aboveCutoff) {
+					if (defender.land < landCutoff && aboveCutoff && !defeated) {
 						attacker.score += 100
 
 						let effect: EmpireEffect = null

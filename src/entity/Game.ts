@@ -68,6 +68,9 @@ export default class Game extends Model {
 	@Column({ default: 1 })
 	empiresPerUser: number
 
+	@Column({ default: 250 })
+	landInitial: number
+
 	@Column({ default: 400 })
 	turnsProtection: number
 

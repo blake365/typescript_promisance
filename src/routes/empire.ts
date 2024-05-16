@@ -32,6 +32,7 @@ const createEmpire = async (req: Request, res: Response) => {
 		maxAttacks,
 		maxSpells,
 		turnsDemo,
+		landInitial,
 	} = res.locals.game
 	// console.log(req.body)
 	const user: User = res.locals.user
@@ -135,6 +136,20 @@ const createEmpire = async (req: Request, res: Response) => {
 		}
 
 		await empire.save()
+
+		if (landInitial !== 250) {
+			empire.land = landInitial
+			empire.freeLand =
+				landInitial -
+				empire.bldPop -
+				empire.bldCash -
+				empire.bldDef -
+				empire.bldFood -
+				empire.bldTroop -
+				empire.bldWiz -
+				empire.bldCost
+			await empire.save()
+		}
 
 		let createdAt = null
 		if (now.getTime() - roundStartDate.getTime() < 0) {

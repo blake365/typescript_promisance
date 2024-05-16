@@ -539,7 +539,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 						.update(Empire)
 						.set({
 							// update score
-							score: () => 'score + (networth / 10000000)',
+							score: () => 'score + 2 * (networth / 10000000)',
 						})
 						.where('id != 0 AND mode != :mode AND game_id = :game_id', {
 							mode: 'demo',
@@ -589,13 +589,13 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 				const allTickets = await Lottery.find({
 					where: { game_id: game.game_id },
 				})
-
+				console.log(allTickets)
 				let jackpot = 0
 				const jackpotTracker = await Lottery.findOne({
 					ticket: 0,
 					game_id: game.game_id,
 				})
-				// console.log(jackpotTracker)
+				console.log(jackpotTracker)
 				if (!jackpotTracker) {
 					for (let i = 0; i < allTickets.length; i++) {
 						jackpot += Number(allTickets[i].cash)
@@ -614,19 +614,19 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 
 				const totalTickets = allTickets.length
 				if (totalTickets > 1) {
-					// console.log('total tickets', totalTickets)
+					console.log('total tickets', totalTickets)
 					let ticketsToDraw = Math.ceil(totalTickets * 1.35)
 					if (ticketsToDraw < 15) ticketsToDraw = 15
-					// console.log('tickets to draw', ticketsToDraw)
+					console.log('tickets to draw', ticketsToDraw)
 					const winningTicket = Math.ceil(Math.random() * ticketsToDraw)
-					// console.log('winning ticket', winningTicket)
+					console.log('winning ticket', winningTicket)
 
 					// check if all tickets contains a ticket with the winning number
 					// console.log(allTickets)
 					const winner = allTickets.find(
 						({ ticket }) => ticket == winningTicket
 					)
-					// console.log('winner', winner)
+					console.log('winner', winner)
 
 					if (!winner || totalTickets < 1 || winningTicket < 1) {
 						console.log('no winner')

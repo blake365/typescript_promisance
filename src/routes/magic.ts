@@ -836,7 +836,7 @@ const magicAttack = async (req: Request, res: Response) => {
 					() => struct_cast(attacker, defender, game, points),
 					game
 				)
-				console.log(spellTurns)
+				// console.log(spellTurns)
 			} else if (spell === 'storm') {
 				console.log('storm start')
 				spellTurns = await attackSpell(

@@ -10,6 +10,7 @@ import { createNewsEvent } from '../../util/helpers'
 import { getNetworth } from '../actions/actions'
 import { getRepository } from 'typeorm'
 import type Game from '../../entity/Game'
+import EmpireEffect from '../../entity/EmpireEffect'
 
 export const fight_cost = (baseCost: number) => {
 	return Math.ceil(22.5 * baseCost)
@@ -49,16 +50,6 @@ export const fight_cast = async (
 	game: Game,
 	points: number
 ) => {
-	const { totalLand, empireCount } = await getRepository(Empire)
-		.createQueryBuilder('empire')
-		.select('SUM(empire.land)', 'totalLand')
-		.addSelect('COUNT(empire.id)', 'empireCount')
-		.where('empire.turnsUsed > :turnsUsed AND empire.mode != :demo', {
-			turnsUsed: turnsProtection,
-			demo: 'demo',
-		})
-		.getRawOne()
-
 	let war = false
 	if (clan) {
 		const relations = clan.relation.map((relation) => {
@@ -75,7 +66,6 @@ export const fight_cast = async (
 	}
 
 	// console.log(totalLand, empireCount)
-	const avgLand = totalLand / empireCount
 	// console.log(avgLand)
 
 	if (getPower_self(empire) < 50) {
@@ -99,6 +89,54 @@ export const fight_cast = async (
 	if (getPower_enemy(empire, enemyEmpire) >= 2.2) {
 		let returnText = ''
 		// spell casts successfully
+		const now = new Date()
+		let avgLand = 1
+		if (!game.scoreEnabled) {
+			const { totalLand, empireCount } = await getRepository(Empire)
+				.createQueryBuilder('empire')
+				.select('SUM(empire.land)', 'totalLand')
+				.addSelect('COUNT(empire.id)', 'empireCount')
+				.where('empire.turnsUsed > :turnsUsed AND empire.mode != :demo', {
+					turnsUsed: turnsProtection,
+					demo: 'demo',
+				})
+				.getRawOne()
+
+			// console.log(totalLand, empireCount)
+			avgLand = totalLand / empireCount
+		}
+
+		const landCutoff = 10000
+		let aboveCutoff = false
+		let defeated = false
+		if (game.scoreEnabled) {
+			if (enemyEmpire.land >= landCutoff) {
+				aboveCutoff = true
+			}
+
+			const effect = await EmpireEffect.findOne({
+				where: {
+					effectOwnerId: enemyEmpire.id,
+					empireEffectName: 'defeated',
+				},
+				order: { updatedAt: 'DESC' },
+			})
+
+			let timeLeft = 0
+			if (effect) {
+				let effectAge =
+					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+				timeLeft = effect.empireEffectValue - effectAge
+				// age in minutes
+				effectAge = Math.floor(effectAge)
+				if (timeLeft > 0) {
+					aboveCutoff = false
+					defeated = true
+					returnText +=
+						'This empire has been recently defeated, no points will be given...'
+				}
+			}
+		}
 
 		let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.05 + 1))
 		let eloss = randomIntFromInterval(
@@ -203,7 +241,20 @@ export const fight_cast = async (
 			empire.game_id
 		)
 
-		empire.score += points
+		if (game.scoreEnabled) {
+			empire.score += points
+			if (enemyEmpire.land < landCutoff && aboveCutoff && !defeated) {
+				empire.score += 100
+
+				let effect: EmpireEffect = null
+				effect = new EmpireEffect({
+					effectOwnerId: enemyEmpire.id,
+					empireEffectName: 'defeated',
+					empireEffectValue: 12960,
+				})
+				await effect.save()
+			}
+		}
 
 		await empire.save()
 		await enemyEmpire.save()
