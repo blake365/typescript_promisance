@@ -643,6 +643,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 						ticket.empire_id = 0
 						ticket.cash = jackpot
 						ticket.ticket = 0
+						ticket.game_id = game.game_id
 						await ticket.save()
 
 						// news event for no lottery winner
@@ -664,7 +665,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 							destinationName,
 							'lottery',
 							'fail',
-							ticket.game_id
+							game.game_id
 						)
 					} else {
 						console.log('winner', winner)
@@ -695,7 +696,7 @@ const cleanDemoAccounts = async (req: Request, res: Response) => {
 							destinationName,
 							'lottery',
 							'success',
-							empire.game_id
+							game.game_id
 						)
 
 						// remove all tickets
