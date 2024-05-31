@@ -80,7 +80,7 @@ export const storm_cast = async (
 
 			score = Math.ceil(points * 0.3)
 			if (score > 0) {
-				empire.score += points / 2
+				empire.score += Math.round(points / 2)
 			}
 		} else {
 			const food = Math.ceil(enemyEmpire.food * 0.0912)

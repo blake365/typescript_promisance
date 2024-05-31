@@ -96,7 +96,7 @@ export const struct_cast = async (
 
 			score = Math.ceil(points * 0.5)
 			if (score > 0) {
-				empire.score += points / 2
+				empire.score += Math.round(points / 2)
 			}
 		} else {
 			let build = 0

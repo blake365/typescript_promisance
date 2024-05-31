@@ -81,7 +81,7 @@ export const steal_cast = async (
 
 			score = Math.ceil(points * 0.15)
 			if (score > 0) {
-				empire.score += points / 2
+				empire.score += Math.round(points / 2)
 			}
 		} else {
 			const cash = Math.round(

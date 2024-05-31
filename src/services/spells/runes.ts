@@ -78,7 +78,7 @@ export const runes_cast = async (
 
 			score = Math.ceil(points * 0.2)
 			if (score > 0) {
-				empire.score += points / 2
+				empire.score += Math.round(points / 2)
 			}
 		} else {
 			const runes = Math.ceil(enemyEmpire.runes * 0.03)
