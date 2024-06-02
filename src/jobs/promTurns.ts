@@ -74,6 +74,17 @@ export const promTurns = new AsyncTask('prom turns', async () => {
 					)
 					.execute()
 
+				// leak out excess cash from the bank
+				await getConnection()
+					.createQueryBuilder()
+					.update(Empire)
+					.set({
+						bank: () => 'bank + (networth*100 - bank) * 0.015',
+						cash: () => 'cash - (networth*100 - bank) * 0.015',
+					})
+					.where('bank > networth*100 AND id != 0')
+					.execute()
+
 				// Reduce maximum private market sell percentage (by 1% base, up to 2% if the player has nothing but bldcash)
 				// TODO: can't figure out what this is doing...
 

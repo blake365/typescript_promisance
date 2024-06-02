@@ -214,6 +214,17 @@ const promTurns = async (req: Request, res: Response) => {
 				// 	.where('sharing > 0 AND id != 0')
 				// 	.execute()
 
+				// leak out excess cash from the bank
+				await getConnection()
+					.createQueryBuilder()
+					.update(Empire)
+					.set({
+						bank: () => 'bank + (networth*100 - bank) * 0.015',
+						cash: () => 'cash - (networth*100 - bank) * 0.015',
+					})
+					.where('bank > networth*100 AND id != 0')
+					.execute()
+
 				console.log('updating ranks')
 				let empires = []
 				let uRank = 0

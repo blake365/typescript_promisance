@@ -7,7 +7,7 @@ import { getNetworth } from '../actions/actions'
 import type Game from '../../entity/Game'
 
 export const struct_cost = (baseCost: number) => {
-	return Math.ceil(18.0 * baseCost)
+	return Math.ceil(23.0 * baseCost)
 }
 
 const destroyBuildings = async (

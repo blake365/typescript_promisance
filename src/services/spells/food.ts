@@ -1,16 +1,16 @@
 import { eraArray } from '../../config/eras'
 import { raceArray } from '../../config/races'
-import Empire from '../../entity/Empire'
+import type Empire from '../../entity/Empire'
 import { calcSizeBonus } from '../actions/actions'
 import { getPower_self, getWizLoss_self } from './general'
 
 export const food_cost = (baseCost: number) => {
-	return Math.ceil(17.0 * baseCost)
+	return Math.ceil(17.5 * baseCost)
 }
 
 export const food_cast = (empire: Empire, pvtmFood) => {
 	if (getPower_self(empire) >= 30) {
-		let food = Math.round(
+		const food = Math.round(
 			(empire.trpWiz *
 				(empire.health / 100) *
 				Math.max(
@@ -24,7 +24,7 @@ export const food_cast = (empire: Empire, pvtmFood) => {
 				pvtmFood
 		)
 
-		let result = {
+		const result = {
 			result: 'success',
 			message: `The spell was successful, your ${
 				eraArray[empire.era].trpwiz
@@ -34,15 +34,15 @@ export const food_cast = (empire: Empire, pvtmFood) => {
 			descriptor: eraArray[empire.era].food,
 		}
 		return result
-	} else {
-		let wizloss = getWizLoss_self(empire)
-		let result = {
-			result: 'fail',
-			message: 'Spell failed',
-			wizloss: wizloss,
-			food: 0,
-			descriptor: eraArray[empire.era].trpwiz,
-		}
-		return result
 	}
+
+	const wizloss = getWizLoss_self(empire)
+	const result = {
+		result: 'fail',
+		message: 'Spell failed',
+		wizloss: wizloss,
+		food: 0,
+		descriptor: eraArray[empire.era].trpwiz,
+	}
+	return result
 }

@@ -11,7 +11,7 @@ import { getNetworth } from '../actions/actions'
 import type Game from '../../entity/Game'
 
 export const steal_cost = (baseCost: number) => {
-	return Math.ceil(25.75 * baseCost)
+	return Math.ceil(30.75 * baseCost)
 }
 
 export const steal_cast = async (

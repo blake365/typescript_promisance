@@ -13,7 +13,7 @@ import type Game from '../../entity/Game'
 import EmpireEffect from '../../entity/EmpireEffect'
 
 export const fight_cost = (baseCost: number) => {
-	return Math.ceil(22.5 * baseCost)
+	return Math.ceil(27.5 * baseCost)
 }
 
 const destroyBuildings = async (
