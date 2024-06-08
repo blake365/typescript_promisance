@@ -416,6 +416,7 @@ const getClan = async (req: Request, res: Response) => {
 				'empireIdAgent2',
 				'enemies',
 				'peaceOffer',
+				'clanTag',
 			],
 			where: { id: clanId },
 			relations: ['relation'],
@@ -436,38 +437,6 @@ const getClanMembers = async (req: Request, res: Response) => {
 	// console.log(req.body)
 	try {
 		const empires = await Empire.find({
-			select: [
-				'id',
-				'name',
-				'networth',
-				'empireId',
-				'race',
-				'era',
-				'land',
-				'rank',
-				'mode',
-				'turnsUsed',
-				'profile',
-				'profileIcon',
-				'updatedAt',
-				'lastAction',
-				'clanId',
-				'tax',
-				'health',
-				'trpArm',
-				'trpLnd',
-				'trpFly',
-				'trpSea',
-				'trpWiz',
-				'runes',
-				'food',
-				'cash',
-				'peasants',
-				'turns',
-				'storedturns',
-				'diminishingReturns',
-				'game_id',
-			],
 			where: { clanId },
 			order: { networth: 'DESC' },
 		})
@@ -521,6 +490,7 @@ const getClansData = async (req: Request, res: Response) => {
 				'empireIdAgent2',
 				'enemies',
 				'peaceOffer',
+				'clanTag',
 			],
 			where: { clanMembers: Not(0), game_id: gameId },
 			relations: ['relation'],
@@ -541,7 +511,9 @@ const getClansData = async (req: Request, res: Response) => {
 
 				empires.forEach((empire) => {
 					totalNetworth += empire.networth
-					leader = { name: empire.name, id: empire.id }
+					if (empire.id === clan.empireIdLeader) {
+						leader = { name: empire.name, id: empire.id }
+					}
 				})
 
 				avgNetworth = totalNetworth / clan.clanMembers
@@ -906,6 +878,44 @@ const offerPeace = async (req: Request, res: Response) => {
 	}
 }
 
+const setClanTag = async (req: Request, res: Response) => {
+	let { empireId, clanTag } = req.body
+
+	if (!containsOnlySymbols(clanTag)) {
+		clanTag = filter.clean(clanTag)
+	}
+
+	if (clanTag.includes('**')) {
+		return res.status(400).json({ error: 'Clan tag is profane' })
+	}
+
+	try {
+		const empire = await Empire.findOneOrFail({
+			where: { id: empireId },
+		})
+
+		if (empire.clanId === 0) {
+			return res.status(400).json({ error: 'You are not in a clan' })
+		}
+
+		const clan = await Clan.findOneOrFail({
+			where: { id: empire.clanId },
+		})
+
+		if (clan.empireIdLeader !== empire.id) {
+			return res.status(400).json({ error: 'You are not the clan leader' })
+		}
+
+		clan.clanTag = clanTag
+		await clan.save()
+
+		return res.json(clan)
+	} catch (err) {
+		console.log(err)
+		return res.status(500).json({ error: err })
+	}
+}
+
 const router = Router()
 
 router.post('/create', user, auth, attachGame, createClan)
@@ -921,5 +931,6 @@ router.post('/assignRole', user, auth, assignClanRole)
 router.post('/removeRole', user, auth, removeClanRole)
 router.post('/declareWar', user, auth, attachGame, declareWar)
 router.post('/offerPeace', user, auth, attachGame, offerPeace)
+router.post('/setTag', user, auth, setClanTag)
 
 export default router

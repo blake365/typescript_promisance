@@ -8,147 +8,21 @@ import { useTurnInternal } from './useturns'
 import { eraArray } from '../config/eras'
 import { raceArray } from '../config/races'
 import { createNewsEvent } from '../util/helpers'
-import { cauchyRandom, getNetworth } from '../services/actions/actions'
+import { getNetworth } from '../services/actions/actions'
 import Clan from '../entity/Clan'
 // import { awardAchievements } from './actions/achievements'
 import { takeSnapshot } from '../services/actions/snaps'
 import { getRepository } from 'typeorm'
 import { attachGame } from '../middleware/game'
-import { time } from 'console'
+import { calcUnitPower } from '../services/attacking/calcUnitPower'
+import { calcUnitLosses } from '../services/attacking/calcUnitLosses'
+import { destroyBuildings } from '../services/attacking/destroyBuildings'
 
 const troopTypes = ['trparm', 'trplnd', 'trpfly', 'trpsea']
-
-function getRandomInt(min, max) {
-	min = Math.ceil(min)
-	max = Math.floor(max)
-	return Math.floor(Math.random() * (max - min) + min) //The maximum is exclusive and the minimum is inclusive
-}
-
-/**
- * Calculates the power of a unit in an empire based on the given mode.
- * @param empire - The empire object containing unit quantities.
- * @param unit - The unit to calculate the power for.
- * @param mode - The mode ('o' for offensive, 'd' for defensive).
- * @returns The calculated power of the unit.
- */
-const calcUnitPower = (empire: Empire, unit: string, mode: string) => {
-	// convert unit from trparm to trpArm
-	// console.log('unit: ', unit)
-
-	const unitM =
-		unit.substring(0, 3) + unit.charAt(3).toUpperCase() + unit.substring(4)
-
-	let lookup = ''
-	if (mode === 'o') {
-		lookup = 'o_' + unit
-	} else if (mode === 'd') {
-		lookup = 'd_' + unit
-	}
-
-	// console.log(empire)
-	// console.log(lookup)
-
-	let quantity = empire[unitM]
-	if (!quantity) {
-		quantity = 0
-	}
-	// console.log('quantity: ', quantity)
-	// console.log('era: ', eraArray[empire.era][lookup])
-	let power = eraArray[empire.era][lookup] * quantity
-	// console.log('power: ', power)
-
-	return power
-}
-
-// calculate number of units lost for attacker and defender
-/**
- * Calculates the unit losses for an attack.
- *
- * @param attackUnits The number of attacking units.
- * @param defendUnits The number of defending units.
- * @param oper The offensive power of the attacker.
- * @param dper The defensive power of the defender.
- * @param omod The offensive modifier.
- * @param dmod The defensive modifier.
- * @returns An object containing the number of attack losses and defend losses.
- */
-const calcUnitLosses = (
-	attackUnits: number,
-	defendUnits: number,
-	oper: number,
-	dper: number,
-	omod: number,
-	dmod: number
-) => {
-	// console.log('attackUnits: ', attackUnits)
-	// console.log('defendUnits: ', defendUnits)
-	// console.log('oper: ', oper)
-	// console.log('dper: ', dper)
-	// console.log('omod: ', omod)
-	// console.log('dmod: ', dmod)
-
-	const attackLosses = Math.round(
-		Math.min(
-			cauchyRandom(Math.ceil((attackUnits * oper * omod + 1) / 2)),
-			attackUnits
-		)
-	)
-	// console.log('max attacker loss:', Math.ceil(attackUnits * oper * omod) + 1)
-
-	const maxKill =
-		Math.round(0.9 * attackUnits) +
-		getRandomInt(0, Math.round(0.2 * attackUnits) + 1)
-
-	const defendLosses = Math.round(
-		Math.min(
-			cauchyRandom(Math.ceil((defendUnits * dper * dmod + 1) / 2)),
-			defendUnits,
-			maxKill
-		)
-	)
-
-	// console.log(
-	// 	'intermediate defender loss:',
-	// 	Math.ceil(defendUnits * dper * dmod) + 1
-	// )
-
-	// console.log('attackLosses: ', attackLosses)
-	// console.log('defendLosses: ', defendLosses)
-
-	return { attackLosses: attackLosses, defendLosses: defendLosses }
-}
-
-// function isOld(createdAt: Date, effectValue: number) {
-// 	let effectAge = (Date.now().valueOf() - new Date(createdAt).getTime()) / 60000
-// 	effectAge = Math.floor(effectAge)
-
-// 	// console.log(effectAge)
-// 	// console.log(effectValue)
-
-// 	if (effectAge > effectValue) {
-// 		return false
-// 	} else {
-// 		return true
-// 	}
-// }
-
-interface Effect {
-	empireEffectValue: number
-	empireEffectName: string
-	effectOwnerId: number
-}
 
 interface UnitLoss {
 	attackLosses: number
 	defendLosses: number
-}
-
-interface buildGain {
-	[key: string]: number
-}
-
-interface buildLoss {
-	[key: string]: number
 }
 
 interface attackLosses {
@@ -159,156 +33,12 @@ interface defendLosses {
 	[key: string]: number
 }
 
-// function isTimeGate(effect: Effect) {
-// 	if (effect.empireEffectName === 'time gate') {
-// 		return false
-// 	} else true
-// }
+interface buildGain {
+	[key: string]: number
+}
 
-/**
- * Destroys buildings during an attack.
- * @param attackType - The type of attack.
- * @param pcloss - The percentage of buildings lost during the attack.
- * @param pcgain - The percentage of buildings gained during the attack.
- * @param type - The type of building being attacked.
- * @param defender - The defending empire.
- * @param attacker - The attacking empire.
- * @param buildLoss - The object to track the loss of buildings.
- * @param buildGain - The object to track the gain of buildings.
- * @returns An object containing the updated buildGain and buildLoss.
- */
-export const destroyBuildings = async (
-	attackType: string,
-	pcloss: number,
-	pcgain: number,
-	type: string,
-	defender: Empire,
-	attacker: Empire,
-	buildLoss: buildLoss,
-	buildGain: buildGain
-) => {
-	// console.log(attackType)
-
-	if (
-		attackType === 'trplnd' ||
-		attackType === 'trpfly' ||
-		attackType === 'trpsea'
-	) {
-		if (attackType === 'trpfly') {
-			// air strikes destroy more, take more land, but gain fewer buildings
-			pcloss *= 1.25
-			pcgain *= 0.92
-		} else if (type === 'bldDef' || type === 'bldWiz') {
-			// towers are even more likely to be destroyed by land/sea attacks (and more likely to be destroyed)
-			pcloss *= 1.3
-			pcgain *= 0.88
-		} else {
-			// while land/sea attacks simply have a higher chance of destroying the buildings stolen
-			pcgain *= 0.96
-		}
-	} else if (attackType === 'pillage') {
-	}
-
-	// console.log(pcgain)
-	// console.log(pcloss)
-
-	let loss = Math.min(
-		getRandomInt(
-			defender[type] * 0.01,
-			Math.ceil(
-				((defender[type] * pcloss + 2) * (100 - defender.diminishingReturns)) /
-					100
-			)
-		),
-		defender[type]
-	)
-
-	// console.log('diminishing returns', defender.diminishingReturns)
-	// console.log(
-	// 	defender[type] * 0.05,
-	// 	Math.ceil(
-	// 		((defender[type] * pcloss + 2) * (100 - defender.diminishingReturns)) /
-	// 			100
-	// 	)
-	// )
-	// console.log(attacker.freeLand)
-	// console.log(defender.freeLand)
-	// console.log(type)
-	// console.log('loss: ', loss)
-
-	let gain = Math.ceil(loss * pcgain)
-	// console.log('gain: ', gain)
-
-	if (typeof buildLoss[type] === 'undefined') buildLoss[type] = 0
-	if (typeof buildGain[type] === 'undefined') buildGain[type] = 0
-	if (typeof buildGain['freeLand'] === 'undefined') buildGain['freeLand'] = 0
-	if (typeof buildLoss['freeLand'] === 'undefined') buildLoss['freeLand'] = 0
-
-	switch (attackType) {
-		case 'standard':
-			defender.land -= loss
-			defender.attackLosses += loss
-			defender[type] -= loss
-			buildLoss[type] += loss
-			attacker.land += loss
-			attacker.attackGains += loss
-			attacker[type] += gain
-			buildGain[type] += gain
-			attacker.freeLand += loss - gain
-			buildGain['freeLand'] += loss - gain
-			break
-		case 'pillage':
-			// attacks don't steal buildings, they just destroy them
-			loss = Math.round(loss * 0.15)
-			defender.land -= loss
-			defender.attackLosses += loss
-			defender[type] -= loss
-			buildLoss[type] += loss
-			attacker.land += loss
-			attacker.attackGains += loss
-			attacker.freeLand += loss
-			buildGain['freeLand'] += loss
-			break
-		case 'surprise':
-		case 'trparm':
-			// attacks don't steal buildings, they just destroy them
-			defender.land -= loss
-			defender.attackLosses += loss
-			defender[type] -= loss
-			buildLoss[type] += loss
-			attacker.land += loss
-			attacker.attackGains += loss
-			attacker.freeLand += loss
-			buildGain['freeLand'] += loss
-			break
-		case 'trplnd':
-		case 'trpfly':
-		case 'trpsea':
-			// console.log(buildGain.freeLand)
-			// console.log(buildLoss.freeLand)
-			if (type === 'freeLand') {
-				// for stealing unused land, the 'gain' percent is zero
-				gain = loss
-				// so we need to use the 'loss' value instead
-			}
-			defender.land -= gain
-			defender.attackLosses += gain
-			defender[type] -= loss
-			buildLoss[type] += loss
-			defender.freeLand += loss - gain
-			// buildLoss['freeLand'] will be negative because the free land is increasing as buildings are destroyed
-			buildLoss['freeLand'] -= loss - gain
-			attacker.land += gain
-			attacker.attackGains += gain
-			attacker.freeLand += gain
-			buildGain['freeLand'] += gain
-			break
-	}
-
-	// console.log('buildLoss: ', buildLoss)
-	// console.log('buildGain: ', buildGain)
-
-	return { buildGain, buildLoss }
+interface buildLoss {
+	[key: string]: number
 }
 
 const attack = async (req: Request, res: Response) => {
@@ -962,7 +692,7 @@ const attack = async (req: Request, res: Response) => {
 				) {
 					// the defender is being "low landed"
 					returnText +=
-						'Your troops are ashamed to attack an opponent with so little land, their effectiveness dropped... '
+						'Your troops come across a small empire, their effectiveness dropped... '
 					lowLand = 0.5
 				}
 				// won = true

@@ -30,6 +30,9 @@ export default class Clan extends Model {
 	@Column({ unique: true })
 	clanName: string
 
+	@Column({ default: null })
+	clanTag: string
+
 	@Column({ type: 'int', default: 1 })
 	game_id: number
 

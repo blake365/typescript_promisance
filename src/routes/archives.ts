@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import RoundHistory from '../entity/RoundHistory'
 import EmpireHistory from '../entity/EmpireHistory'
 import ClanHistory from '../entity/ClanHistory'

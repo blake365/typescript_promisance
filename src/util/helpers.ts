@@ -9,6 +9,12 @@ export function makeId(length: number): string {
 	return result
 }
 
+export function getRandomInt(min, max) {
+	min = Math.ceil(min)
+	max = Math.floor(max)
+	return Math.floor(Math.random() * (max - min) + min) //The maximum is exclusive and the minimum is inclusive
+}
+
 export function slugify(str: string): string {
 	str = str.trim()
 	str = str.toLowerCase()
@@ -44,7 +50,7 @@ export async function createNewsEvent(
 	gameId: number
 ) {
 	// create news events
-	let newsItem = new EmpireNews()
+	const newsItem = new EmpireNews()
 	newsItem.personalContent = content
 	newsItem.publicContent = pubContent
 	newsItem.empireIdSource = empireIdSource
