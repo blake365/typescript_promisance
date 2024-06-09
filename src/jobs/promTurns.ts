@@ -304,29 +304,79 @@ export const thirtyMinUpdate = new AsyncTask('30 min update', async () => {
 })
 
 export const hourlyUpdate = new AsyncTask('hourly update', async () => {
-	console.log('performing hourly update')
-	if (MAX_ATTACKS > 0) {
-		await getConnection()
-			.createQueryBuilder()
-			.update(Empire)
-			.set({
-				// update number of attacks
-				attacks: () => 'attacks + 1',
-			})
-			.where('attacks < 0 AND id != 0')
-			.execute()
-	}
+	const games = await Game.find({ where: { isActive: true } })
 
-	if (MAX_SPELLS > 0) {
-		await getConnection()
-			.createQueryBuilder()
-			.update(Empire)
-			.set({
-				// update number of spells
-				spells: () => 'spells + 1',
-			})
-			.where('spells < 0 AND id != 0')
-			.execute()
+	for (let i = 0; i < games.length; i++) {
+		const game = games[i]
+
+		// check when game was last updated
+		const now = new Date()
+		const bufferTime = 50000 // 50 seconds
+		// check if round has started or ended
+		if (now < new Date(game.roundStart) || now > new Date(game.roundEnd)) {
+			console.log('Round is not in progress')
+		} else {
+			try {
+				console.log('performing hourly update')
+				if (MAX_ATTACKS > 0) {
+					await getConnection()
+						.createQueryBuilder()
+						.update(Empire)
+						.set({
+							// update number of attacks
+							attacks: () => 'attacks + 1',
+						})
+						.where('attacks < 0 AND id != 0')
+						.execute()
+				}
+
+				if (MAX_SPELLS > 0) {
+					await getConnection()
+						.createQueryBuilder()
+						.update(Empire)
+						.set({
+							// update number of spells
+							spells: () => 'spells + 1',
+						})
+						.where('spells < 0 AND id != 0')
+						.execute()
+				}
+
+				const lastAidUpdateTime = new Date(game.lastAidUpdate)
+				console.log(lastAidUpdateTime)
+				const timeDiff =
+					now.getTime() - lastAidUpdateTime.getTime() + bufferTime
+				console.log(timeDiff)
+				console.log(game.aidDelay * 60000 * 60)
+				console.log(game.aidDelay * 60 * 60 * 1000)
+				if (timeDiff >= game.aidDelay * 60000 * 60) {
+					console.log('adding aid credits')
+					await getConnection()
+						.createQueryBuilder()
+						.update(Empire)
+						.set({
+							// update number of credits
+							aidCredits: () => 'aid_credits + 1',
+						})
+						.where(
+							'id != 0 AND aid_credits <= :max AND mode != :mode AND game_id = :game_id',
+							{
+								mode: 'demo',
+								max: game.aidMaxCredits,
+								game_id: game.game_id,
+							}
+						)
+						.execute()
+					game.lastAidUpdate = now
+					await game.save()
+				}
+			} catch (err) {
+				console.log(err)
+				// return res
+				// 	.status(500)
+				// 	.json({ message: 'Something went wrong in hourly update' })
+			}
+		}
 	}
 })
 

@@ -477,10 +477,12 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 				}
 
 				const lastAidUpdateTime = new Date(game.lastAidUpdate)
+				console.log(lastAidUpdateTime)
 				const timeDiff =
 					now.getTime() - lastAidUpdateTime.getTime() + bufferTime
+				console.log(timeDiff)
 
-				if (timeDiff >= game.aidDelay * 60000 * 60) {
+				if (timeDiff >= game.aidDelay * 60 * 60 * 1000) {
 					console.log('adding aid credits')
 					await getConnection()
 						.createQueryBuilder()
@@ -490,7 +492,7 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 							aidCredits: () => 'aid_credits + 1',
 						})
 						.where(
-							'id != 0 AND aid_credits < :max AND mode != :mode AND game_id = :game_id',
+							'id != 0 AND aid_credits <= :max AND mode != :mode AND game_id = :game_id',
 							{
 								mode: 'demo',
 								max: game.aidMaxCredits,
@@ -498,10 +500,9 @@ const hourlyUpdate = async (req: Request, res: Response) => {
 							}
 						)
 						.execute()
+					game.lastAidUpdate = now
+					await game.save()
 				}
-
-				game.lastAidUpdate = now
-				await game.save()
 			} catch (err) {
 				console.log(err)
 				// return res

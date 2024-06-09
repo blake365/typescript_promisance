@@ -111,13 +111,14 @@ app.listen(PORT, async () => {
 })
 
 function checkTime() {
-	let now = new Date().getTime()
+	const now = new Date().getTime()
 	if (
 		now > new Date(ROUND_START).getTime() &&
 		now < new Date(ROUND_END).getTime()
 	) {
 		return true
-	} else return false
+	}
+	return false
 }
 
 if (process.env.NODE_ENV === 'development') {
