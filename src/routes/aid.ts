@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express'
+import type { Request, Response } from 'express'
+import { Router } from 'express'
 import Empire from '../entity/Empire'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
@@ -31,20 +32,20 @@ const sendAid = async (req: Request, res: Response) => {
 		return res.status(400).json({ error: 'something went wrong' })
 	}
 
-	let items = ['cash', 'food', 'runes', 'trpArm', 'trpLnd', 'trpFly', 'trpSea']
-	let sentItems = items
-		.map((item) => {
-			return {
-				name: item,
-				value: req.body[item],
-			}
-		})
-		.filter((item) => item.value > 0)
+	const items = [
+		'cash',
+		'food',
+		'runes',
+		'trpArm',
+		'trpLnd',
+		'trpFly',
+		'trpSea',
+	]
 
 	// console.log(sentItems)
 
 	const turns = 2
-	let resultArray = []
+	const resultArray = []
 
 	try {
 		const sender = await Empire.findOneOrFail({ id: empireId })
@@ -96,7 +97,7 @@ const sendAid = async (req: Request, res: Response) => {
 			})
 
 			console.log(clan.relation)
-			let relations = clan.relation.map((relation) => {
+			const relations = clan.relation.map((relation) => {
 				if (relation.clanRelationFlags === 'war') {
 					return relation.c_id2
 				}
@@ -120,8 +121,19 @@ const sendAid = async (req: Request, res: Response) => {
 				.json({ error: 'Cannot send aid to such a large empire' })
 		}
 
+		const sentItems = items
+			.map((item) => {
+				return {
+					name: item,
+					value: req.body[item],
+				}
+			})
+			.filter(
+				(item) => item.value > 0 && item.value <= sender[item.name] * 0.15
+			)
+
 		let aidTurns = useTurnInternal('aid', turns, sender, clan, true, game)
-		let spellRes = aidTurns[0]
+		const spellRes = aidTurns[0]
 		// console.log('spell res', spellRes)
 		aidTurns = aidTurns[0]
 		if (!spellRes?.messages?.desertion) {
@@ -178,9 +190,9 @@ const sendAid = async (req: Request, res: Response) => {
 
 			aidTurns['aid'] = 'Shipment sent successfully'
 
-			let pubContent = `${sender.name} sent aid to ${receiver.name}`
+			const pubContent = `${sender.name} sent aid to ${receiver.name}`
 
-			let sentString = sentItems.map((item) => {
+			const sentString = sentItems.map((item) => {
 				if (item.name === 'cash') {
 					return `$${item.value.toLocaleString()}`
 				}
@@ -189,7 +201,7 @@ const sendAid = async (req: Request, res: Response) => {
 				}`
 			})
 
-			let content = `${sender.name} sent you ${sentString.join(', ')}.`
+			const content = `${sender.name} sent you ${sentString.join(', ')}.`
 
 			// console.log('content', content)
 			await createNewsEvent(
@@ -214,6 +226,7 @@ const sendAid = async (req: Request, res: Response) => {
 		// await awardAchievements(sender)
 		await takeSnapshot(sender, game.turnsProtection)
 	} catch (err) {
+		console.log(err)
 		return res.status(400).json({ error: 'something went wrong' })
 	}
 
