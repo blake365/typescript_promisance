@@ -146,7 +146,7 @@ const promTurns = async (req: Request, res: Response) => {
 						mktLnd: () => 'mkt_lnd + (5 * (land + bld_cost)*0.75)',
 					})
 					.where(
-						'mkt_lnd / 250 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
+						'mkt_lnd / 200 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
 						{ game_id: game.game_id }
 					)
 					.execute()
@@ -159,7 +159,7 @@ const promTurns = async (req: Request, res: Response) => {
 						mktFly: () => 'mkt_fly + (3 * (land + bld_cost)*0.75)',
 					})
 					.where(
-						'mkt_fly / 250 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
+						'mkt_fly / 180 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
 						{ game_id: game.game_id }
 					)
 					.execute()
@@ -172,7 +172,7 @@ const promTurns = async (req: Request, res: Response) => {
 						mktSea: () => 'mkt_sea + (2 * (land + bld_cost)*0.75)',
 					})
 					.where(
-						'mkt_sea / 250 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
+						'mkt_sea / 150 < land + 2 * bld_cost AND id != 0 AND game_id = :game_id',
 						{ game_id: game.game_id }
 					)
 					.execute()

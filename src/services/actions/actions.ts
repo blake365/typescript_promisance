@@ -34,7 +34,7 @@ export const calcPCI = (empire: Empire) => {
 
 export const giveLand = (empire: Empire) => {
 	return Math.ceil(
-		(1 / (empire.land * 0.000035 + 1)) *
+		(1 / (empire.land * 0.00008 + 1)) *
 			100 *
 			((100 +
 				eraArray[empire.era].mod_explore +

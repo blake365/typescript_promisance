@@ -19,7 +19,7 @@ export const food_cast = (empire: Empire, pvtmFood) => {
 						60 *
 						(1 + Math.sqrt(empire.bldWiz / empire.land) / 2) *
 						((100 + raceArray[empire.race].mod_magic) / 100) *
-						Math.max(0.8, calcSizeBonus(empire))
+						Math.max(0.8, calcSizeBonus(empire) * 0.8)
 				)) /
 				pvtmFood
 		)

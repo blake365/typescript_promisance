@@ -53,7 +53,7 @@ function calcProvisions(empire: Empire) {
 function calcFinances(pci: number, empire: Empire, size: number) {
 	const income = Math.round(
 		pci * (empire.tax / 100) * (empire.health / 100) * empire.peasants +
-			empire.bldCash * 550 * Math.max(0.8, size)
+			empire.bldCash * 550 * Math.max(0.8, size * 1.25)
 	)
 
 	// income *= Math.max(0.8, size)
