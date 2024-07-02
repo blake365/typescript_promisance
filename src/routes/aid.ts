@@ -28,6 +28,11 @@ const sendAid = async (req: Request, res: Response) => {
 	} = req.body
 	const game = res.locals.game
 
+	// if all the values are 0, return
+	if (!cash && !food && !runes && !trpArm && !trpLnd && !trpSea && !trpFly) {
+		return res.status(400).json({ error: 'Nothing to send!' })
+	}
+
 	if (type !== 'aid') {
 		return res.status(400).json({ error: 'something went wrong' })
 	}
