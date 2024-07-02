@@ -60,9 +60,7 @@ export const getNetworth = (empire: Empire, game: Game) => {
 	networth += empire.freeLand * 100 // 160 16000
 
 	// Food, reduced using logarithm to prevent it from boosting networth to ludicrous levels
-	networth +=
-		(empire.food / Math.log10(Math.max(10, empire.food))) *
-		(game.pvtmFood / game.pvtmTrpArm) // 10000 2500
+	networth += empire.food * (game.pvtmFood / game.pvtmTrpArm) // 10000 2500
 
 	return Math.max(0, Math.floor(networth))
 }
@@ -83,18 +81,18 @@ export function gaussianRandom(mean: number, stdev: number) {
 // cauchyRandom returns a random number from a Cauchy distribution
 // with the given location and scale parameters.
 export function cauchyRandom(location: number) {
-	let result = Math.abs(
+	const result = Math.abs(
 		location + location * 0.05 * Math.tan(Math.PI * (Math.random() - 0.5))
 	)
 	if (result < location * 0.98) {
 		console.log('less than min')
 		return cauchyRandom(location)
-	} else if (result > location * 2 * 0.98) {
+	}
+	if (result > location * 2 * 0.98) {
 		console.log('more than max')
 		return cauchyRandom(location)
-	} else {
-		return result
 	}
+	return result
 }
 
 export function containsOnlySymbols(str: string) {
