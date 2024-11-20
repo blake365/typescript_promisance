@@ -1,8 +1,9 @@
 import type { Request, Response } from "express";
-import e, { Router } from "express";
+import { Router } from "express";
 import { validate, isEmpty } from "class-validator";
 import bcrypt from "bcrypt";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import type { JwtPayload } from "jsonwebtoken";
 import cookie from "cookie";
 import passport from "passport";
 import passportGoogle from "passport-google-oauth20";
@@ -13,6 +14,9 @@ import Session from "../entity/Session";
 import { makeId } from "../util/helpers";
 import ResetToken from "../entity/ResetToken";
 import { sendSESEmail } from "../util/mail";
+import { translate, sendError } from "../util/translation";
+import { language } from "../middleware/language";
+
 const GoogleStrategy = passportGoogle.Strategy;
 
 const mapErrors = (errors: Object[]) => {
@@ -24,6 +28,7 @@ const mapErrors = (errors: Object[]) => {
 
 const register = async (req: Request, res: Response) => {
 	const { email, username, password } = req.body;
+	const language = res.locals.language;
 
 	const empires = [];
 	let errors: any = {};
@@ -31,8 +36,10 @@ const register = async (req: Request, res: Response) => {
 	const emailUser = await User.findOne({ email });
 	const usernameUser = await User.findOne({ username });
 
-	if (emailUser) errors.email = "Email is already in use";
-	if (usernameUser) errors.username = "Username is already taken";
+	if (emailUser)
+		errors.email = translate("errors.auth.emailAlreadyInUse", language);
+	if (usernameUser)
+		errors.username = translate("errors.auth.usernameAlreadyTaken", language);
 
 	console.log(errors);
 	if (Object.keys(errors).length > 0) {
@@ -55,11 +62,14 @@ const register = async (req: Request, res: Response) => {
 
 const login = async (req: Request, res: Response) => {
 	const { username, password, stayLoggedIn } = req.body;
+	const language = res.locals.language;
 	// console.log(username, password)
 	try {
 		let errors: any = {};
-		if (isEmpty(username)) errors.username = "Username must not be empty";
-		if (isEmpty(password)) errors.password = "Password must not be empty";
+		if (isEmpty(username))
+			errors.username = translate("errors.auth.usernameEmpty", language);
+		if (isEmpty(password))
+			errors.password = translate("errors.auth.passwordEmpty", language);
 		if (Object.keys(errors).length > 0) {
 			return res.status(400).json(errors);
 		}
@@ -67,12 +77,12 @@ const login = async (req: Request, res: Response) => {
 		const user = await User.findOne({ username }, { relations: ["empires"] });
 		// console.log(user)
 
-		if (!user) return res.status(404).json({ username: "User not found" });
+		if (!user) return sendError(res, 404)("auth.userNotFound", language);
 
 		const passwordMatches = await bcrypt.compare(password, user.password);
 
 		if (!passwordMatches) {
-			return res.status(401).json({ password: "Password is incorrect" });
+			return sendError(res, 401)("auth.passwordIncorrect", language);
 		}
 
 		const token = jwt.sign({ username }, process.env.JWT_SECRET!);
@@ -125,7 +135,7 @@ const login = async (req: Request, res: Response) => {
 		return res.json(user);
 	} catch (err) {
 		console.log(err);
-		return res.json({ error: "Something went wrong" });
+		return sendError(res, 500)("generic", language);
 	}
 };
 
@@ -189,10 +199,7 @@ const demoAccount = async (req: Request, res: Response) => {
 	console.log(ip);
 	if (ip === "" || ip === undefined) {
 		console.error("No IP address");
-		return res.status(400).json({
-			error:
-				"An error occurred, please try again. Make an account if this problem persists.",
-		});
+		return sendError(res, 400)("auth.ipError", language);
 	}
 
 	const addOn = new Date().getDay();
@@ -257,9 +264,7 @@ const demoAccount = async (req: Request, res: Response) => {
 	} catch (err) {
 		console.log(err.code);
 		if (err.code === "23505" || err.code === "23514" || err.code === "23502") {
-			return res.status(500).json({
-				error: "Please wait a while before creating a new demo account",
-			});
+			return sendError(res, 500)("auth.demoError", language);
 		}
 	}
 };
@@ -282,9 +287,10 @@ const createDemoToken = async (req: Request, res: Response) => {
 const loginFromLink = async (req: Request, res: Response) => {
 	const { token } = req.params;
 	console.log(token);
+	const language = res.locals.language;
 
 	if (!token) {
-		return res.status(400).json({ error: "Invalid token" });
+		return sendError(res, 400)("auth.invalidToken", language);
 	}
 
 	let errors: any = {};
@@ -300,19 +306,19 @@ const loginFromLink = async (req: Request, res: Response) => {
 			};
 			console.log({ username, issuer, expiration, secret });
 		} else {
-			return res.status(400).json({ error: "Invalid token payload" });
+			return sendError(res, 400)("auth.invalidToken", language);
 		}
 
 		if (decoded.issuer !== "rebornpromisance.com") {
-			return res.status(400).json({ error: "Invalid token" });
+			return sendError(res, 400)("auth.invalidToken", language);
 		}
 
 		if (decoded.expiration < new Date()) {
-			return res.status(400).json({ error: "Token expired" });
+			return sendError(res, 400)("auth.tokenExpired", language);
 		}
 
 		if (decoded.secret !== process.env.LINK_SECRET) {
-			return res.status(400).json({ error: "Invalid token" });
+			return sendError(res, 400)("auth.invalidToken", language);
 		}
 
 		const user = await User.findOne(
@@ -419,14 +425,14 @@ const loginFromLink = async (req: Request, res: Response) => {
 const forgotPassword = async (req: Request, res: Response) => {
 	const { email } = req.body;
 	const origin = req.headers.origin;
-
+	const language = res.locals.language;
 	// console.log(origin)
 
 	try {
 		const user = await User.findOne({ email });
 
 		if (!user) {
-			return res.json({ error: "Email address not found" });
+			return sendError(res, 400)("auth.emailNotFound", language);
 		}
 
 		const token = makeId(40);
@@ -443,81 +449,89 @@ const forgotPassword = async (req: Request, res: Response) => {
 		await resetToken.save();
 
 		const link = `${origin}/reset-password/${token}`;
-		const text = `NeoPromisance password reset link: ${link}. NeoPromisance username: ${user.username}.`;
-		const html = `<p>Click the link below to reset your NeoPromisance password:</p><a href="${link}">${link}</a><p>Your NeoPromisance username is: ${user.username}.</p>`;
+		const text = translate("responses:auth.passwordResetEmailText", language, {
+			link,
+			username: user.username,
+		});
+		const html = translate("responses:auth.passwordResetEmailHtml", language, {
+			link,
+			username: user.username,
+		});
 
 		await sendSESEmail(
 			email,
 			"admin@neopromisance.com",
-			"Reset your NeoPromisance password",
+			translate("responses:auth.emailSubject", language),
 			text,
 			html,
 		);
 
 		return res.json({
-			message: "Email sent, be sure to check your spam filters",
+			message: translate("responses:auth.emailSent", language),
 		});
 	} catch (err) {
 		console.log(err);
-		return res.json({ error: "Something went wrong" });
+		return sendError(res, 500)("generic", language);
 	}
 };
 
 const confirmToken = async (req: Request, res: Response) => {
 	const { token, password } = req.body;
-
+	const language = res.locals.language;
 	try {
 		const resetToken = await ResetToken.findOne({
 			selector: token.slice(0, 18),
 		});
 
 		if (!resetToken) {
-			return res.json({ error: "Invalid Request" });
+			return sendError(res, 400)("generic", language);
 		}
 
 		const isValid = await bcrypt.compare(token.slice(18), resetToken.verifier);
 
 		if (resetToken.expiredAt < new Date()) {
-			return res.json({ error: "Token expired" });
+			return sendError(res, 400)("auth.tokenExpired", language);
 		}
 
 		// console.log(isValid)
 		if (!isValid) {
-			return res.json({ error: "Invalid Request" });
+			return sendError(res, 400)("generic", language);
 		}
 
 		const user = await User.findOne({ email: resetToken.email });
 
 		if (!user) {
-			return res.json({ error: "User not found" });
+			return sendError(res, 400)("auth.userNotFound", language);
 		}
 
 		user.password = await bcrypt.hash(password, 6);
 		await user.save();
 		await resetToken.remove();
-		return res.json({ message: "Success!" });
+		return res.json({ message: translate("responses:auth.success", language) });
 	} catch (err) {
 		console.log(err);
-		return res.json({ error: "Something went wrong" });
+		return sendError(res, 500)("generic", language);
 	}
 };
 
 const forgotUsername = async (req: Request, res: Response) => {
 	const { email } = req.body;
-
+	const language = res.locals.language;
 	try {
 		const user = await User.findOne({ email });
 
 		if (!user) {
-			return res.json({ error: "Email address not found" });
+			return sendError(res, 400)("auth.emailNotFound", language);
 		}
 
-		const text = `Your username is: ${user.username}`;
+		const text = translate("responses:auth.forgotUsername", language, {
+			username: user.username,
+		});
 
 		return res.json({ message: text });
 	} catch (err) {
 		console.log(err);
-		return res.json({ error: "Something went wrong" });
+		return sendError(res, 500)("generic", language);
 	}
 };
 
@@ -574,16 +588,16 @@ passport.deserializeUser((user: any, done) => {
 });
 
 const router = Router();
-router.get("/login-from-link/:token", loginFromLink);
+router.get("/login-from-link/:token", language, loginFromLink);
 // router.get("/demo-token", createDemoToken);
-router.post("/register", register);
-router.post("/demo", demoAccount);
-router.post("/login", login);
+router.post("/register", language, register);
+router.post("/demo", language, demoAccount);
+router.post("/login", language, login);
 router.get("/me", user, auth, me);
 router.get("/logout", user, auth, logout);
-router.post("/forgot-password", forgotPassword);
-router.post("/confirm-token", confirmToken);
-router.post("/forgot-username", forgotUsername);
+router.post("/forgot-password", language, forgotPassword);
+router.post("/confirm-token", language, confirmToken);
+router.post("/forgot-username", language, forgotUsername);
 router.get(
 	"/auth/google",
 	passport.authenticate("google", { scope: ["profile", "email"] }),

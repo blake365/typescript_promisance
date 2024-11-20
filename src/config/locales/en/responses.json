@@ -1,0 +1,27 @@
+{
+	"aid": {
+		"shipmentSuccess": "Shipment sent successfully",
+		"shipmentFailed": "Due to chaos and desertion, your shipment was not sent"
+	},
+	"attack": {
+		"timeGateTravel": "Your army travels through your Time Gate...",
+		"opponentTimeGate": "Your army travels through your opponents Time Gate...",
+		"noTimeGate": "You must open a Time Gate to attack players in another Era",
+		"defenderClan": "The defender's clan comes to their aid...",
+		"shame": "Your army is ashamed to fight such a weak opponent, many desert...",
+		"fear": "Your army is fearful of fighting such a strong opponent, many desert...",
+		"desertion": "The attack was not attempted due to the crisis.",
+		"smallEmpire": "Your troops come across a small empire, their effectiveness dropped...",
+		"pillageGain": "{{amount}} acres of land, {{food}} {{foodUnit}}, and ${{cash}} were captured from {{defenderName}}",
+		"attackGain": "{{amount}} acres of land were captured from {{defenderName}}",
+		"standardGain": "{{amount}} acres of land and buildings were captured from {{defenderName}}"
+	},
+	"auth": {
+		"passwordResetEmailText": "NeoPromisance password reset link: {{link}}. NeoPromisance username: {{username}}.",
+		"passwordResetEmailHtml": "<p>Click the link below to reset your NeoPromisance password:</p><a href=\"{{link}}\">{{link}}</a><p>Your NeoPromisance username is: {{username}}.</p>",
+		"emailSent": "Email sent, be sure to check your spam filters",
+		"success": "Success!",
+		"forgotUsername": "Your username is: {{username}}",
+		"emailSubject": "Reset your NeoPromisance password"
+	}
+}

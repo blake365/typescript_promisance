@@ -1,23 +1,16 @@
 {
-  "compilerOptions": {
-    "lib": ["es5", "es6", "ES2018"],
-    "target": "ES5",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "outDir": "./build",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "sourceMap": true,
-    "esModuleInterop": true,
-    "types": ["node"],
-    "inlineSources": true,
-
-    // Set `sourceRoot` to  "/" to strip the build path prefix
-    // from generated source code references.
-    // This improves issue grouping in Sentry.
-    // Set `sourceRoot` to  "/" to strip the build path prefix
-    // from generated source code references.
-    // This improves issue grouping in Sentry.
-    "sourceRoot": "/"
-  }
+	"compilerOptions": {
+		"lib": ["es5", "es6", "ES2018"],
+		"target": "ES5",
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"outDir": "./build",
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"sourceMap": true,
+		"esModuleInterop": true,
+		"types": ["node"],
+		"inlineSources": true,
+		"sourceRoot": "/"
+	}
 }

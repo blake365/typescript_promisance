@@ -1,90 +1,102 @@
-import { Entity, Column, Index, PrimaryGeneratedColumn } from 'typeorm'
-import Model from './Model'
+import { Entity, Column, Index, PrimaryGeneratedColumn } from "typeorm";
+import Model from "./Model";
 
 // import Empire from './Empire'
 
-@Entity('empire news')
+@Entity("empire news")
 export default class EmpireNews extends Model {
 	@Index()
 	@PrimaryGeneratedColumn()
-	news_id: number
+	news_id: number;
 
 	@Index()
 	@Column({
-		type: 'int',
+		type: "int",
 		default: 0,
 	})
-	clanIdDestination: number
+	clanIdDestination: number;
 
 	@Index()
 	@Column({
-		type: 'int',
+		type: "int",
 		default: 0,
 	})
-	clanIdSource: number
+	clanIdSource: number;
 
 	@Index()
 	@Column({
-		type: 'int',
+		type: "int",
 		default: 0,
 	})
-	empireIdDestination: number
+	empireIdDestination: number;
 
 	@Index()
 	@Column({
-		type: 'int',
+		type: "int",
 		default: 0,
 	})
-	empireIdSource: number
+	empireIdSource: number;
 
 	@Index()
 	@Column({
-		type: 'int',
+		type: "int",
 		default: 1,
 	})
-	game_id: number
+	game_id: number;
 
-	@Column({ default: '' })
-	sourceName: string
+	@Column({ default: "" })
+	sourceName: string;
 
-	@Column({ default: '' })
-	destinationName: string
-
-	@Index()
-	@Column({
-		type: 'int',
-		default: 0,
-	})
-	newsEvent: number
+	@Column({ default: "" })
+	destinationName: string;
 
 	@Index()
 	@Column({
-		type: 'int',
+		type: "int",
 		default: 0,
 	})
-	newsFlags: number
+	newsEvent: number;
+
+	@Index()
+	@Column({
+		type: "int",
+		default: 0,
+	})
+	newsFlags: number;
 
 	@Column({
-		type: 'int',
+		type: "int",
 		default: 0,
 	})
-	newsTime: number
+	newsTime: number;
 
-	@Column({ default: '' })
-	personalContent: string
+	@Column({ default: "" })
+	personalContent: string;
 
-	@Column({ default: '' })
-	publicContent: string
+	@Column({ default: "" })
+	publicContent: string;
 
-	@Column({ default: '' })
-	type: string
+	@Column({ default: "" })
+	type: string;
 
-	@Column({ default: '' })
-	result: string
+	@Column({ default: "" })
+	result: string;
 
 	@Column({ default: false })
-	seen: boolean
+	seen: boolean;
 
 	@Column({ default: true })
-	public: boolean
+	public: boolean;
+
+	@Column("jsonb", { default: {} })
+	privateNews: {
+		key: string;
+		params: Record<string, any>;
+	};
+
+	@Column("jsonb", { default: {} })
+	publicNews: {
+		key: string;
+		params: Record<string, any>;
+	};
 }

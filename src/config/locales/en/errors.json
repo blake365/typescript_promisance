@@ -1,0 +1,38 @@
+{
+	"generic": "Something went wrong",
+	"unauthorized": "Unauthorized",
+	"auth": {
+		"emailAlreadyInUse": "Email is already in use",
+		"usernameAlreadyTaken": "Username is already taken",
+		"userNotFound": "User not found",
+		"passwordIncorrect": "Password is incorrect",
+		"ipError": "An error occurred, please try again. Make an account if this problem persists.",
+		"demoError": "Please wait a while before creating a new demo account",
+		"invalidToken": "Invalid token",
+		"emailNotFound": "Email address not found",
+		"tokenExpired": "Token expired",
+		"usernameEmpty": "Username must not be empty",
+		"passwordEmpty": "Password must not be empty"
+	},
+	"aid": {
+		"nothingToSend": "Nothing to send!",
+		"notEnoughShips": "Not enough ships!",
+		"cannotSendAidToSelf": "Cannot send aid to yourself!",
+		"notEnoughAidCredits": "You don't have enough aid credits!",
+		"cannotSendAidAsDemo": "Cannot send or receive aid as a demo empire!",
+		"cannotSendAidWhileInProtection": "Cannot send or receive aid while in protection!",
+		"cannotSendAidToWarClan": "Cannot send aid to a clan you are at war with!",
+		"cannotSendAidToLargeEmpire": "Cannot send aid to such a large empire!"
+	},
+	"attack": {
+		"cannotAttackSelf": "Cannot attack yourself!",
+		"empireDefeated": "This empire has been recently defeated, no points will be given...",
+		"maxAttacks": "You have reached the max number of attacks. Wait a while before attacking.",
+		"clanMate": "You cannot attack a member of your clan.",
+		"cannotAttackWhileInProtection": "You cannot attack while in protection.",
+		"cannotAttackYoungEmpire": "You cannot attack such a young empire.",
+		"cannotAttackSmallEmpire": "You cannot attack an empire with such a small amount of land.",
+		"notEnoughTurns": "You do not have enough turns to attack.",
+		"notEnoughHealth": "Your health is too low to send an attack."
+	}
+}
