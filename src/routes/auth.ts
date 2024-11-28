@@ -333,7 +333,7 @@ const loginFromLink = async (req: Request, res: Response) => {
 			const user = new User({
 				username,
 				password: makeId(10),
-				email: username + "@neopromisance.com",
+				email: `${username}@neopromisance.com`,
 				role: "user",
 				method: "link",
 				empires: [],

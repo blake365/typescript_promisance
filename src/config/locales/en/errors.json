@@ -1,6 +1,7 @@
 {
 	"generic": "Something went wrong",
 	"unauthorized": "Unauthorized",
+	"tryAgain": "An error occurred. Please try again.",
 	"auth": {
 		"emailAlreadyInUse": "Email is already in use",
 		"usernameAlreadyTaken": "Username is already taken",
@@ -34,5 +35,45 @@
 		"cannotAttackSmallEmpire": "You cannot attack an empire with such a small amount of land.",
 		"notEnoughTurns": "You do not have enough turns to attack.",
 		"notEnoughHealth": "Your health is too low to send an attack."
+	},
+	"clan": {
+		"alreadyInClan": "You are already in a clan",
+		"underProtection": "You cannot create a clan while under new player protection",
+		"clanNameAlreadyExists": "Clan name already exists",
+		"joinCooldown": "You cannot join a clan for 3 days after leaving one",
+		"cannotJoinClanWhileProtected": "You cannot join a clan while under new player protection",
+		"clanFull": "This clan is full",
+		"leaveCooldown": "You cannot leave a clan for {{hours}} hours after joining one",
+		"notInClan": "You are not in a clan",
+		"clanLeaderCannotLeave": "Clan leader cannot leave the clan",
+		"disbandCooldown": "You cannot disband a clan for {{hours}} hours after creating it",
+		"notLeader": "You do not have authority to disband the clan",
+		"cannotKickLeader": "Clan leader cannot be kicked out",
+		"notLeaderAssignRole": "You do not have authority to assign a role",
+		"alreadyAssigned": "This role is already assigned",
+		"cantDeclareWar": "You are not in a position of power to declare war",
+		"alreadyAtWar": "You are already at war with this clan",
+		"cannotOfferPeace": "You are not in a position of power to offer peace",
+		"notAtWar": "You are not at war with this clan",
+		"alreadyOfferedPeace": "You have already offered peace to this clan",
+		"enemyAlreadyOfferedPeace": "The enemy has already offered peace to you",
+		"profaneClanTag": "Clan tag is not allowed",
+		"notClanLeader": "You are not the clan leader"
+	},
+	"magic": {
+		"notEnoughFood": "You have run out of food! Spells cannot be cast during this crisis!",
+		"notEnoughCash": "You have run out of cash! Spells cannot be cast during this crisis!",
+		"notEnoughRunes": "You do not have enough {{resource}} to cast this spell.",
+		"notEnoughHealth": "You do not have enough health to cast this spell.",
+		"notEnoughTurns": "You do not have enough turns to cast this spell.",
+		"notEnoughWiz": "You do not have enough {{trpwiz}} to cast this spell."
+	},
+	"market": {
+		"notEnoughMoney": "You do not have enough money.",
+		"sellTooMuch": "You cannot sell that many!",
+		"invalidPurchase": "Invalid purchase amount",
+		"notEnoughCash": "Not enough money to make purchase",
+		"noItemsToSell": "No items to sell",
+		"invalidPrice": "Invalid price"
 	}
 }

@@ -8,13 +8,14 @@
 		"opponentTimeGate": "Your army travels through your opponents Time Gate...",
 		"noTimeGate": "You must open a Time Gate to attack players in another Era",
 		"defenderClan": "The defender's clan comes to their aid...",
-		"shame": "Your army is ashamed to fight such a weak opponent, many desert...",
-		"fear": "Your army is fearful of fighting such a strong opponent, many desert...",
+		"shame": "Your army is ashamed to attack such a weak opponent, many desert...",
+		"fear": "Your army is fearful of attacking such a strong opponent, many desert...",
 		"desertion": "The attack was not attempted due to the crisis.",
 		"smallEmpire": "Your troops come across a small empire, their effectiveness dropped...",
 		"pillageGain": "{{amount}} acres of land, {{food}} {{foodUnit}}, and ${{cash}} were captured from {{defenderName}}",
 		"attackGain": "{{amount}} acres of land were captured from {{defenderName}}",
-		"standardGain": "{{amount}} acres of land and buildings were captured from {{defenderName}}"
+		"standardGain": "{{amount}} acres of land and buildings were captured from {{defenderName}}",
+		"maxAttacks": "You have reached the max number of attacks. Wait a while before attacking."
 	},
 	"auth": {
 		"passwordResetEmailText": "NeoPromisance password reset link: {{link}}. NeoPromisance username: {{username}}.",
@@ -23,5 +24,39 @@
 		"success": "Success!",
 		"forgotUsername": "Your username is: {{username}}",
 		"emailSubject": "Reset your NeoPromisance password"
+	},
+	"spells": {
+		"shielded": "The spell was successful, but the enemy has a spell shield. /n You eliminated 1% of the enemy forces.",
+		"blastSuccess": "The spell was successful! /n You eliminated 2% of the enemy forces.",
+		"fail": "Your {{trpwiz}} failed to cast {{spell}} on your opponent.",
+		"lowLand": "Your {{trpwiz}} are ashamed to attack an opponent with so little land, their effectiveness dropped...",
+		"defeated": "This empire has been recently defeated, no points will be given...",
+		"fightSuccess": "{{acres}} acres of land were captured from {{defenderName}} /n You killed {{eloss}} {{etrpwiz}}. /n You lost {{wizloss}} {{trpwiz}}.",
+		"fightFail": "Your attack was repelled by {{defenderName}}. /n You killed {{eloss}} {{etrpwiz}}. /n You lost {{wizloss}} {{trpwiz}}.",
+		"structShield": "The spell was successful, but the enemy has a spell shield. /n You destroyed {{buildings}} buildings.",
+		"structSuccess": "The spell was successful! /n You destroyed {{buildings}} buildings.",
+		"stormShield": "The spell was successful, but the enemy has a spell shield. /n You destroyed ${{cash}} and {{food}} {{foodUnit}}.",
+		"stormSuccess": "The spell was successful! /n You destroyed ${{cash}} and {{food}} {{foodUnit}}.",
+		"stealShield": "The spell was successful, but the enemy has a spell shield. /n You stole ${{cash}} from the enemy.",
+		"stealSuccess": "The spell was successful! /n You stole ${{cash}} from the enemy.",
+		"runesShield": "The spell was successful, but the enemy has a spell shield. /n You destroyed 1% of the enemy {{runes}}.",
+		"runesSuccess": "The spell was successful! /n You destroyed 3% of the enemy {{runes}}.",
+		"spySuccess": "Your {{trpwiz}} successfully cast {{spell}} on your opponent. /n You viewed the enemy's empire information.",
+		"desertion": "The spell could not be cast.",
+		"maxSpells": "You have cast the max number of offensive spells. Wait a while before casting another.",
+		"clanFriendlyFire": "You cannot cast spells on your own clan.",
+		"protection": "You cannot cast spells while in protection.",
+		"enemyProtection": "You cannot cast spells on an empire in protection.",
+		"smallEmpire": "You cannot cast spells on an empire with so little land.",
+		"timeGate": "Your spell travels through your Time Gate...",
+		"opponentTimeGate": "Your spell travels through your opponents Time Gate...",
+		"noTimeGate": "You must open a Time Gate to cast spells on players in another Era"
+	},
+	"market": {
+		"purchaseSuccess": "Purchased {{amount}} {{item}} for ${{cost}}",
+		"tooMuch": "You cannot sell that many {{item}}!",
+		"noPrice": "A price for the {{item}} must be entered.",
+		"itemRecalled": "Item recalled",
+		"priceChanged": "Price changed"
 	}
 }

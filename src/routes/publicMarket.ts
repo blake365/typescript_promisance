@@ -1,134 +1,149 @@
-import type { Request, Response } from 'express'
-import { Router } from 'express'
-import Empire from '../entity/Empire'
-import { getNetworth } from '../services/actions/actions'
-import Market from '../entity/Market'
-import { eraArray } from '../config/eras'
-import auth from '../middleware/auth'
-import user from '../middleware/user'
-import { Not, Raw } from 'typeorm'
-import { createNewsEvent } from '../util/helpers'
-import { takeSnapshot } from '../services/actions/snaps'
-import { attachGame } from '../middleware/game'
-import type Game from '../entity/Game'
+import type { Request, Response } from "express";
+import { Router } from "express";
+import Empire from "../entity/Empire";
+import { getNetworth } from "../services/actions/actions";
+import Market from "../entity/Market";
+import { eraArray } from "../config/eras";
+import auth from "../middleware/auth";
+import user from "../middleware/user";
+import { Not, Raw } from "typeorm";
+import { createNewsEvent } from "../util/helpers";
+import { takeSnapshot } from "../services/actions/snaps";
+import { attachGame } from "../middleware/game";
+import type Game from "../entity/Game";
+import { language } from "../middleware/language";
+import { sendError, translate } from "../util/translation";
 
 interface ReturnObject {
-	amount: number
-	price: number
-	error?: string
+	amount: number;
+	price: number;
+	error?: string;
 }
 
 const pubBuyTwo = async (req: Request, res: Response) => {
-	const { empireId, action, type, buy, item } = req.body
+	const { empireId, action, type, buy, item } = req.body;
 
-	const game: Game = res.locals.game
+	const game: Game = res.locals.game;
+	const language = res.locals.language;
 
 	try {
 		// console.log(req.body)
-		if (action !== 'buy') {
-			return res.json({ error: 'Something went wrong' })
+		if (action !== "buy") {
+			return sendError(res, 400)("generic", language);
 		}
 
 		if (buy < 1) {
-			return res.status(500).json({ error: 'Invalid purchase amount' })
+			return sendError(res, 400)("invalidPurchase", language);
 		}
 
-		const buyer = await Empire.findOne({ id: empireId })
-		const seller = await Empire.findOne({ id: item.empire_id })
-		const itemBought = await Market.findOne({ id: item.id })
+		const buyer = await Empire.findOne({ id: empireId });
+		const seller = await Empire.findOne({ id: item.empire_id });
+		const itemBought = await Market.findOne({ id: item.id });
 
-		let amount: number = buy
-		let cost: number = item.price * buy
+		let amount: number = buy;
+		let cost: number = item.price * buy;
 
 		if (cost > buyer.cash) {
-			return res
-				.status(500)
-				.json({ error: 'Not enough money to make purchase' })
+			return sendError(res, 400)("notEnoughCash", language);
 		}
 		if (type !== itemBought.type) {
-			return res.status(500).json({ error: 'Invalid purchase' })
+			return sendError(res, 400)("invalidPurchase", language);
 		}
 		if (amount > itemBought.amount) {
-			itemBought.remove()
-			return res.status(500).json({ error: 'Invalid purchase' })
+			itemBought.remove();
+			return sendError(res, 400)("invalidPurchase", language);
 		}
 
-		let itemName: string
+		let itemName: string;
 		// add bought item to empire
 		if (itemBought.type === 0) {
-			buyer.trpArm += amount
-			itemBought.amount -= amount
-			itemName = eraArray[seller.era].trparm
+			buyer.trpArm += amount;
+			itemBought.amount -= amount;
+			itemName = eraArray[seller.era].trparm;
 		} else if (itemBought.type === 1) {
-			buyer.trpLnd += amount
-			itemBought.amount -= amount
-			itemName = eraArray[seller.era].trplnd
+			buyer.trpLnd += amount;
+			itemBought.amount -= amount;
+			itemName = eraArray[seller.era].trplnd;
 		} else if (itemBought.type === 2) {
-			buyer.trpFly += amount
-			itemBought.amount -= amount
-			itemName = eraArray[seller.era].trpfly
+			buyer.trpFly += amount;
+			itemBought.amount -= amount;
+			itemName = eraArray[seller.era].trpfly;
 		} else if (itemBought.type === 3) {
-			buyer.trpSea += amount
-			itemBought.amount -= amount
-			itemName = eraArray[seller.era].trpsea
+			buyer.trpSea += amount;
+			itemBought.amount -= amount;
+			itemName = eraArray[seller.era].trpsea;
 		} else if (itemBought.type === 4) {
-			buyer.food += amount
-			itemBought.amount -= amount
-			itemName = eraArray[seller.era].food
+			buyer.food += amount;
+			itemBought.amount -= amount;
+			itemName = eraArray[seller.era].food;
 		} else if (itemBought.type === 5) {
-			buyer.runes += amount
-			itemBought.amount -= amount
-			itemName = eraArray[seller.era].runes
+			buyer.runes += amount;
+			itemBought.amount -= amount;
+			itemName = eraArray[seller.era].runes;
 		}
 
 		// deduct cost from buyer cash
-		buyer.cash -= cost
+		buyer.cash -= cost;
 
 		// add cost to seller cash
-		seller.bank += cost
+		seller.bank += cost;
 
-		buyer.networth = getNetworth(buyer, game)
+		buyer.networth = getNetworth(buyer, game);
 		// seller.networth = getNetworth(seller)
 
-		buyer.lastAction = new Date()
+		buyer.lastAction = new Date();
 
 		if (buyer.peakFood < buyer.food) {
-			buyer.peakFood = buyer.food
+			buyer.peakFood = buyer.food;
 		}
 		if (buyer.peakRunes < buyer.runes) {
-			buyer.peakRunes = buyer.runes
+			buyer.peakRunes = buyer.runes;
 		}
 		if (buyer.peakNetworth < buyer.networth) {
-			buyer.peakNetworth = buyer.networth
+			buyer.peakNetworth = buyer.networth;
 		}
 		if (buyer.peakTrpArm < buyer.trpArm) {
-			buyer.peakTrpArm = buyer.trpArm
+			buyer.peakTrpArm = buyer.trpArm;
 		}
 		if (buyer.peakTrpLnd < buyer.trpLnd) {
-			buyer.peakTrpLnd = buyer.trpLnd
+			buyer.peakTrpLnd = buyer.trpLnd;
 		}
 		if (buyer.peakTrpFly < buyer.trpFly) {
-			buyer.peakTrpFly = buyer.trpFly
+			buyer.peakTrpFly = buyer.trpFly;
 		}
 		if (buyer.peakTrpSea < buyer.trpSea) {
-			buyer.peakTrpSea = buyer.trpSea
+			buyer.peakTrpSea = buyer.trpSea;
 		}
 
 		if (seller.peakCash < seller.cash + seller.bank) {
-			seller.peakCash = seller.cash + seller.bank
+			seller.peakCash = seller.cash + seller.bank;
 		}
 
-		await buyer.save()
-		await seller.save()
-		await itemBought.save()
+		await buyer.save();
+		await seller.save();
+		await itemBought.save();
 
 		// await awardAchievements(buyer)
-		await takeSnapshot(buyer, game.turnsProtection)
-		await takeSnapshot(seller, game.turnsProtection)
+		await takeSnapshot(buyer, game.turnsProtection);
+		await takeSnapshot(seller, game.turnsProtection);
 
 		// create news entry
-		const content = `You sold ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}. The money was deposited into the bank.`
-		const pubContent = `${buyer.name} purchased ${itemName} from the public market.`
+		const content = {
+			key: "news:market.soldPrivate",
+			params: {
+				amount: amount.toLocaleString(),
+				item: itemName,
+				cost: cost.toLocaleString(),
+			},
+		};
+
+		const pubContent = {
+			key: "news:market.soldPublic",
+			params: {
+				buyer: buyer.name,
+				item: itemName,
+			},
+		};
 
 		// create news event for seller that goods have been purchased
 		await createNewsEvent(
@@ -138,26 +153,30 @@ const pubBuyTwo = async (req: Request, res: Response) => {
 			buyer.name,
 			seller.id,
 			seller.name,
-			'market',
-			'success',
-			buyer.game_id
-		)
+			"market",
+			"success",
+			buyer.game_id,
+		);
 
 		if (item.amount - buy <= 0) {
-			await Market.delete({ id: item.id })
+			await Market.delete({ id: item.id });
 		}
 		if (itemBought.amount <= 0) {
-			await itemBought.remove()
+			await itemBought.remove();
 		}
 
 		return res.json({
-			success: `Purchased ${amount.toLocaleString()} ${itemName} for $${cost.toLocaleString()}`,
-		})
+			success: translate("market.purchaseSuccess", language, {
+				amount: amount,
+				item: itemName,
+				cost: cost,
+			}),
+		});
 	} catch (error) {
-		console.log(error)
-		return res.status(500).json({ error: 'Something went wrong' })
+		console.log(error);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
 const pubSell = async (req: Request, res: Response) => {
 	// request will have object with number of each unit to sell and price
@@ -176,10 +195,13 @@ const pubSell = async (req: Request, res: Response) => {
 		priceFood,
 		sellRunes,
 		priceRunes,
-	} = req.body
+	} = req.body;
 
-	if (type !== 'sell') {
-		return res.status(500).json({ error: 'Something went wrong' })
+	const game: Game = res.locals.game;
+	const language = res.locals.language;
+
+	if (type !== "sell") {
+		return sendError(res, 400)("generic", language);
 	}
 
 	if (
@@ -190,12 +212,10 @@ const pubSell = async (req: Request, res: Response) => {
 		sellFood < 1 &&
 		sellRunes < 1
 	) {
-		return res.status(500).json({ error: 'No items to sell' })
+		return sendError(res, 400)("noItemsToSell", language);
 	}
 
-	const game: Game = res.locals.game
-
-	console.log('public market sale')
+	console.log("public market sale");
 	const basePrices = [
 		game.pvtmTrpArm,
 		game.pvtmTrpLnd,
@@ -203,9 +223,9 @@ const pubSell = async (req: Request, res: Response) => {
 		game.pvtmTrpSea,
 		game.pvtmFood,
 		game.pvtmRunes,
-	]
+	];
 
-	const empire = await Empire.findOne({ id: empireId })
+	const empire = await Empire.findOne({ id: empireId });
 	// console.log(empire.networth)
 	const priceArray = [
 		priceArm,
@@ -214,15 +234,15 @@ const pubSell = async (req: Request, res: Response) => {
 		priceSea,
 		priceFood,
 		priceRunes,
-	]
+	];
 
 	priceArray.forEach((price, index) => {
 		if (price < basePrices[index] * 0.33 || price > basePrices[index] * 2) {
-			return res.status(500).json({ error: 'Invalid price' })
+			return sendError(res, 400)("invalidPrice", language);
 		}
-	})
+	});
 
-	const sellArray = [sellArm, sellLnd, sellFly, sellSea, sellFood, sellRunes]
+	const sellArray = [sellArm, sellLnd, sellFly, sellSea, sellFood, sellRunes];
 	const trpArray = [
 		empire.trpArm,
 		empire.trpLnd,
@@ -230,7 +250,7 @@ const pubSell = async (req: Request, res: Response) => {
 		empire.trpSea,
 		empire.food,
 		empire.runes,
-	]
+	];
 
 	const itemsEraArray = [
 		eraArray[empire.era].trparm,
@@ -239,17 +259,17 @@ const pubSell = async (req: Request, res: Response) => {
 		eraArray[empire.era].trpsea,
 		eraArray[empire.era].food,
 		eraArray[empire.era].runes,
-	]
+	];
 
 	// console.log(sellArray)
 	// console.log(priceArray)
 
-	const resultSellArm: ReturnObject = { amount: null, price: null }
-	const resultSellLnd: ReturnObject = { amount: null, price: null }
-	const resultSellFly: ReturnObject = { amount: null, price: null }
-	const resultSellSea: ReturnObject = { amount: null, price: null }
-	const resultSellFood: ReturnObject = { amount: null, price: null }
-	const resultSellRunes: ReturnObject = { amount: null, price: null }
+	const resultSellArm: ReturnObject = { amount: null, price: null };
+	const resultSellLnd: ReturnObject = { amount: null, price: null };
+	const resultSellFly: ReturnObject = { amount: null, price: null };
+	const resultSellSea: ReturnObject = { amount: null, price: null };
+	const resultSellFood: ReturnObject = { amount: null, price: null };
+	const resultSellRunes: ReturnObject = { amount: null, price: null };
 
 	const returnArray = [
 		resultSellArm,
@@ -258,113 +278,129 @@ const pubSell = async (req: Request, res: Response) => {
 		resultSellSea,
 		resultSellFood,
 		resultSellRunes,
-	]
+	];
 
 	for (let index = 0; index < sellArray.length; index++) {
-		const item: number = sellArray[index]
+		const item: number = sellArray[index];
 		// console.log(item)
 		// console.log(index)
 		if (item < 1) {
-			console.log('no items for sale')
+			console.log("no items for sale");
 		} else if (
 			index === 4 &&
 			item > Math.floor((trpArray[index] * game.pubMktMaxFood) / 100)
 		) {
-			console.log('too much food for sale')
-			returnArray[
-				index
-			].error = `You can't sell that many ${itemsEraArray[index]}.`
+			console.log("too much food for sale");
+			returnArray[index].error = translate(
+				"responses:market.tooMuch",
+				language,
+				{
+					item: itemsEraArray[index],
+				},
+			);
 		} else if (
 			index === 5 &&
 			item > Math.floor((trpArray[index] * game.pubMktMaxRunes) / 100)
 		) {
-			console.log('too much runes for sale')
-			returnArray[
-				index
-			].error = `You can't sell that many ${itemsEraArray[index]}.`
+			console.log("too much runes for sale");
+			returnArray[index].error = translate(
+				"responses:market.tooMuch",
+				language,
+				{
+					item: itemsEraArray[index],
+				},
+			);
 		} else if (
 			index !== 4 &&
 			index !== 5 &&
 			item > (trpArray[index] * game.pubMktMaxSell) / 100
 		) {
-			console.log('too many items for sale')
-			returnArray[
-				index
-			].error = `You can't sell that many ${itemsEraArray[index]}.`
+			console.log("too many items for sale");
+			returnArray[index].error = translate(
+				"responses:market.tooMuch",
+				language,
+				{
+					item: itemsEraArray[index],
+				},
+			);
 		} else if (item > 0 && priceArray[index] < 1) {
-			console.log('invalid price')
-			returnArray[
-				index
-			].error = `A price for the ${itemsEraArray[index]} must be entered.`
+			console.log("invalid price");
+			returnArray[index].error = translate(
+				"responses:market.noPrice",
+				language,
+				{
+					item: itemsEraArray[index],
+				},
+			);
 		} else {
-			console.log('making sale')
-			let marketItem: Market = null
-			const type: number = index
-			const amount: number = item
-			const price: number = priceArray[index]
+			console.log("making sale");
+			let marketItem: Market = null;
+			const type: number = index;
+			const amount: number = item;
+			const price: number = priceArray[index];
 			// console.log(index)
 			// console.log(price)
 			// console.log(amount)
-			const game_id = game.game_id
-			const empire_id = empire.id
-			returnArray[index].amount = amount
-			returnArray[index].price = price
+			const game_id = game.game_id;
+			const empire_id = empire.id;
+			returnArray[index].amount = amount;
+			returnArray[index].price = price;
 			// trpArray[index] -= amount
 			if (index === 0) {
-				empire.trpArm -= amount
+				empire.trpArm -= amount;
 			} else if (index === 1) {
-				empire.trpLnd -= amount
+				empire.trpLnd -= amount;
 			} else if (index === 2) {
-				empire.trpFly -= amount
+				empire.trpFly -= amount;
 			} else if (index === 3) {
-				empire.trpSea -= amount
+				empire.trpSea -= amount;
 			} else if (index === 4) {
-				empire.food -= amount
+				empire.food -= amount;
 			} else if (index === 5) {
-				empire.runes -= amount
+				empire.runes -= amount;
 			}
-			await empire.save()
-			marketItem = new Market({ type, amount, price, empire_id, game_id })
-			await marketItem.save()
+			await empire.save();
+			marketItem = new Market({ type, amount, price, empire_id, game_id });
+			await marketItem.save();
 			// console.log(marketItem)
 			// console.log(returnArray)
 		}
 	}
 
-	empire.networth = getNetworth(empire, game)
-	empire.lastAction = new Date()
+	empire.networth = getNetworth(empire, game);
+	empire.lastAction = new Date();
 
-	await empire.save()
+	await empire.save();
 	// await awardAchievements(empire)
-	await takeSnapshot(empire, game.turnsProtection)
+	await takeSnapshot(empire, game.turnsProtection);
 
 	// console.log(returnArray)
 	// console.log(empire.networth)
-	return res.json(returnArray)
-}
+	return res.json(returnArray);
+};
 
 const getMyItems = async (req: Request, res: Response) => {
 	// console.log(res.locals.user)
 	// console.log(empire_id)
-	const { empireId } = req.body
+	const { empireId } = req.body;
 	// console.log(req.body)
 
 	const myItems = await Market.find({
 		where: { empire_id: empireId },
 		order: {
-			createdAt: 'DESC',
+			createdAt: "DESC",
 		},
-	})
+	});
 	// console.log(typeof myItems[0].price)
-	return res.json(myItems)
-}
+	return res.json(myItems);
+};
 
 const getOtherItems = async (req: Request, res: Response) => {
 	// console.log(res.locals.user)
 	// console.log(empire_id)
-	const { empireId } = req.body
-	console.log(req.body)
-	const game: Game = res.locals.game
+	const { empireId } = req.body;
+	console.log(req.body);
+	const game: Game = res.locals.game;
 
 	let returnObject = {
 		arm: null,
@@ -373,10 +409,10 @@ const getOtherItems = async (req: Request, res: Response) => {
 		sea: null,
 		food: null,
 		runes: null,
-	}
+	};
 
-	const interval = `${game.pubMktStart} hours`
-	console.log(interval)
+	const interval = `${game.pubMktStart} hours`;
+	console.log(interval);
 
 	returnObject.arm = await Market.find({
 		where: {
@@ -387,10 +423,10 @@ const getOtherItems = async (req: Request, res: Response) => {
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
-			price: 'ASC',
+			price: "ASC",
 		},
 		take: 1,
-	})
+	});
 
 	returnObject.lnd = await Market.find({
 		where: {
@@ -401,10 +437,10 @@ const getOtherItems = async (req: Request, res: Response) => {
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
-			price: 'ASC',
+			price: "ASC",
 		},
 		take: 1,
-	})
+	});
 
 	returnObject.fly = await Market.find({
 		where: {
@@ -415,10 +451,10 @@ const getOtherItems = async (req: Request, res: Response) => {
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
-			price: 'ASC',
+			price: "ASC",
 		},
 		take: 1,
-	})
+	});
 
 	returnObject.sea = await Market.find({
 		where: {
@@ -429,10 +465,10 @@ const getOtherItems = async (req: Request, res: Response) => {
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
-			price: 'ASC',
+			price: "ASC",
 		},
 		take: 1,
-	})
+	});
 
 	returnObject.food = await Market.find({
 		where: {
@@ -443,10 +479,10 @@ const getOtherItems = async (req: Request, res: Response) => {
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
-			price: 'ASC',
+			price: "ASC",
 		},
 		take: 1,
-	})
+	});
 
 	returnObject.runes = await Market.find({
 		where: {
@@ -457,92 +493,96 @@ const getOtherItems = async (req: Request, res: Response) => {
 			createdAt: Raw((alias) => `${alias} < NOW() - INTERVAL '${interval}'`),
 		},
 		order: {
-			price: 'ASC',
+			price: "ASC",
 		},
 		take: 1,
-	})
+	});
 
 	if (returnObject.arm.length < 1) {
-		returnObject.arm.push({ price: 0, amount: 0, type: 0 })
+		returnObject.arm.push({ price: 0, amount: 0, type: 0 });
 	}
 	if (returnObject.lnd.length < 1) {
-		returnObject.lnd.push({ price: 0, amount: 0, type: 1 })
+		returnObject.lnd.push({ price: 0, amount: 0, type: 1 });
 	}
 	if (returnObject.fly.length < 1) {
-		returnObject.fly.push({ price: 0, amount: 0, type: 2 })
+		returnObject.fly.push({ price: 0, amount: 0, type: 2 });
 	}
 	if (returnObject.sea.length < 1) {
-		returnObject.sea.push({ price: 0, amount: 0, type: 3 })
+		returnObject.sea.push({ price: 0, amount: 0, type: 3 });
 	}
 	if (returnObject.food.length < 1) {
-		returnObject.food.push({ price: 0, amount: 0, type: 4 })
+		returnObject.food.push({ price: 0, amount: 0, type: 4 });
 	}
 	if (returnObject.runes.length < 1) {
-		returnObject.runes.push({ price: 0, amount: 0, type: 5 })
+		returnObject.runes.push({ price: 0, amount: 0, type: 5 });
 	}
 	// console.log(returnObject)
-	return res.json(returnObject)
-}
+	return res.json(returnObject);
+};
 
 const recallItem = async (req: Request, res: Response) => {
 	// return 75% of the items to the empire
-	const { itemId, empireId } = req.body
+	const { itemId, empireId } = req.body;
 
-	const game: Game = res.locals.game
+	const game: Game = res.locals.game;
+	const language = res.locals.language;
 
-	const itemArray = ['trpArm', 'trpLnd', 'trpFly', 'trpSea', 'food', 'runes']
+	const itemArray = ["trpArm", "trpLnd", "trpFly", "trpSea", "food", "runes"];
 
 	try {
-		const item = await Market.findOne({ id: itemId })
-		const empire = await Empire.findOne({ id: empireId })
+		const item = await Market.findOne({ id: itemId });
+		const empire = await Empire.findOne({ id: empireId });
 
 		if (item.empire_id !== empire.id) {
-			return res.status(500).json({ error: 'Empire ID mismatch' })
+			return res.status(500).json({ error: "Empire ID mismatch" });
 		}
 
-		empire[itemArray[item.type]] += Math.round(item.amount * 0.75)
-		empire.networth = getNetworth(empire, game)
-		await item.remove()
+		empire[itemArray[item.type]] += Math.round(item.amount * 0.75);
+		empire.networth = getNetworth(empire, game);
+		await item.remove();
 
 		if (empire.peakCash < empire.cash + empire.bank) {
-			empire.peakCash = empire.cash + empire.bank
+			empire.peakCash = empire.cash + empire.bank;
 		}
 		if (empire.peakFood < empire.food) {
-			empire.peakFood = empire.food
+			empire.peakFood = empire.food;
 		}
 		if (empire.peakRunes < empire.runes) {
-			empire.peakRunes = empire.runes
+			empire.peakRunes = empire.runes;
 		}
 		if (empire.peakNetworth < empire.networth) {
-			empire.peakNetworth = empire.networth
+			empire.peakNetworth = empire.networth;
 		}
 		if (empire.peakTrpArm < empire.trpArm) {
-			empire.peakTrpArm = empire.trpArm
+			empire.peakTrpArm = empire.trpArm;
 		}
 		if (empire.peakTrpLnd < empire.trpLnd) {
-			empire.peakTrpLnd = empire.trpLnd
+			empire.peakTrpLnd = empire.trpLnd;
 		}
 		if (empire.peakTrpFly < empire.trpFly) {
-			empire.peakTrpFly = empire.trpFly
+			empire.peakTrpFly = empire.trpFly;
 		}
 		if (empire.peakTrpSea < empire.trpSea) {
-			empire.peakTrpSea = empire.trpSea
+			empire.peakTrpSea = empire.trpSea;
 		}
-		await empire.save()
+		await empire.save();
 		// await awardAchievements(empire)
-		await takeSnapshot(empire, game.turnsProtection)
-		return res.json({ success: 'Item recalled' })
+		await takeSnapshot(empire, game.turnsProtection);
+		return res.json({
+			success: translate("responses:market.itemRecalled", language),
+		});
 	} catch (e) {
-		console.log(e)
-		return res.status(500).json({ error: 'Something went wrong' })
+		console.log(e);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
 const editPrice = async (req: Request, res: Response) => {
 	// change the price of an item but decrease the amount by 10%
-	const { itemId, empireId, price } = req.body
+	const { itemId, empireId, price } = req.body;
 
-	const game: Game = res.locals.game
+	const game: Game = res.locals.game;
+	const language = res.locals.language;
 
 	const prices = [
 		game.pvtmTrpArm,
@@ -551,40 +591,42 @@ const editPrice = async (req: Request, res: Response) => {
 		game.pvtmTrpSea,
 		game.pvtmFood,
 		game.pvtmRunes,
-	]
+	];
 
 	try {
-		const item = await Market.findOne({ id: itemId })
-		const empire = await Empire.findOne({ id: empireId })
+		const item = await Market.findOne({ id: itemId });
+		const empire = await Empire.findOne({ id: empireId });
 
 		if (item.empire_id !== empire.id) {
-			return res.status(500).json({ error: 'Empire ID mismatch' })
+			return res.status(500).json({ error: "Empire ID mismatch" });
 		}
 
 		if (price < prices[item.type] * 0.33 || price > prices[item.type] * 2) {
-			return res.status(500).json({ error: 'Invalid price' })
+			return res.status(500).json({ error: "Invalid price" });
 		}
 
-		item.amount = Math.round(item.amount * 0.9)
-		item.price = price
-		await item.save()
+		item.amount = Math.round(item.amount * 0.9);
+		item.price = price;
+		await item.save();
 
-		return res.json({ success: 'Price changed' })
+		return res.json({
+			success: translate("responses:market.priceChanged", language),
+		});
 	} catch (e) {
-		console.log(e)
-		return res.status(500).json({ error: 'Something went wrong' })
+		console.log(e);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
-const router = Router()
+const router = Router();
 
 // needs user and auth middleware
 // router.post('/pubBuy', user, auth, pubBuy)
-router.post('/pubBuy2', user, auth, attachGame, pubBuyTwo)
-router.post('/pubSell', user, auth, attachGame, pubSell)
-router.post('/pubSellMine', user, auth, getMyItems)
-router.post('/pubSellOthers', user, auth, attachGame, getOtherItems)
-router.post('/pubRecall', user, auth, attachGame, recallItem)
-router.post('/pubEditPrice', user, auth, attachGame, editPrice)
+router.post("/pubBuy2", user, auth, language, attachGame, pubBuyTwo);
+router.post("/pubSell", user, auth, language, attachGame, pubSell);
+router.post("/pubSellMine", user, auth, getMyItems);
+router.post("/pubSellOthers", user, auth, attachGame, getOtherItems);
+router.post("/pubRecall", user, auth, language, attachGame, recallItem);
+router.post("/pubEditPrice", user, auth, language, attachGame, editPrice);
 
-export default router
+export default router;

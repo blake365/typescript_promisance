@@ -1,382 +1,378 @@
-import type { Request, Response } from 'express'
-import { Router } from 'express'
-import Empire from '../entity/Empire'
-import auth from '../middleware/auth'
-import user from '../middleware/user'
-import { Not } from 'typeorm'
-import EmpireEffect from '../entity/EmpireEffect'
-import Clan from '../entity/Clan'
-import bcrypt from 'bcrypt'
-import { createNewsEvent } from '../util/helpers'
-import ClanRelation from '../entity/ClanRelation'
-import { containsOnlySymbols } from '../services/actions/actions'
-import { attachGame } from '../middleware/game'
-import type Game from '../entity/Game'
+import type { Request, Response } from "express";
+import { Router } from "express";
+import Empire from "../entity/Empire";
+import auth from "../middleware/auth";
+import user from "../middleware/user";
+import { Not } from "typeorm";
+import EmpireEffect from "../entity/EmpireEffect";
+import Clan from "../entity/Clan";
+import bcrypt from "bcrypt";
+import { createNewsEvent } from "../util/helpers";
+import ClanRelation from "../entity/ClanRelation";
+import { containsOnlySymbols } from "../services/actions/actions";
+import { attachGame } from "../middleware/game";
+import type Game from "../entity/Game";
+import { language } from "../middleware/language";
+import { translate, sendError } from "../util/translation";
 
-const Filter = require('bad-words')
-const filter = new Filter()
+const Filter = require("bad-words");
+const filter = new Filter();
 
 const createClan = async (req: Request, res: Response) => {
-	let { clanName, clanPassword, empireId } = req.body
+	let { clanName, clanPassword, empireId } = req.body;
 
-	const game: Game = res.locals.game
-
+	const game: Game = res.locals.game;
+	const language = res.locals.language;
 	// console.log(clanName, clanPassword, empireId)
 	if (!containsOnlySymbols(clanName)) {
-		clanName = filter.clean(clanName)
+		clanName = filter.clean(clanName);
 	}
 
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
-		})
+		});
 		if (empire.clanId !== 0) {
-			return res.status(400).json({ error: 'You are already in a clan' })
+			return sendError(res, 400)("clan.alreadyInClan", language);
 		}
 
 		if (empire.turnsUsed < game.turnsProtection) {
-			return res.status(400).json({
-				error: 'You cannot create a clan while under new player protection',
-			})
+			return sendError(res, 400)("clan.underProtection", language);
 		}
 
 		const existingClan = await Clan.findOne({
 			where: { clanName: clanName },
-		})
+		});
 		if (existingClan) {
-			return res.status(400).json({ error: 'Clan name already exists' })
+			return sendError(res, 400)("clan.clanNameAlreadyExists", language);
 		}
 
-		const clanMembers = 1
-		const empireIdLeader = empireId
-		const game_id = game.game_id
-		let newClan: Clan = null
+		const clanMembers = 1;
+		const empireIdLeader = empireId;
+		const game_id = game.game_id;
+		let newClan: Clan = null;
 		newClan = new Clan({
 			clanName,
 			clanPassword,
 			clanMembers,
 			empireIdLeader,
 			game_id,
-		})
+		});
 
-		await newClan.save()
+		await newClan.save();
 
-		empire.clanId = newClan.id
-		await empire.save()
+		empire.clanId = newClan.id;
+		await empire.save();
 
 		// create effect
-		let empireEffectName = 'join clan'
-		let empireEffectValue = game.clanMinJoin * 60
-		let effectOwnerId = empire.id
+		const empireEffectName = "join clan";
+		const empireEffectValue = game.clanMinJoin * 60;
+		const effectOwnerId = empire.id;
 
-		let newEffect: EmpireEffect
-		newEffect = new EmpireEffect({
+		const newEffect: EmpireEffect = new EmpireEffect({
 			effectOwnerId,
 			empireEffectName,
 			empireEffectValue,
-		})
+		});
 		// console.log(effect)
-		await newEffect.save()
+		await newEffect.save();
 
-		return res.json(empire)
+		return res.json(empire);
 	} catch (err) {
-		console.log(err)
-		return res
-			.status(500)
-			.json({ error: 'Something went wrong when creating clan' })
+		console.log(err);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
 const joinClan = async (req: Request, res: Response) => {
-	const { clanName, clanPassword, empireId } = req.body
+	const { clanName, clanPassword, empireId } = req.body;
 
-	const game: Game = res.locals.game
-
+	const game: Game = res.locals.game;
+	const language = res.locals.language;
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
-		})
+		});
 
 		const effect = await EmpireEffect.findOne({
-			where: { effectOwnerId: empire.id, empireEffectName: 'leave clan' },
-			order: { createdAt: 'DESC' },
-		})
+			where: { effectOwnerId: empire.id, empireEffectName: "leave clan" },
+			order: { createdAt: "DESC" },
+		});
 
-		const now = new Date()
-		let timeLeft = 0
+		const now = new Date();
+		let timeLeft = 0;
 
 		if (effect) {
 			let effectAge =
-				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
-			timeLeft = effect.empireEffectValue - effectAge
+				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000;
+			timeLeft = effect.empireEffectValue - effectAge;
 			// age in minutes
 			// console.log(effectAge)
-			effectAge = Math.floor(effectAge)
+			effectAge = Math.floor(effectAge);
 		}
 
 		if (timeLeft > 0) {
-			return res
-				.status(400)
-				.json({ error: 'You cannot join a clan for 3 days after leaving one' })
+			return sendError(res, 400)("clan.leaveCooldown", language);
 		}
 
 		if (empire.turnsUsed < game.turnsProtection) {
-			return res.status(400).json({
-				error: 'You cannot join a clan while under new player protection',
-			})
+			return sendError(res, 400)("clan.cannotJoinClanWhileProtected", language);
 		}
 
 		if (empire.clanId !== 0) {
-			return res.status(400).json({ error: 'You are already in a clan' })
+			return sendError(res, 400)("clan.alreadyInClan", language);
 		}
 
 		const clan = await Clan.findOneOrFail({
 			where: { clanName },
-		})
+		});
 
 		const passwordMatches = await bcrypt.compare(
 			clanPassword,
-			clan.clanPassword
-		)
+			clan.clanPassword,
+		);
 
 		if (!passwordMatches) {
-			return res.status(401).json({ password: 'Password is incorrect' })
+			return sendError(res, 401)("auth.passwordIncorrect", language);
 		}
 
 		if (clan.clanMembers >= game.clanSize) {
-			return res.status(400).json({ error: 'Clan is full' })
+			return sendError(res, 400)("clan.clanFull", language);
 		}
 
-		clan.clanMembers++
-		await clan.save()
+		clan.clanMembers++;
+		await clan.save();
 
-		empire.clanId = clan.id
-		await empire.save()
+		empire.clanId = clan.id;
+		await empire.save();
 
 		// create effect
-		const empireEffectName = 'join clan'
-		const empireEffectValue = game.clanMinJoin * 60
-		const effectOwnerId = empire.id
+		const empireEffectName = "join clan";
+		const empireEffectValue = game.clanMinJoin * 60;
+		const effectOwnerId = empire.id;
 
 		const newEffect: EmpireEffect = new EmpireEffect({
 			effectOwnerId,
 			empireEffectName,
 			empireEffectValue,
-		})
+		});
 		// console.log(effect)
-		await newEffect.save()
+		await newEffect.save();
 
-		return res.json(empire)
+		return res.json(empire);
 	} catch (err) {
-		console.log(err)
-		return res
-			.status(500)
-			.json({ error: 'Something went wrong when joining clan' })
+		console.log(err);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
 const leaveClan = async (req: Request, res: Response) => {
-	let { empireId } = req.body
+	const { empireId } = req.body;
 
-	const game: Game = res.locals.game
+	const game: Game = res.locals.game;
+	const language = res.locals.language;
 
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
-		})
+		});
 
 		const effect = await EmpireEffect.findOne({
-			where: { effectOwnerId: empire.id, empireEffectName: 'join clan' },
-			order: { createdAt: 'DESC' },
-		})
+			where: { effectOwnerId: empire.id, empireEffectName: "join clan" },
+			order: { createdAt: "DESC" },
+		});
 
-		let now = new Date()
-		let timeLeft = 0
+		const now = new Date();
+		let timeLeft = 0;
 
 		if (effect) {
 			let effectAge =
-				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
-			timeLeft = effect.empireEffectValue - effectAge
+				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000;
+			timeLeft = effect.empireEffectValue - effectAge;
 			// age in minutes
 			// console.log(effectAge)
-			effectAge = Math.floor(effectAge)
+			effectAge = Math.floor(effectAge);
 		}
 
 		if (timeLeft > 0) {
-			return res.status(400).json({
-				error: `You cannot leave a clan for ${game.clanMinJoin} hours after joining`,
-			})
+			return sendError(res, 400)("clan.leaveCooldown", language, {
+				hours: game.clanMinJoin,
+			});
 		}
 
 		if (empire.clanId === 0) {
-			return res.status(400).json({ error: 'You are not in a clan' })
+			return sendError(res, 400)("clan.notInClan", language);
 		}
 
 		const clan = await Clan.findOneOrFail({
 			where: { id: empire.clanId },
-		})
+		});
 
 		if (clan.empireIdLeader === empire.id) {
-			return res.status(400).json({ error: 'Clan leader cannot leave' })
+			return sendError(res, 400)("clan.leaderCannotLeave", language);
 		}
 
-		clan.clanMembers--
-		await clan.save()
+		clan.clanMembers--;
+		await clan.save();
 
-		empire.clanId = 0
-		await empire.save()
+		empire.clanId = 0;
+		await empire.save();
 
 		// create effect
-		let empireEffectName = 'leave clan'
-		let empireEffectValue = game.clanMinRejoin * 60
-		let effectOwnerId = empire.id
+		const empireEffectName = "leave clan";
+		const empireEffectValue = game.clanMinRejoin * 60;
+		const effectOwnerId = empire.id;
 
-		let newEffect: EmpireEffect
-		newEffect = new EmpireEffect({
+		const newEffect: EmpireEffect = new EmpireEffect({
 			effectOwnerId,
 			empireEffectName,
 			empireEffectValue,
-		})
+		});
 		// console.log(effect)
-		await newEffect.save()
+		await newEffect.save();
 
-		return res.json(empire)
+		return res.json(empire);
 	} catch (err) {
-		console.log(err)
-		return res
-			.status(500)
-			.json({ error: 'Something went wrong when leaving clan' })
+		console.log(err);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
 const disbandClan = async (req: Request, res: Response) => {
-	let { empireId, clanId } = req.body
+	const { empireId, clanId } = req.body;
 
-	const game: Game = res.locals.game
+	const game: Game = res.locals.game;
+	const language = res.locals.language;
 
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
-		})
+		});
 
 		const effect = await EmpireEffect.findOne({
-			where: { effectOwnerId: empire.id, empireEffectName: 'join clan' },
-			order: { createdAt: 'DESC' },
-		})
+			where: { effectOwnerId: empire.id, empireEffectName: "join clan" },
+			order: { createdAt: "DESC" },
+		});
 
-		let now = new Date()
-		let timeLeft = 0
+		const now = new Date();
+		let timeLeft = 0;
 
 		if (effect) {
 			let effectAge =
-				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
-			timeLeft = effect.empireEffectValue - effectAge
+				(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000;
+			timeLeft = effect.empireEffectValue - effectAge;
 			// age in minutes
 			// console.log(effectAge)
-			effectAge = Math.floor(effectAge)
+			effectAge = Math.floor(effectAge);
 		}
 
 		if (timeLeft > 0) {
-			return res.status(400).json({
-				error: `You cannot disband a clan for ${game.clanMinJoin} hours after creating it`,
-			})
+			return sendError(res, 400)("clan.disbandCooldown", language, {
+				hours: game.clanMinJoin,
+			});
 		}
 
 		if (empire.clanId === 0) {
-			return res.status(400).json({ error: 'You are not in a clan' })
+			return sendError(res, 400)("clan.notInClan", language);
 		}
 
 		const clan = await Clan.findOneOrFail({
 			where: { id: empire.clanId },
-		})
+		});
 
 		if (clan.empireIdLeader !== empire.id) {
-			return res
-				.status(400)
-				.json({ error: 'You do not have authority to disband the clan' })
+			return sendError(res, 400)("clan.notLeader", language);
 		}
 
 		const members = await Empire.find({
 			where: { clanId: clanId },
-		})
+		});
 
-		await clan.remove()
+		await clan.remove();
 
-		members.forEach(async (member) => {
-			member.clanId = 0
-			await member.save()
-		})
+		for (const member of members) {
+			member.clanId = 0;
+			await member.save();
+		}
 
 		// create effect
-		let empireEffectName = 'leave clan'
-		let empireEffectValue = game.clanMinRejoin * 60
-		let effectOwnerId = empire.id
-
-		let newEffect: EmpireEffect
-		newEffect = new EmpireEffect({
-			effectOwnerId,
-			empireEffectName,
-			empireEffectValue,
-		})
-		// console.log(effect)
-		await newEffect.save()
-
-		return res.json(empire)
-	} catch (err) {
-		console.log(err)
-		return res
-			.status(500)
-			.json({ error: 'Something went wrong when leaving clan' })
-	}
-}
-
-const kickFromClan = async (req: Request, res: Response) => {
-	const { empireId } = req.body
-
-	const game: Game = res.locals.game
-
-	try {
-		const empire = await Empire.findOneOrFail({
-			where: { id: empireId },
-		})
-
-		if (empire.clanId === 0) {
-			return res.status(400).json({ error: 'You are not in a clan' })
-		}
-
-		const clan = await Clan.findOneOrFail({
-			where: { id: empire.clanId },
-		})
-
-		if (clan.empireIdLeader === empire.id) {
-			return res.status(400).json({ error: 'Clan leader cannot be kicked out' })
-		}
-
-		if (clan.empireIdAssistant === empire.id) {
-			clan.empireIdAssistant = 0
-		}
-
-		clan.clanMembers--
-		await clan.save()
-
-		empire.clanId = 0
-		await empire.save()
-
-		// create effect
-		const empireEffectName = 'leave clan'
-		const empireEffectValue = game.clanMinRejoin * 60
-		const effectOwnerId = empire.id
+		const empireEffectName = "leave clan";
+		const empireEffectValue = game.clanMinRejoin * 60;
+		const effectOwnerId = empire.id;
 
 		const newEffect: EmpireEffect = new EmpireEffect({
 			effectOwnerId,
 			empireEffectName,
 			empireEffectValue,
-		})
+		});
 		// console.log(effect)
-		await newEffect.save()
+		await newEffect.save();
 
-		const pubContent = `${empire.name} has been kicked out of ${clan.clanName}!`
-		const content = `You have been kicked out of ${clan.clanName}!`
+		return res.json(empire);
+	} catch (err) {
+		console.log(err);
+		return sendError(res, 500)("generic", language);
+	}
+};
+
+const kickFromClan = async (req: Request, res: Response) => {
+	const { empireId } = req.body;
+
+	const game: Game = res.locals.game;
+	const language = res.locals.language;
+	try {
+		const empire = await Empire.findOneOrFail({
+			where: { id: empireId },
+		});
+
+		if (empire.clanId === 0) {
+			return sendError(res, 400)("clan.notInClan", language);
+		}
+
+		const clan = await Clan.findOneOrFail({
+			where: { id: empire.clanId },
+		});
+
+		if (clan.empireIdLeader === empire.id) {
+			return sendError(res, 400)("clan.cannotKickLeader", language);
+		}
+
+		if (clan.empireIdAssistant === empire.id) {
+			clan.empireIdAssistant = 0;
+		}
+
+		clan.clanMembers--;
+		await clan.save();
+
+		empire.clanId = 0;
+		await empire.save();
+
+		// create effect
+		const empireEffectName = "leave clan";
+		const empireEffectValue = game.clanMinRejoin * 60;
+		const effectOwnerId = empire.id;
+
+		const newEffect: EmpireEffect = new EmpireEffect({
+			effectOwnerId,
+			empireEffectName,
+			empireEffectValue,
+		});
+		// console.log(effect)
+		await newEffect.save();
+
+		const pubContent = {
+			key: "clan.kickedPublic",
+			params: {
+				empireName: empire.name,
+				clanName: clan.clanName,
+			},
+		};
+		const content = {
+			key: "clan.kickedPrivate",
+			params: {
+				clanName: clan.clanName,
+			},
+		};
 
 		await createNewsEvent(
 			content,
@@ -385,302 +381,296 @@ const kickFromClan = async (req: Request, res: Response) => {
 			clan.clanName,
 			empire.id,
 			empire.name,
-			'clan',
-			'fail',
-			empire.game_id
-		)
+			"clan",
+			"fail",
+			empire.game_id,
+		);
 
-		return res.json(empire)
+		return res.json(empire);
 	} catch (err) {
-		console.log(err)
-		return res
-			.status(500)
-			.json({ error: 'Something went wrong when leaving clan' })
+		console.log(err);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
 const getClan = async (req: Request, res: Response) => {
-	const { clanId } = req.body
+	const { clanId } = req.body;
 
 	try {
 		const clan = await Clan.find({
 			select: [
-				'id',
-				'clanName',
-				'clanTitle',
-				'clanMembers',
-				'clanPic',
-				'empireIdLeader',
-				'empireIdAssistant',
-				'empireIdAgent1',
-				'empireIdAgent2',
-				'enemies',
-				'peaceOffer',
-				'clanTag',
+				"id",
+				"clanName",
+				"clanTitle",
+				"clanMembers",
+				"clanPic",
+				"empireIdLeader",
+				"empireIdAssistant",
+				"empireIdAgent1",
+				"empireIdAgent2",
+				"enemies",
+				"peaceOffer",
+				"clanTag",
 			],
 			where: { id: clanId },
-			relations: ['relation'],
-		})
+			relations: ["relation"],
+		});
 
 		// console.log(clan)
-		return res.json(clan)
+		return res.json(clan);
 	} catch (err) {
-		console.log(err)
+		console.log(err);
 		return res
 			.status(500)
-			.json({ error: 'Something went wrong when getting clan' })
+			.json({ error: "Something went wrong when getting clan" });
 	}
-}
+};
 
 const getClanMembers = async (req: Request, res: Response) => {
-	const { clanId } = req.body
+	const { clanId } = req.body;
 	// console.log(req.body)
 	try {
 		const empires = await Empire.find({
 			where: { clanId },
-			order: { networth: 'DESC' },
-		})
+			order: { networth: "DESC" },
+		});
 
 		// console.log(empires)
-		return res.json(empires)
+		return res.json(empires);
 	} catch (err) {
-		console.log(err)
+		console.log(err);
 		return res
 			.status(500)
-			.json({ error: 'Something went wrong when getting clan members' })
+			.json({ error: "Something went wrong when getting clan members" });
 	}
-}
+};
 
 const getClans = async (req: Request, res: Response) => {
-	const { gameId } = req.query
+	const { gameId } = req.query;
 
 	try {
 		const clans = await Clan.find({
-			select: ['id', 'clanName', 'clanTitle', 'clanMembers', 'clanPic'],
+			select: ["id", "clanName", "clanTitle", "clanMembers", "clanPic"],
 			where: { clanMembers: Not(0), game_id: gameId },
-		})
+		});
 
 		if (clans.length === 0) {
-			return res.status(400).json({ error: 'No clans found' })
+			return res.status(400).json({ error: "No clans found" });
 		}
 
-		return res.json(clans)
+		return res.json(clans);
 	} catch (err) {
-		console.log(err)
+		console.log(err);
 		return res
 			.status(500)
-			.json({ error: 'Something went wrong when getting clans' })
+			.json({ error: "Something went wrong when getting clans" });
 	}
-}
+};
 
 const getClansData = async (req: Request, res: Response) => {
-	const { gameId } = req.query
-	console.log(gameId)
+	const { gameId } = req.query;
+	// console.log(gameId);
 	try {
 		const clans = await Clan.find({
 			select: [
-				'id',
-				'clanName',
-				'clanTitle',
-				'clanMembers',
-				'clanPic',
-				'empireIdLeader',
-				'empireIdAssistant',
-				'empireIdAgent1',
-				'empireIdAgent2',
-				'enemies',
-				'peaceOffer',
-				'clanTag',
+				"id",
+				"clanName",
+				"clanTitle",
+				"clanMembers",
+				"clanPic",
+				"empireIdLeader",
+				"empireIdAssistant",
+				"empireIdAgent1",
+				"empireIdAgent2",
+				"enemies",
+				"peaceOffer",
+				"clanTag",
 			],
 			where: { clanMembers: Not(0), game_id: gameId },
-			relations: ['relation'],
-		})
+			relations: ["relation"],
+		});
 
 		if (clans.length === 0) {
-			return res.status(400).json({ error: 'No clans found' })
+			return res.status(400).json({ error: "No clans found" });
 		}
 
 		const clanNetworths = await Promise.all(
 			clans.map(async (clan) => {
-				let avgNetworth = 0
-				let totalNetworth = 0
-				let leader = { name: '', id: 0 }
+				let avgNetworth = 0;
+				let totalNetworth = 0;
+				let leader = { name: "", id: 0 };
 				const empires = await Empire.find({
 					where: { clanId: clan.id },
-				})
+				});
 
-				empires.forEach((empire) => {
-					totalNetworth += empire.networth
+				for (const empire of empires) {
+					totalNetworth += empire.networth;
 					if (empire.id === clan.empireIdLeader) {
-						leader = { name: empire.name, id: empire.id }
+						leader = { name: empire.name, id: empire.id };
 					}
-				})
+				}
 
-				avgNetworth = totalNetworth / clan.clanMembers
+				avgNetworth = totalNetworth / clan.clanMembers;
 
-				return { clan, avgNetworth, totalNetworth, leader }
-			})
-		)
+				return { clan, avgNetworth, totalNetworth, leader };
+			}),
+		);
 
-		return res.json(clanNetworths)
+		return res.json(clanNetworths);
 	} catch (err) {
-		console.log(err)
+		console.log(err);
 		return res
 			.status(500)
-			.json({ error: 'Something went wrong when getting clans' })
+			.json({ error: "Something went wrong when getting clans" });
 	}
-}
+};
 
 // assign empire to clan role
 const assignClanRole = async (req: Request, res: Response) => {
-	let { empireId, clanRole, memberId } = req.body
+	const language = res.locals.language;
+	const { empireId, clanRole, memberId } = req.body;
 
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
-		})
+		});
 
 		if (empire.clanId === 0) {
-			return res.status(400).json({ error: 'You are not in a clan' })
+			return sendError(res, 400)("clan.notInClan", language);
 		}
 
 		const member = await Empire.findOneOrFail({
 			where: { id: memberId },
-		})
+		});
 
 		const clan = await Clan.findOneOrFail({
 			where: { id: empire.clanId },
-		})
+		});
 
 		if (clan.empireIdLeader !== empire.id) {
-			return res.status(400).json({ error: 'You are not the clan leader' })
+			return sendError(res, 400)("clan.notLeaderAssignRole", language);
 		}
 
 		if (clan.empireIdAssistant !== 0) {
-			return res.status(400).json({ error: 'Assistant already assigned' })
+			return sendError(res, 400)("clan.alreadyAssigned", language);
 		}
 
-		if (clanRole === 'leader') {
-			clan.empireIdLeader = member.id
-		} else if (clanRole === 'assistant') {
-			clan.empireIdAssistant = member.id
-		} else if (clanRole === 'agent1') {
-			clan.empireIdAgent1 = member.id
-		} else if (clanRole === 'agent2') {
-			clan.empireIdAgent2 = member.id
+		if (clanRole === "leader") {
+			clan.empireIdLeader = member.id;
+		} else if (clanRole === "assistant") {
+			clan.empireIdAssistant = member.id;
+		} else if (clanRole === "agent1") {
+			clan.empireIdAgent1 = member.id;
+		} else if (clanRole === "agent2") {
+			clan.empireIdAgent2 = member.id;
 		} else {
-			return res.status(400).json({ error: 'Invalid role' })
+			return res.status(400).json({ error: "Invalid role" });
 		}
 
-		await clan.save()
+		await clan.save();
 
-		return res.json(clan)
+		return res.json(clan);
 	} catch (err) {
-		console.log(err)
-		return res
-			.status(500)
-			.json({ error: 'Something went wrong when assigning clan role' })
+		console.log(err);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
 // remove empire from clan role
 const removeClanRole = async (req: Request, res: Response) => {
-	const { empireId, clanRole } = req.body
-
+	const { empireId, clanRole } = req.body;
+	const language = res.locals.language;
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
-		})
+		});
 		if (empire.clanId === 0) {
-			return res.status(400).json({ error: 'You are not in a clan' })
+			return sendError(res, 400)("clan.notInClan", language);
 		}
 
 		const clan = await Clan.findOneOrFail({
 			where: { id: empire.clanId },
-		})
+		});
 
 		if (clan.empireIdLeader !== empire.id) {
-			return res.status(400).json({ error: 'You are not the clan leader' })
+			return sendError(res, 400)("clan.notLeaderAssignRole", language);
 		}
 
-		if (clanRole === 'leader') {
-			clan.empireIdLeader = 0
-		} else if (clanRole === 'assistant') {
-			clan.empireIdAssistant = 0
-		} else if (clanRole === 'agent1') {
-			clan.empireIdAgent1 = 0
-		} else if (clanRole === 'agent2') {
-			clan.empireIdAgent2 = 0
+		if (clanRole === "leader") {
+			clan.empireIdLeader = 0;
+		} else if (clanRole === "assistant") {
+			clan.empireIdAssistant = 0;
+		} else if (clanRole === "agent1") {
+			clan.empireIdAgent1 = 0;
+		} else if (clanRole === "agent2") {
+			clan.empireIdAgent2 = 0;
 		} else {
-			return res.status(400).json({ error: 'Invalid role' })
+			return res.status(400).json({ error: "Invalid role" });
 		}
 
-		await clan.save()
+		await clan.save();
 
-		return res.json(clan)
+		return res.json(clan);
 	} catch (err) {
-		console.log(err)
-		return res
-			.status(500)
-			.json({ error: 'Something went wrong when removing clan role' })
+		console.log(err);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
 const declareWar = async (req: Request, res: Response) => {
-	const { empireId, clanId, enemyClanId } = req.body
+	const { empireId, clanId, enemyClanId } = req.body;
+	const language = res.locals.language;
 
-	const game: Game = res.locals.game
+	const game: Game = res.locals.game;
 	// console.log(req.body)
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
-		})
+		});
 
 		if (empire.clanId === 0) {
-			return res.status(400).json({ error: 'You are not in a clan' })
+			return sendError(res, 400)("clan.notInClan", language);
 		}
 
 		const clan = await Clan.findOneOrFail({
 			where: { id: empire.clanId },
-			relations: ['relation'],
-		})
+			relations: ["relation"],
+		});
 
 		const enemyClan = await Clan.findOneOrFail({
 			where: { id: enemyClanId },
-			relations: ['relation'],
-		})
+			relations: ["relation"],
+		});
 
 		const enemyLeader = await Empire.findOneOrFail({
 			where: { id: enemyClan.empireIdLeader },
-		})
+		});
 
 		if (
 			clan.empireIdLeader !== empire.id &&
 			clan.empireIdAssistant !== empire.id
 		) {
-			return res
-				.status(400)
-				.json({ error: 'You are not in a position of power' })
+			return sendError(res, 400)("clan.cantDeclareWar", language);
 		}
 
 		// console.log(clan.relation)
 
 		const relations = clan.relation.map((relation) => {
-			if (relation.clanRelationFlags === 'war') {
-				return relation.c_id2
+			if (relation.clanRelationFlags === "war") {
+				return relation.c_id2;
 			}
-		})
+		});
 
 		// console.log(enemyClan.relation)
 
 		const enemyRelations = enemyClan.relation.map((relation) => {
-			if (relation.clanRelationFlags === 'war') {
-				return relation.c_id2
+			if (relation.clanRelationFlags === "war") {
+				return relation.c_id2;
 			}
-		})
+		});
 
 		if (relations.includes(enemyClanId) || enemyRelations.includes(clanId)) {
-			return res.status(400).json({ error: 'Clan is already at war' })
+			return sendError(res, 400)("clan.alreadyAtWar", language);
 		}
 
 		const myClanRelation = new ClanRelation({
@@ -688,26 +678,37 @@ const declareWar = async (req: Request, res: Response) => {
 			clan1Name: clan.clanName,
 			c_id2: enemyClanId,
 			clan2Name: enemyClan.clanName,
-			clanRelationFlags: 'war',
+			clanRelationFlags: "war",
 			clan: clan,
 			game_id: game.game_id,
-		})
+		});
 
 		const enemyClanRelation = new ClanRelation({
 			c_id1: enemyClanId,
 			clan1Name: enemyClan.clanName,
 			c_id2: clanId,
 			clan2Name: clan.clanName,
-			clanRelationFlags: 'war',
+			clanRelationFlags: "war",
 			clan: enemyClan,
 			game_id: game.game_id,
-		})
+		});
 
-		await myClanRelation.save()
-		await enemyClanRelation.save()
+		await myClanRelation.save();
+		await enemyClanRelation.save();
 
-		const pubContent = `${clan.clanName} has declared war on ${enemyClan.clanName}!`
-		const content = `${clan.clanName} has declared war on you!`
+		const pubContent = {
+			key: "clan.warDeclaredPublic",
+			params: {
+				clanName: clan.clanName,
+				enemyClanName: enemyClan.clanName,
+			},
+		};
+		const content = {
+			key: "clan.warDeclaredPrivate",
+			params: {
+				clanName: clan.clanName,
+			},
+		};
 
 		await createNewsEvent(
 			content,
@@ -716,118 +717,123 @@ const declareWar = async (req: Request, res: Response) => {
 			empire.name,
 			enemyClan.empireIdLeader,
 			enemyLeader.name,
-			'war',
-			'success',
-			empire.game_id
-		)
+			"war",
+			"success",
+			empire.game_id,
+		);
 
-		return res.json(clan)
+		return res.json(clan);
 	} catch (err) {
-		console.log(err)
-		return res
-			.status(500)
-			.json({ error: 'Something went wrong when declaring war' })
+		console.log(err);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
 const offerPeace = async (req: Request, res: Response) => {
-	const { empireId, clanId, enemyClanId } = req.body
-
-	const game: Game = res.locals.game
+	const { empireId, clanId, enemyClanId } = req.body;
+	const language = res.locals.language;
+	const game: Game = res.locals.game;
 	// console.log(req.body)
 
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
-		})
+		});
 
 		if (empire.clanId === 0) {
-			return res.status(400).json({ error: 'You are not in a clan' })
+			return sendError(res, 400)("clan.notInClan", language);
 		}
 
 		const clan = await Clan.findOneOrFail({
 			where: { id: empire.clanId },
-			relations: ['relation'],
-		})
+			relations: ["relation"],
+		});
 
 		const enemyClan = await Clan.findOneOrFail({
 			where: { id: enemyClanId },
-			relations: ['relation'],
-		})
+			relations: ["relation"],
+		});
 
 		const enemyLeader = await Empire.findOneOrFail({
 			where: { id: enemyClan.empireIdLeader },
-		})
+		});
 
 		if (
 			clan.empireIdLeader !== empire.id &&
 			clan.empireIdAssistant !== empire.id
 		) {
-			return res
-				.status(400)
-				.json({ error: 'You are not in a position of power' })
+			return sendError(res, 400)("clan.cannotOfferPeace", language);
 		}
 
 		// check if you are at war
 		// check if you have already offered peace
 		// check if enemy has already offered peace
-		let myWarRelation = clan.relation.map((relation) => {
-			if (relation.clanRelationFlags === 'war') {
-				return relation.c_id2
+		const myWarRelation = clan.relation.map((relation) => {
+			if (relation.clanRelationFlags === "war") {
+				return relation.c_id2;
 			}
-		})
+		});
 
-		let myPeaceOffer = clan.relation.map((relation) => {
-			if (relation.clanRelationFlags === 'peace') {
-				return relation.c_id2
+		const myPeaceOffer = clan.relation.map((relation) => {
+			if (relation.clanRelationFlags === "peace") {
+				return relation.c_id2;
 			}
-		})
+		});
 
-		let enemyPeaceOffer = enemyClan.relation.map((relation) => {
-			if (relation.clanRelationFlags === 'peace') {
-				return relation.c_id2
+		const enemyPeaceOffer = enemyClan.relation.map((relation) => {
+			if (relation.clanRelationFlags === "peace") {
+				return relation.c_id2;
 			}
-		})
+		});
 
 		if (!myWarRelation.includes(enemyClanId)) {
-			return res.status(400).json({ error: 'Clan is not an enemy' })
+			return sendError(res, 400)("clan.notAtWar", language);
 		}
 
 		if (myPeaceOffer.includes(enemyClanId)) {
 			// already offered peace
-			return res
-				.status(400)
-				.json({ error: 'You have already offered peace to this clan' })
+			return sendError(res, 400)("clan.alreadyOfferedPeace", language);
 		}
 
-		console.log(enemyPeaceOffer)
-		console.log(myPeaceOffer)
-		console.log(myWarRelation)
+		console.log(enemyPeaceOffer);
+		console.log(myPeaceOffer);
+		console.log(myWarRelation);
 
 		if (enemyPeaceOffer.includes(clanId)) {
 			// peace has been offered by other clan, you are accepting peace, remove from enemies
-			clan.relation.forEach(async (relation) => {
+			for (const relation of clan.relation) {
 				if (
 					relation.c_id2 === enemyClanId &&
-					relation.clanRelationFlags === 'war'
+					relation.clanRelationFlags === "war"
 				) {
-					await relation.remove()
+					await relation.remove();
 				}
-			})
+			}
 
-			enemyClan.relation.forEach(async (relation) => {
-				if (relation.c_id2 === clanId && relation.clanRelationFlags === 'war') {
-					await relation.remove()
+			for (const relation of enemyClan.relation) {
+				if (relation.c_id2 === clanId && relation.clanRelationFlags === "war") {
+					await relation.remove();
 				} else if (
 					relation.c_id2 === clanId &&
-					relation.clanRelationFlags === 'peace'
+					relation.clanRelationFlags === "peace"
 				) {
-					await relation.remove()
+					await relation.remove();
 				}
-			})
+			}
 			// peace news event
-			const content = `${clan.clanName} has accepted the peace offering to end the war!`
-			const pubContent = `${clan.clanName} has accepted the peace offering to end the war with ${enemyClan.clanName}!`
+			const content = {
+				key: "clan.peaceAcceptedPrivate",
+				params: {
+					clanName: clan.clanName,
+				},
+			};
+			const pubContent = {
+				key: "clan.peaceAcceptedPublic",
+				params: {
+					clanName: clan.clanName,
+					enemyClanName: enemyClan.clanName,
+				},
+			};
 
 			await createNewsEvent(
 				content,
@@ -836,26 +842,38 @@ const offerPeace = async (req: Request, res: Response) => {
 				empire.name,
 				enemyClan.empireIdLeader,
 				enemyLeader.name,
-				'peace',
-				'success',
-				empire.game_id
-			)
+				"peace",
+				"success",
+				empire.game_id,
+			);
 		} else if (myWarRelation.includes(enemyClanId)) {
 			// you are at war and have not offered peace yet, first offer
-			let myClanRelation = new ClanRelation({
+			const myClanRelation = new ClanRelation({
 				c_id1: clanId,
 				clan1Name: clan.clanName,
 				c_id2: enemyClanId,
 				clan2Name: enemyClan.clanName,
-				clanRelationFlags: 'peace',
+				clanRelationFlags: "peace",
 				clan: clan,
 				game_id: game.game_id,
-			})
+			});
 
-			await myClanRelation.save()
+			await myClanRelation.save();
 			// peace is offered by one side
-			let content = `${clan.clanName} has offered peace to end the war!`
-			let pubContent = `${clan.clanName} has offered peace to end the war with ${enemyClan.clanName}!`
+			const content = {
+				key: "clan.peaceOfferedPrivate",
+				params: {
+					clanName: clan.clanName,
+				},
+			};
+			const pubContent = {
+				key: "clan.peaceOfferedPublic",
+				params: {
+					clanName: clan.clanName,
+					enemyClanName: enemyClan.clanName,
+				},
+			};
+
 			await createNewsEvent(
 				content,
 				pubContent,
@@ -863,74 +881,73 @@ const offerPeace = async (req: Request, res: Response) => {
 				empire.name,
 				enemyClan.empireIdLeader,
 				enemyLeader.name,
-				'peace',
-				'shielded',
-				empire.game_id
-			)
+				"peace",
+				"shielded",
+				empire.game_id,
+			);
 		}
 
-		return res.json(clan)
+		return res.json(clan);
 	} catch (err) {
-		console.log(err)
-		return res
-			.status(500)
-			.json({ error: 'Something went wrong when declaring peace' })
+		console.log(err);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
 const setClanTag = async (req: Request, res: Response) => {
-	let { empireId, clanTag } = req.body
+	let { empireId, clanTag } = req.body;
+	const language = res.locals.language;
 
 	if (!containsOnlySymbols(clanTag)) {
-		clanTag = filter.clean(clanTag)
+		clanTag = filter.clean(clanTag);
 	}
 
-	if (clanTag.includes('**')) {
-		return res.status(400).json({ error: 'Clan tag is profane' })
+	if (clanTag.includes("**")) {
+		return sendError(res, 400)("clan.profaneClanTag", language);
 	}
 
 	try {
 		const empire = await Empire.findOneOrFail({
 			where: { id: empireId },
-		})
+		});
 
 		if (empire.clanId === 0) {
-			return res.status(400).json({ error: 'You are not in a clan' })
+			return sendError(res, 400)("clan.notInClan", language);
 		}
 
 		const clan = await Clan.findOneOrFail({
 			where: { id: empire.clanId },
-		})
+		});
 
 		if (clan.empireIdLeader !== empire.id) {
-			return res.status(400).json({ error: 'You are not the clan leader' })
+			return sendError(res, 400)("clan.notClanLeader", language);
 		}
 
-		clan.clanTag = clanTag
-		await clan.save()
+		clan.clanTag = clanTag;
+		await clan.save();
 
-		return res.json(clan)
+		return res.json(clan);
 	} catch (err) {
-		console.log(err)
-		return res.status(500).json({ error: err })
+		console.log(err);
+		return sendError(res, 500)("generic", language);
 	}
-}
+};
 
-const router = Router()
+const router = Router();
 
-router.post('/create', user, auth, attachGame, createClan)
-router.post('/join', user, auth, attachGame, joinClan)
-router.post('/leave', user, auth, attachGame, leaveClan)
-router.post('/disband', user, auth, attachGame, disbandClan)
-router.post('/kick', user, auth, attachGame, kickFromClan)
-router.post('/get', user, auth, getClan)
-router.post('/getMembers', user, auth, getClanMembers)
-router.get('/getClans', getClans)
-router.get('/getClansData', getClansData)
-router.post('/assignRole', user, auth, assignClanRole)
-router.post('/removeRole', user, auth, removeClanRole)
-router.post('/declareWar', user, auth, attachGame, declareWar)
-router.post('/offerPeace', user, auth, attachGame, offerPeace)
-router.post('/setTag', user, auth, setClanTag)
+router.post("/create", user, auth, language, attachGame, createClan);
+router.post("/join", user, auth, language, attachGame, joinClan);
+router.post("/leave", user, auth, language, attachGame, leaveClan);
+router.post("/disband", user, auth, language, attachGame, disbandClan);
+router.post("/kick", user, auth, language, attachGame, kickFromClan);
+router.post("/get", user, auth, getClan);
+router.post("/getMembers", user, auth, getClanMembers);
+router.get("/getClans", getClans);
+router.get("/getClansData", getClansData);
+router.post("/assignRole", user, auth, language, assignClanRole);
+router.post("/removeRole", user, auth, language, removeClanRole);
+router.post("/declareWar", user, auth, language, attachGame, declareWar);
+router.post("/offerPeace", user, auth, language, attachGame, offerPeace);
+router.post("/setTag", user, auth, language, setClanTag);
 
-export default router
+export default router;

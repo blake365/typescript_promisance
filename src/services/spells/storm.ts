@@ -1,10 +1,11 @@
-import { eraArray } from '../../config/eras'
-import type Empire from '../../entity/Empire'
-import { getPower_enemy, getWizLoss_enemy } from './general'
-import EmpireEffect from '../../entity/EmpireEffect'
-import { createNewsEvent } from '../../util/helpers'
-import { getNetworth } from '../actions/actions'
-import type Game from '../../entity/Game'
+import { eraArray } from "../../config/eras"
+import type Empire from "../../entity/Empire"
+import { getPower_enemy, getWizLoss_enemy } from "./general"
+import EmpireEffect from "../../entity/EmpireEffect"
+import { createNewsEvent } from "../../util/helpers"
+import { getNetworth } from "../actions/actions"
+import type Game from "../../entity/Game"
+import { translate } from "../../util/translation"
 
 export const storm_cost = (baseCost: number) => {
 	return Math.ceil(22.25 * baseCost)
@@ -14,11 +15,12 @@ export const storm_cast = async (
 	empire: Empire,
 	enemyEmpire: Empire,
 	game: Game,
-	points: number
+	points: number,
+	language: string,
 ) => {
 	const enemyEffect = await EmpireEffect.findOne({
-		where: { effectOwnerId: enemyEmpire.id, empireEffectName: 'spell shield' },
-		order: { updatedAt: 'DESC' },
+		where: { effectOwnerId: enemyEmpire.id, empireEffectName: "spell shield" },
+		order: { updatedAt: "DESC" },
 	})
 
 	let timeLeft = 0
@@ -36,8 +38,8 @@ export const storm_cast = async (
 		console.log(enemyEffect)
 	}
 
-	let pubContent = ''
-	let content = ''
+	let pubContent: any = {}
+	let content: any = {}
 
 	let score = 0
 
@@ -50,21 +52,33 @@ export const storm_cast = async (
 			enemyEmpire.cash -= cash
 
 			result = {
-				result: 'shielded',
-				message: `The spell was successful, but the enemy has a spell shield. /n You destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
-					eraArray[enemyEmpire.era].food
-				}. `,
+				result: "shielded",
+				message: translate("responses:spells.stormShield", language, {
+					cash: cash.toLocaleString(),
+					food: food.toLocaleString(),
+					foodUnit: eraArray[enemyEmpire.era].food,
+				}),
 			}
 
-			pubContent = `${empire.name} cast ${
-				eraArray[empire.era].spell_storm
-			} on ${enemyEmpire.name}.`
+			pubContent = {
+				key: "news:spells.storm.shieldedPublic",
+				params: {
+					attacker: empire.name,
+					defender: enemyEmpire.name,
+					spell: eraArray[empire.era].spell_storm,
+				},
+			}
 
-			content = `${empire.name} cast ${
-				eraArray[empire.era].spell_storm
-			} against you. /n Your shield protected you but they destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
-				eraArray[enemyEmpire.era].food
-			}.`
+			content = {
+				key: "news:spells.storm.shieldedPrivate",
+				params: {
+					attacker: empire.name,
+					spell: eraArray[empire.era].spell_storm,
+					cash: cash.toLocaleString(),
+					food: food.toLocaleString(),
+					foodUnit: eraArray[enemyEmpire.era].food,
+				},
+			}
 
 			await createNewsEvent(
 				content,
@@ -73,9 +87,9 @@ export const storm_cast = async (
 				empire.name,
 				enemyEmpire.id,
 				enemyEmpire.name,
-				'spell',
-				'shielded',
-				empire.game_id
+				"spell",
+				"shielded",
+				empire.game_id,
 			)
 
 			score = Math.ceil(points * 0.3)
@@ -89,21 +103,33 @@ export const storm_cast = async (
 			enemyEmpire.cash -= cash
 
 			result = {
-				result: 'success',
-				message: `The spell was successful! /n You destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
-					eraArray[enemyEmpire.era].food
-				}.`,
+				result: "success",
+				message: translate("responses:spells.stormSuccess", language, {
+					cash: cash.toLocaleString(),
+					food: food.toLocaleString(),
+					foodUnit: eraArray[enemyEmpire.era].food,
+				}),
 			}
 
-			pubContent = `${empire.name} cast ${
-				eraArray[empire.era].spell_storm
-			} on ${enemyEmpire.name}.`
+			pubContent = {
+				key: "news:spells.storm.successPublic",
+				params: {
+					attacker: empire.name,
+					defender: enemyEmpire.name,
+					spell: eraArray[empire.era].spell_storm,
+				},
+			}
 
-			content = `${empire.name} cast ${
-				eraArray[empire.era].spell_storm
-			} against you and destroyed $${cash.toLocaleString()} and ${food.toLocaleString()} ${
-				eraArray[enemyEmpire.era].food
-			}.`
+			content = {
+				key: "news:spells.storm.successPrivate",
+				params: {
+					attacker: empire.name,
+					spell: eraArray[empire.era].spell_storm,
+					cash: cash.toLocaleString(),
+					food: food.toLocaleString(),
+					foodUnit: eraArray[enemyEmpire.era].food,
+				},
+			}
 
 			await createNewsEvent(
 				content,
@@ -112,9 +138,9 @@ export const storm_cast = async (
 				empire.name,
 				enemyEmpire.id,
 				enemyEmpire.name,
-				'spell',
-				'fail',
-				empire.game_id
+				"spell",
+				"fail",
+				empire.game_id,
 			)
 
 			score = Math.ceil(points * 0.3)
@@ -135,10 +161,11 @@ export const storm_cast = async (
 
 	const wizloss = getWizLoss_enemy(empire)
 	const result = {
-		result: 'fail',
-		message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
-			eraArray[empire.era].spell_storm
-		} on your opponent.`,
+		result: "fail",
+		message: translate("responses:spells.fail", language, {
+			trpwiz: eraArray[empire.era].trpwiz,
+			spell: eraArray[empire.era].spell_storm,
+		}),
 		wizloss: wizloss,
 		descriptor: eraArray[empire.era].trpwiz,
 	}
@@ -151,13 +178,22 @@ export const storm_cast = async (
 	await empire.save()
 	await enemyEmpire.save()
 
-	content = `${empire.name} attempted to cast ${
-		eraArray[empire.era].spell_storm
-	} against you and failed. `
+	content = {
+		key: "news:spells.general.failPrivate",
+		params: {
+			caster: empire.name,
+			spell: eraArray[empire.era].spell_storm,
+		},
+	}
 
-	pubContent = `${empire.name} attempted to cast ${
-		eraArray[empire.era].spell_storm
-	} on ${enemyEmpire.name} and failed.`
+	pubContent = {
+		key: "news:spells.general.failPublic",
+		params: {
+			caster: empire.name,
+			target: enemyEmpire.name,
+			spell: eraArray[empire.era].spell_storm,
+		},
+	}
 
 	await createNewsEvent(
 		content,
@@ -166,9 +202,9 @@ export const storm_cast = async (
 		empire.name,
 		enemyEmpire.id,
 		enemyEmpire.name,
-		'spell',
-		'success',
-		empire.game_id
+		"spell",
+		"success",
+		empire.game_id,
 	)
 
 	return result

@@ -1,10 +1,11 @@
-import { eraArray } from '../../config/eras'
-import type Empire from '../../entity/Empire'
-import { getPower_enemy, getWizLoss_enemy } from './general'
-import EmpireEffect from '../../entity/EmpireEffect'
-import { createNewsEvent } from '../../util/helpers'
-import { getNetworth } from '../actions/actions'
-import type Game from '../../entity/Game'
+import { eraArray } from "../../config/eras"
+import type Empire from "../../entity/Empire"
+import { getPower_enemy, getWizLoss_enemy } from "./general"
+import EmpireEffect from "../../entity/EmpireEffect"
+import { createNewsEvent } from "../../util/helpers"
+import { getNetworth } from "../actions/actions"
+import type Game from "../../entity/Game"
+import { translate } from "../../util/translation"
 
 export const struct_cost = (baseCost: number) => {
 	return Math.ceil(23.0 * baseCost)
@@ -14,7 +15,7 @@ const destroyBuildings = async (
 	type: string,
 	percent: number,
 	min: number,
-	enemyEmpire: Empire
+	enemyEmpire: Empire,
 ) => {
 	const loss = Math.ceil(enemyEmpire[type] * percent)
 	if (enemyEmpire[type] > enemyEmpire.land / min) {
@@ -30,11 +31,12 @@ export const struct_cast = async (
 	empire: Empire,
 	enemyEmpire: Empire,
 	game: Game,
-	points: number
+	points: number,
+	language: string,
 ) => {
 	const enemyEffect = await EmpireEffect.findOne({
-		where: { effectOwnerId: enemyEmpire.id, empireEffectName: 'spell shield' },
-		order: { updatedAt: 'DESC' },
+		where: { effectOwnerId: enemyEmpire.id, empireEffectName: "spell shield" },
+		order: { updatedAt: "DESC" },
 	})
 
 	let timeLeft = 0
@@ -52,8 +54,8 @@ export const struct_cast = async (
 		// console.log(enemyEffect)
 	}
 
-	let pubContent = ''
-	let content = ''
+	let pubContent: any = {}
+	let content: any = {}
 
 	let score = 0
 
@@ -61,26 +63,38 @@ export const struct_cast = async (
 		let result = {}
 		if (timeLeft > 0) {
 			let build = 0
-			build += await destroyBuildings('bldCash', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldPop', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldTrp', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldCost', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldFood', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldWiz', 0.01, 100, enemyEmpire)
-			build += await destroyBuildings('bldDef', 0.01, 150, enemyEmpire)
+			build += await destroyBuildings("bldCash", 0.01, 100, enemyEmpire)
+			build += await destroyBuildings("bldPop", 0.01, 100, enemyEmpire)
+			build += await destroyBuildings("bldTrp", 0.01, 100, enemyEmpire)
+			build += await destroyBuildings("bldCost", 0.01, 100, enemyEmpire)
+			build += await destroyBuildings("bldFood", 0.01, 100, enemyEmpire)
+			build += await destroyBuildings("bldWiz", 0.01, 100, enemyEmpire)
+			build += await destroyBuildings("bldDef", 0.01, 150, enemyEmpire)
 
 			result = {
-				result: 'shielded',
-				message: `The spell was successful, but the enemy has a spell shield. /n You destroyed ${build.toLocaleString()} buildings. `,
+				result: "shielded",
+				message: translate("responses:spells.structShielded", language, {
+					buildings: build.toLocaleString(),
+				}),
 			}
 
-			pubContent = `${empire.name} cast ${
-				eraArray[empire.era].spell_struct
-			} on ${enemyEmpire.name}.`
+			pubContent = {
+				key: "news:spells.struct.shieldedPublic",
+				params: {
+					attacker: empire.name,
+					defender: enemyEmpire.name,
+					spell: eraArray[empire.era].spell_struct,
+				},
+			}
 
-			content = `${empire.name} cast ${
-				eraArray[empire.era].spell_struct
-			} against you. /n Your shield protected you but ${build.toLocaleString()} buildings were destroyed.`
+			content = {
+				key: "news:spells.struct.shieldedPrivate",
+				params: {
+					attacker: empire.name,
+					buildings: build.toLocaleString(),
+					spell: eraArray[empire.era].spell_struct,
+				},
+			}
 
 			await createNewsEvent(
 				content,
@@ -89,9 +103,9 @@ export const struct_cast = async (
 				empire.name,
 				enemyEmpire.id,
 				enemyEmpire.name,
-				'spell',
-				'shielded',
-				empire.game_id
+				"spell",
+				"shielded",
+				empire.game_id,
 			)
 
 			score = Math.ceil(points * 0.5)
@@ -100,26 +114,38 @@ export const struct_cast = async (
 			}
 		} else {
 			let build = 0
-			build += await destroyBuildings('bldCash', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldPop', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldTrp', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldCost', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldFood', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldWiz', 0.03, 100, enemyEmpire)
-			build += await destroyBuildings('bldDef', 0.03, 150, enemyEmpire)
+			build += await destroyBuildings("bldCash", 0.03, 100, enemyEmpire)
+			build += await destroyBuildings("bldPop", 0.03, 100, enemyEmpire)
+			build += await destroyBuildings("bldTrp", 0.03, 100, enemyEmpire)
+			build += await destroyBuildings("bldCost", 0.03, 100, enemyEmpire)
+			build += await destroyBuildings("bldFood", 0.03, 100, enemyEmpire)
+			build += await destroyBuildings("bldWiz", 0.03, 100, enemyEmpire)
+			build += await destroyBuildings("bldDef", 0.03, 150, enemyEmpire)
 
 			result = {
-				result: 'success',
-				message: `The spell was successful! /n You destroyed ${build.toLocaleString()} buildings.`,
+				result: "success",
+				message: translate("responses:spells.structSuccess", language, {
+					buildings: build.toLocaleString(),
+				}),
 			}
 
-			pubContent = `${empire.name} cast ${
-				eraArray[empire.era].spell_struct
-			} on ${enemyEmpire.name}.`
+			pubContent = {
+				key: "news:spells.struct.successPublic",
+				params: {
+					attacker: empire.name,
+					defender: enemyEmpire.name,
+					spell: eraArray[empire.era].spell_struct,
+				},
+			}
 
-			content = `${empire.name} cast ${
-				eraArray[empire.era].spell_struct
-			} against you and destroyed ${build.toLocaleString()} buildings.`
+			content = {
+				key: "news:spells.struct.successPrivate",
+				params: {
+					attacker: empire.name,
+					buildings: build.toLocaleString(),
+					spell: eraArray[empire.era].spell_struct,
+				},
+			}
 
 			await createNewsEvent(
 				content,
@@ -128,9 +154,9 @@ export const struct_cast = async (
 				empire.name,
 				enemyEmpire.id,
 				enemyEmpire.name,
-				'spell',
-				'fail',
-				empire.game_id
+				"spell",
+				"fail",
+				empire.game_id,
 			)
 
 			score = Math.ceil(points * 0.5)
@@ -151,10 +177,11 @@ export const struct_cast = async (
 
 	const wizloss = getWizLoss_enemy(empire)
 	const result = {
-		result: 'fail',
-		message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
-			eraArray[empire.era].spell_struct
-		} on your opponent.`,
+		result: "fail",
+		message: translate("responses:spells.fail", language, {
+			trpwiz: eraArray[empire.era].trpwiz,
+			spell: eraArray[empire.era].spell_struct,
+		}),
 		wizloss: wizloss,
 		descriptor: eraArray[empire.era].trpwiz,
 	}
@@ -166,13 +193,22 @@ export const struct_cast = async (
 	await empire.save()
 	await enemyEmpire.save()
 
-	content = `${empire.name} attempted to cast ${
-		eraArray[empire.era].spell_struct
-	} against you and failed. `
+	content = {
+		key: "news:spells.struct.failPrivate",
+		params: {
+			caster: empire.name,
+			spell: eraArray[empire.era].spell_struct,
+		},
+	}
 
-	pubContent = `${empire.name} attempted to cast ${
-		eraArray[empire.era].spell_struct
-	} on ${enemyEmpire.name} and failed.`
+	pubContent = {
+		key: "news:spells.struct.failPublic",
+		params: {
+			caster: empire.name,
+			target: enemyEmpire.name,
+			spell: eraArray[empire.era].spell_struct,
+		},
+	}
 
 	await createNewsEvent(
 		content,
@@ -181,9 +217,9 @@ export const struct_cast = async (
 		empire.name,
 		enemyEmpire.id,
 		enemyEmpire.name,
-		'spell',
-		'success',
-		empire.game_id
+		"spell",
+		"success",
+		empire.game_id,
 	)
 
 	return result

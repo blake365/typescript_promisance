@@ -1,15 +1,20 @@
-import { eraArray } from '../../config/eras'
-import type Empire from '../../entity/Empire'
-import { getPower_enemy, getWizLoss_enemy } from './general'
-import EmpireIntel from '../../entity/EmpireIntel'
-import { createNewsEvent } from '../../util/helpers'
+import { eraArray } from "../../config/eras"
+import type Empire from "../../entity/Empire"
+import { getPower_enemy, getWizLoss_enemy } from "./general"
+import EmpireIntel from "../../entity/EmpireIntel"
+import { createNewsEvent } from "../../util/helpers"
+import { translate } from "../../util/translation"
 
 export const spy_cost = (baseCost: number) => {
 	return Math.ceil(1 * baseCost)
 }
 
-export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
-	console.log('spy cast')
+export const spy_cast = async (
+	empire: Empire,
+	enemyEmpire: Empire,
+	language: string,
+) => {
+	console.log("spy cast")
 	if (getPower_enemy(empire, enemyEmpire) >= 1) {
 		// spy success
 		// display enemy info and save to intel table
@@ -68,22 +73,32 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		await intel.save()
 
 		const result = {
-			result: 'success',
-			message: `Your ${eraArray[empire.era].trpwiz} successfully cast ${
-				eraArray[empire.era].spell_spy
-			} on your opponent.`,
+			result: "success",
+			message: translate("responses:spells.spySuccess", language, {
+				trpwiz: eraArray[empire.era].trpwiz,
+				spell: eraArray[empire.era].spell_spy,
+			}),
 			wizloss: 0,
 			descriptor: eraArray[empire.era].trpwiz,
 			intel: intel,
 		}
 
-		const content = `${empire.name} cast ${
-			eraArray[empire.era].spell_spy
-		} against you and viewed your empire information. `
+		const pubContent = {
+			key: "news:spells.spy.successPublic",
+			params: {
+				attacker: empire.name,
+				defender: enemyEmpire.name,
+				spell: eraArray[empire.era].spell_spy,
+			},
+		}
 
-		const pubContent = `${empire.name} cast ${
-			eraArray[empire.era].spell_spy
-		} on ${enemyEmpire.name} and viewed their empire information.`
+		const content = {
+			key: "news:spells.spy.successPrivate",
+			params: {
+				attacker: empire.name,
+				spell: eraArray[empire.era].spell_spy,
+			},
+		}
 
 		await createNewsEvent(
 			content,
@@ -92,9 +107,9 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 			empire.name,
 			enemyEmpire.id,
 			enemyEmpire.name,
-			'spell',
-			'fail',
-			empire.game_id
+			"spell",
+			"fail",
+			empire.game_id,
 		)
 
 		return result
@@ -102,21 +117,31 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 
 	const wizloss = getWizLoss_enemy(empire)
 	const result = {
-		result: 'fail',
-		message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
-			eraArray[empire.era].spell_spy
-		} on your opponent.`,
+		result: "fail",
+		message: translate("responses:spells.fail", language, {
+			trpwiz: eraArray[empire.era].trpwiz,
+			spell: eraArray[empire.era].spell_spy,
+		}),
 		wizloss: wizloss,
 		descriptor: eraArray[empire.era].trpwiz,
 	}
 
-	const content = `${empire.name} attempted to cast ${
-		eraArray[empire.era].spell_spy
-	} against you and failed. `
+	const content = {
+		key: "news:spells.general.failPrivate",
+		params: {
+			caster: empire.name,
+			spell: eraArray[empire.era].spell_spy,
+		},
+	}
 
-	const pubContent = `${empire.name} attempted to cast ${
-		eraArray[empire.era].spell_spy
-	} on ${enemyEmpire.name} and failed.`
+	const pubContent = {
+		key: "news:spells.general.failPublic",
+		params: {
+			caster: empire.name,
+			target: enemyEmpire.name,
+			spell: eraArray[empire.era].spell_spy,
+		},
+	}
 
 	await createNewsEvent(
 		content,
@@ -125,9 +150,9 @@ export const spy_cast = async (empire: Empire, enemyEmpire: Empire) => {
 		empire.name,
 		enemyEmpire.id,
 		enemyEmpire.name,
-		'spell',
-		'success',
-		empire.game_id
+		"spell",
+		"success",
+		empire.game_id,
 	)
 
 	return result

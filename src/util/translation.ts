@@ -8,12 +8,20 @@ export const translate = (
 	return i18next.t(key, { lng: language, ...variables });
 };
 
-const createErrorResponse = (key: string, language: string) => {
+const createErrorResponse = (
+	key: string,
+	language: string,
+	variables?: Record<string, any>,
+) => {
 	return {
-		error: translate(`errors:${key}`, language),
+		error: translate(`errors:${key}`, language, variables),
 	};
 };
 
-export const sendError = (res, status) => (key, language) => {
-	return res.status(status).json(createErrorResponse(key, language));
-};
+export const sendError =
+	(res: any, status: number) =>
+	(key: string, language: any, variables?: Record<string, any>) => {
+		return res
+			.status(status)
+			.json(createErrorResponse(key, language, variables));
+	};
