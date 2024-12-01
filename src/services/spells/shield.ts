@@ -1,19 +1,20 @@
-import { eraArray } from '../../config/eras'
-import Empire from '../../entity/Empire'
-import EmpireEffect from '../../entity/EmpireEffect'
-import { getPower_self, getWizLoss_self } from './general'
+import { eraArray } from "../../config/eras"
+import type Empire from "../../entity/Empire"
+import EmpireEffect from "../../entity/EmpireEffect"
+import { getPower_self, getWizLoss_self } from "./general"
+import { translate } from "../../util/translation"
 
 export const shield_cost = (baseCost: number) => {
 	return Math.ceil(4.9 * baseCost)
 }
 
-export const shield_cast = async (empire: Empire) => {
-	console.log('casting shield')
+export const shield_cast = async (empire: Empire, language: string) => {
+	console.log("casting shield")
 
-	let now = new Date()
+	const now = new Date()
 	const effect = await EmpireEffect.findOne({
-		where: { effectOwnerId: empire.id, empireEffectName: 'spell shield' },
-		order: { updatedAt: 'DESC' },
+		where: { effectOwnerId: empire.id, empireEffectName: "spell shield" },
+		order: { updatedAt: "DESC" },
 	})
 
 	// figure out age of effect and see if it is expired
@@ -36,14 +37,13 @@ export const shield_cast = async (empire: Empire) => {
 		if (effect) {
 			if (timeLeft <= 0) {
 				effect.remove()
-				console.log('expired')
+				console.log("expired")
 				// create effect
-				let empireEffectName = 'spell shield'
-				let empireEffectValue = 24 * 60
-				let effectOwnerId = empire.id
+				const empireEffectName = "spell shield"
+				const empireEffectValue = 24 * 60
+				const effectOwnerId = empire.id
 
-				let newEffect: EmpireEffect
-				newEffect = new EmpireEffect({
+				const newEffect: EmpireEffect = new EmpireEffect({
 					effectOwnerId,
 					empireEffectName,
 					empireEffectValue,
@@ -51,22 +51,22 @@ export const shield_cast = async (empire: Empire) => {
 				// console.log(effect)
 				await newEffect.save()
 
-				let result = {
-					result: 'success',
-					message: `Your ${eraArray[empire.era].trpwiz} cast ${
-						eraArray[empire.era].spell_shield
-					}. /n Your spell shield is now active for 24 hours.`,
+				const result = {
+					result: "success",
+					message: translate("responses:spells.shield", language),
 					wizloss: 0,
 					descriptor: eraArray[empire.era].trpwiz,
 				}
 				return result
-			} else if (timeLeft < 14 * 60) {
-				console.log('renew')
+			}
+
+			if (timeLeft < 14 * 60) {
+				console.log("renew")
 				// renew effect
 				// console.log(effect)
 				await effect.remove()
 
-				let empireEffectName = 'spell shield'
+				let empireEffectName = "spell shield"
 				let empireEffectValue = 24 * 60
 				let effectOwnerId = empire.id
 
@@ -80,68 +80,60 @@ export const shield_cast = async (empire: Empire) => {
 				await newEffect.save()
 
 				let result = {
-					result: 'success',
-					message: `Your ${eraArray[empire.era].trpwiz} cast ${
-						eraArray[empire.era].spell_shield
-					}. /n Your shield has been renewed to 24 hours.`,
-				}
-				return result
-			} else {
-				console.log('extend')
-				// extend effect
-				effect.empireEffectValue = Math.round(timeLeft + 3 * 60)
-
-				// console.log(effect)
-				await effect.save()
-
-				let result = {
-					result: 'success',
-					message: `Your ${eraArray[empire.era].trpwiz} cast ${
-						eraArray[empire.era].spell_shield
-					}. /n Your spell shield has been extended by 3 hours.`,
-					wizloss: 0,
-					descriptor: eraArray[empire.era].trpwiz,
+					result: "success",
+					message: translate("responses:spells.shieldRenew", language),
 				}
 				return result
 			}
-		} else {
-			// expired
-			console.log('create')
-			// create effect
-			let empireEffectName = 'spell shield'
-			let empireEffectValue = 24 * 60
-			let effectOwnerId = empire.id
 
-			let effect: EmpireEffect
-			effect = new EmpireEffect({
-				effectOwnerId,
-				empireEffectName,
-				empireEffectValue,
-			})
+			console.log("extend")
+			// extend effect
+			effect.empireEffectValue = Math.round(timeLeft + 3 * 60)
+
 			// console.log(effect)
 			await effect.save()
 
-			let result = {
-				result: 'success',
-				message: `Your ${eraArray[empire.era].trpwiz} cast ${
-					eraArray[empire.era].spell_shield
-				}. /n Your spell shield is now active for 24 hours.`,
+			const result = {
+				result: "success",
+				message: translate("responses:spells.shieldExtended", language),
 				wizloss: 0,
 				descriptor: eraArray[empire.era].trpwiz,
 			}
+
 			return result
 		}
-	} else {
-		let wizloss = getWizLoss_self(empire)
-		let result = {
-			result: 'fail',
-			message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
-				eraArray[empire.era].spell_shield
-			}`,
-			wizloss: wizloss,
+
+		// expired
+		console.log("create")
+		// create effect
+		const empireEffectName = "spell shield"
+		const empireEffectValue = 24 * 60
+		const effectOwnerId = empire.id
+
+		const secondEffect: EmpireEffect = new EmpireEffect({
+			effectOwnerId,
+			empireEffectName,
+			empireEffectValue,
+		})
+		// console.log(effect)
+		await secondEffect.save()
+
+		const result = {
+			result: "success",
+			message: translate("responses:spells.shield", language),
+			wizloss: 0,
 			descriptor: eraArray[empire.era].trpwiz,
 		}
-
 		return result
 	}
+
+	const wizloss = getWizLoss_self(empire)
+	const result = {
+		result: "fail",
+		message: translate("responses:spells.spellFail", language),
+		wizloss: wizloss,
+		descriptor: eraArray[empire.era].trpwiz,
+	}
+
+	return result
 }

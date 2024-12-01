@@ -166,6 +166,7 @@ const logout = async (_: Request, res: Response) => {
 
 const demoAccount = async (req: Request, res: Response) => {
 	const empires = [];
+	const language = res.locals.language;
 
 	let ip = Array.isArray(req.headers["x-forwarded-for"])
 		? req.headers["x-forwarded-for"][0]
@@ -477,7 +478,12 @@ const forgotPassword = async (req: Request, res: Response) => {
 
 const confirmToken = async (req: Request, res: Response) => {
 	const { token, password } = req.body;
-	const language = res.locals.language;
+	let language = res.locals.language;
+
+	if (!language) {
+		language = "en";
+	}
+
 	try {
 		const resetToken = await ResetToken.findOne({
 			selector: token.slice(0, 18),

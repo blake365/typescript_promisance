@@ -1,17 +1,18 @@
-import { eraArray } from '../../config/eras'
-import type Empire from '../../entity/Empire'
-import EmpireEffect from '../../entity/EmpireEffect'
-import { getPower_self, getWizLoss_self } from './general'
+import { eraArray } from "../../config/eras"
+import type Empire from "../../entity/Empire"
+import EmpireEffect from "../../entity/EmpireEffect"
+import { getPower_self, getWizLoss_self } from "./general"
+import { translate } from "../../util/translation"
 
 export const ungate_cost = (baseCost: number) => {
 	return Math.ceil(14.5 * baseCost)
 }
 
-export const ungate_cast = async (empire: Empire) => {
+export const ungate_cast = async (empire: Empire, language: string) => {
 	const now = new Date()
 	const effect = await EmpireEffect.findOne({
-		where: { effectOwnerId: empire.id, empireEffectName: 'time gate' },
-		order: { createdAt: 'DESC' },
+		where: { effectOwnerId: empire.id, empireEffectName: "time gate" },
+		order: { createdAt: "DESC" },
 	})
 
 	// console.log(effect)
@@ -33,26 +34,24 @@ export const ungate_cast = async (empire: Empire) => {
 			if (timeLeft < effect.empireEffectValue) {
 				effect.remove()
 				const result = {
-					result: 'success',
-					message: `You closed your ${eraArray[empire.era].spell_gate}`,
+					result: "success",
+					message: translate("responses:spells.ungateSuccess", language),
 				}
 				return result
 			}
 		} else {
-			console.log('no effect found')
+			console.log("no effect found")
 			const result = {
-				result: 'fail',
-				message: `You do not have a ${eraArray[empire.era].spell_gate} open`,
+				result: "fail",
+				message: translate("responses:spells.ungateFail", language),
 			}
 			return result
 		}
 	} else {
 		const wizloss = getWizLoss_self(empire)
 		const result = {
-			result: 'fail',
-			message: `Your ${eraArray[empire.era].trpwiz} failed to cast ${
-				eraArray[empire.era].spell_gate
-			}`,
+			result: "fail",
+			message: translate("responses:spells.spellFail", language),
 			wizloss: wizloss,
 			descriptor: eraArray[empire.era].trpwiz,
 		}

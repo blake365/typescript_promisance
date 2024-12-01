@@ -1,19 +1,20 @@
-import { eraArray } from '../../config/eras'
-import type Empire from '../../entity/Empire'
-import EmpireEffect from '../../entity/EmpireEffect'
-import { getPower_self, getWizLoss_self } from './general'
+import { eraArray } from "../../config/eras"
+import type Empire from "../../entity/Empire"
+import EmpireEffect from "../../entity/EmpireEffect"
+import { translate } from "../../util/translation"
+import { getPower_self, getWizLoss_self } from "./general"
 
 export const advance_cost = (baseCost: number) => {
 	return Math.ceil(47.5 * baseCost)
 }
 
-export const advance_allow = async ({ era, id }) => {
-	console.log('casting advance')
+export const advance_allow = async ({ era, id }, language: string) => {
+	console.log("casting advance")
 
 	const now = new Date()
 	const effect = await EmpireEffect.findOne({
-		where: { effectOwnerId: id, empireEffectName: 'era delay' },
-		order: { updatedAt: 'DESC' },
+		where: { effectOwnerId: id, empireEffectName: "era delay" },
+		order: { updatedAt: "DESC" },
 	})
 
 	// figure out age of effect and see if it is expired
@@ -36,13 +37,16 @@ export const advance_allow = async ({ era, id }) => {
 
 	if (timeLeft <= 0 && effect) {
 		effect.remove()
-		console.log('expired')
+		console.log("expired")
 	} else if (timeLeft > 0) {
 		// convert timeLeft to hours and minutes
 		const hours = Math.floor(timeLeft / 60)
 		const minutes = Math.round(timeLeft % 60)
 
-		errorMessage = `You must wait ${hours} hours and ${minutes} minutes before changing eras again.`
+		errorMessage = translate("responses:spells.advanceWait", language, {
+			hours: hours,
+			minutes: minutes,
+		})
 	}
 
 	// console.log(errorMessage)
@@ -56,19 +60,19 @@ export const advance_allow = async ({ era, id }) => {
 	return true
 }
 
-export const advance_cast = (empire: Empire) => {
+export const advance_cast = (empire: Empire, language: string) => {
 	if (getPower_self(empire) >= 80) {
 		let effect: EmpireEffect = null
 		effect = new EmpireEffect({
 			effectOwnerId: empire.id,
-			empireEffectName: 'era delay',
+			empireEffectName: "era delay",
 			empireEffectValue: 4320,
 		})
 		effect.save()
 
 		const result = {
-			result: 'success',
-			message: 'You have advanced to the next era.',
+			result: "success",
+			message: translate("responses:spells.advanceSuccess", language),
 			wizloss: 0,
 			descriptor: null,
 		}
@@ -76,8 +80,8 @@ export const advance_cast = (empire: Empire) => {
 	}
 	const wizloss = getWizLoss_self(empire)
 	const result = {
-		result: 'fail',
-		message: 'Spell failed',
+		result: "fail",
+		message: translate("responses:spells.spellFail", language),
 		wizloss: wizloss,
 		descriptor: eraArray[empire.era].trpwiz,
 	}

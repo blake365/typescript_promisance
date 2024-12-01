@@ -1,9 +1,8 @@
-import EmpireIntel from '../entity/EmpireIntel'
-import type { Request, Response } from 'express'
-import { Router } from 'express'
-import user from '../middleware/user'
-import auth from '../middleware/auth'
-import type User from '../entity/User'
+import EmpireIntel from "../entity/EmpireIntel"
+import type { Request, Response } from "express"
+import { Router } from "express"
+import user from "../middleware/user"
+import auth from "../middleware/auth"
 
 const getIntel = async (req: Request, res: Response) => {
 	const id = req.params.id
@@ -12,7 +11,7 @@ const getIntel = async (req: Request, res: Response) => {
 		const intel = await EmpireIntel.find({
 			where: { ownerId: id },
 			order: {
-				createdAt: 'DESC',
+				createdAt: "DESC",
 			},
 		})
 
@@ -39,7 +38,7 @@ const getClanIntel = async (req: Request, res: Response) => {
 		const intel = await EmpireIntel.find({
 			where: ownerId,
 			order: {
-				createdAt: 'DESC',
+				createdAt: "DESC",
 			},
 		})
 
@@ -58,7 +57,7 @@ const getEmpireIntel = async (req: Request, res: Response) => {
 		const intel = await EmpireIntel.find({
 			where: { spiedEmpireId: spiedEmpireId, ownerId: ownerId },
 			order: {
-				createdAt: 'DESC',
+				createdAt: "DESC",
 			},
 			take: 1,
 		})
@@ -72,8 +71,8 @@ const getEmpireIntel = async (req: Request, res: Response) => {
 
 const router = Router()
 
-router.get('/:id', user, auth, getIntel)
-router.post('/clan', user, auth, getClanIntel)
-router.post('/scores', user, auth, getEmpireIntel)
+router.get("/:id", user, auth, getIntel)
+router.post("/clan", user, auth, getClanIntel)
+router.post("/scores", user, auth, getEmpireIntel)
 
 export default router

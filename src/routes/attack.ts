@@ -1,46 +1,46 @@
-import type { Request, Response } from "express";
-import { Router } from "express";
-import Empire from "../entity/Empire";
-import EmpireEffect from "../entity/EmpireEffect";
-import auth from "../middleware/auth";
-import user from "../middleware/user";
-import { useTurnInternal } from "./useturns";
-import { eraArray } from "../config/eras";
-import { raceArray } from "../config/races";
-import { createNewsEvent } from "../util/helpers";
-import { getNetworth } from "../services/actions/actions";
-import Clan from "../entity/Clan";
+import type { Request, Response } from "express"
+import { Router } from "express"
+import Empire from "../entity/Empire"
+import EmpireEffect from "../entity/EmpireEffect"
+import auth from "../middleware/auth"
+import user from "../middleware/user"
+import { useTurnInternal } from "./useturns"
+import { eraArray } from "../config/eras"
+import { raceArray } from "../config/races"
+import { createNewsEvent } from "../util/helpers"
+import { getNetworth } from "../services/actions/actions"
+import Clan from "../entity/Clan"
 // import { awardAchievements } from './actions/achievements'
-import { takeSnapshot } from "../services/actions/snaps";
-import { getRepository } from "typeorm";
-import { attachGame } from "../middleware/game";
-import { calcUnitPower } from "../services/attacking/calcUnitPower";
-import { calcUnitLosses } from "../services/attacking/calcUnitLosses";
-import { destroyBuildings } from "../services/attacking/destroyBuildings";
-import { translate, sendError } from "../util/translation";
-import { language } from "../middleware/language";
+import { takeSnapshot } from "../services/actions/snaps"
+import { getRepository } from "typeorm"
+import { attachGame } from "../middleware/game"
+import { calcUnitPower } from "../services/attacking/calcUnitPower"
+import { calcUnitLosses } from "../services/attacking/calcUnitLosses"
+import { destroyBuildings } from "../services/attacking/destroyBuildings"
+import { translate, sendError } from "../util/translation"
+import { language } from "../middleware/language"
 
-const troopTypes = ["trparm", "trplnd", "trpfly", "trpsea"];
+const troopTypes = ["trparm", "trplnd", "trpfly", "trpsea"]
 
 interface UnitLoss {
-	attackLosses: number;
-	defendLosses: number;
+	attackLosses: number
+	defendLosses: number
 }
 
 interface attackLosses {
-	[key: string]: number;
+	[key: string]: number
 }
 
 interface defendLosses {
-	[key: string]: number;
+	[key: string]: number
 }
 
 interface buildGain {
-	[key: string]: number;
+	[key: string]: number
 }
 
 interface buildLoss {
-	[key: string]: number;
+	[key: string]: number
 }
 
 const attack = async (req: Request, res: Response) => {
@@ -48,35 +48,35 @@ const attack = async (req: Request, res: Response) => {
 	// only send troops relevant to the attack type
 	// console.log(req.body)
 	// console.log(req.params)
-	const { attackType, defenderId, number, empireId } = req.body;
-	const game = res.locals.game;
-	const language = res.locals.language;
+	const { attackType, defenderId, number, empireId } = req.body
+	const game = res.locals.game
+	const language = res.locals.language
 
-	let { type } = req.body;
+	let { type } = req.body
 
 	if (type !== "attack") {
-		return sendError(res, 500)("generic", language);
+		return sendError(res, 500)("generic", language)
 	}
 
-	let offPower = 0;
-	let defPower = 0;
-	let canAttack = false;
+	let offPower = 0
+	let defPower = 0
+	let canAttack = false
 
-	let returnText = "";
-	let attackDescription = {};
-	const resultArray = [];
-	const now = new Date();
+	let returnText = ""
+	let attackDescription = {}
+	const resultArray = []
+	const now = new Date()
 
 	try {
-		const attacker = await Empire.findOneOrFail({ id: empireId });
+		const attacker = await Empire.findOneOrFail({ id: empireId })
 		// console.log(attacker)
-		const defender = await Empire.findOneOrFail({ id: defenderId });
+		const defender = await Empire.findOneOrFail({ id: defenderId })
 
 		if (attacker.game_id !== defender.game_id) {
-			return sendError(res, 401)("unauthorized", language);
+			return sendError(res, 401)("unauthorized", language)
 		}
 
-		let avgLand = 1;
+		let avgLand = 1
 		if (!game.scoreEnabled) {
 			const { totalLand, empireCount } = await getRepository(Empire)
 				.createQueryBuilder("empire")
@@ -86,36 +86,36 @@ const attack = async (req: Request, res: Response) => {
 					turnsUsed: game.turnsProtection,
 					demo: "demo",
 				})
-				.getRawOne();
+				.getRawOne()
 
 			// console.log(totalLand, empireCount)
-			avgLand = totalLand / empireCount;
+			avgLand = totalLand / empireCount
 		}
 
-		const landCutoff = 10000;
-		let aboveCutoff = false;
-		let defeated = false;
+		const landCutoff = 10000
+		let aboveCutoff = false
+		let defeated = false
 		if (game.scoreEnabled) {
 			if (defender.land >= landCutoff) {
-				aboveCutoff = true;
+				aboveCutoff = true
 			}
 
 			const effect = await EmpireEffect.findOne({
 				where: { effectOwnerId: defender.id, empireEffectName: "defeated" },
 				order: { updatedAt: "DESC" },
-			});
+			})
 
-			let timeLeft = 0;
+			let timeLeft = 0
 			if (effect) {
 				let effectAge =
-					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000;
-				timeLeft = effect.empireEffectValue - effectAge;
+					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+				timeLeft = effect.empireEffectValue - effectAge
 				// age in minutes
-				effectAge = Math.floor(effectAge);
+				effectAge = Math.floor(effectAge)
 				if (timeLeft > 0) {
-					aboveCutoff = false;
-					defeated = true;
-					returnText += translate("responses:attack.empireDefeated", language);
+					aboveCutoff = false
+					defeated = true
+					returnText += translate("responses:attack.empireDefeated", language)
 				}
 			}
 		}
@@ -123,83 +123,83 @@ const attack = async (req: Request, res: Response) => {
 		// console.log(avgLand)
 
 		if (attacker.attacks >= game.maxAttacks) {
-			canAttack = false;
-			returnText = translate("responses:attack.maxAttacks", language);
+			canAttack = false
+			returnText = translate("responses:attack.maxAttacks", language)
 			return res.json({
 				error: returnText,
-			});
+			})
 		}
 
 		if (attacker.clanId !== 0 && attacker.clanId === defender.clanId) {
-			canAttack = false;
-			returnText = translate("errors:attack.clanMate", language);
+			canAttack = false
+			returnText = translate("errors:attack.clanMate", language)
 			return res.json({
 				error: returnText,
-			});
+			})
 		}
 
 		if (attacker.turnsUsed <= game.turnsProtection) {
-			canAttack = false;
+			canAttack = false
 			returnText = translate(
 				"errors:attack.cannotAttackWhileInProtection",
 				language,
-			);
+			)
 			return res.json({
 				error: returnText,
-			});
+			})
 		}
 
 		if (defender.turnsUsed <= game.turnsProtection) {
-			canAttack = false;
-			returnText = translate("errors:attack.cannotAttackYoungEmpire", language);
+			canAttack = false
+			returnText = translate("errors:attack.cannotAttackYoungEmpire", language)
 			return res.json({
 				error: returnText,
-			});
+			})
 		}
 
 		if (defender.land <= 1000) {
-			canAttack = false;
-			returnText = translate("errors:attack.cannotAttackSmallEmpire", language);
+			canAttack = false
+			returnText = translate("errors:attack.cannotAttackSmallEmpire", language)
 			return res.json({
 				error: returnText,
-			});
+			})
 		}
 
 		if (attacker.turns < 2) {
-			canAttack = false;
-			returnText = translate("errors:attack.notEnoughTurns", language);
+			canAttack = false
+			returnText = translate("errors:attack.notEnoughTurns", language)
 			return res.json({
 				error: returnText,
-			});
+			})
 		}
 
 		if (attacker.health < 10) {
-			canAttack = false;
-			returnText = translate("errors:attack.notEnoughHealth", language);
+			canAttack = false
+			returnText = translate("errors:attack.notEnoughHealth", language)
 			return res.json({
 				error: returnText,
-			});
+			})
 		}
 		// check eras and time gates
-		let defenderTimegate = false;
+		let defenderTimegate = false
 		if (attacker.era === defender.era) {
-			canAttack = true;
+			canAttack = true
 		} else if (attacker.era !== defender.era) {
 			// use attacker time gate first then try defender
 			const effect = await EmpireEffect.findOne({
 				where: { effectOwnerId: attacker.id, empireEffectName: "time gate" },
 				order: { createdAt: "DESC" },
-			});
+			})
 
 			if (effect) {
 				// console.log('found effect on your empire')
 				const effectAge =
-					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000;
-				const timeLeft = effect.empireEffectValue - effectAge;
+					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+				const timeLeft = effect.empireEffectValue - effectAge
 
 				if (timeLeft > 0) {
-					canAttack = true;
-					returnText = translate("responses:attack.timeGate", language);
+					canAttack = true
+					returnText = translate("responses:attack.timeGate", language)
 				} else {
 					// try defender time gate
 					const defEffect = await EmpireEffect.findOne({
@@ -208,33 +208,33 @@ const attack = async (req: Request, res: Response) => {
 							empireEffectName: "time gate",
 						},
 						order: { createdAt: "DESC" },
-					});
+					})
 
 					// console.log(defEffect)
 
 					if (defEffect) {
 						const effectAge =
-							(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000;
-						const timeLeft = defEffect.empireEffectValue - effectAge;
+							(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
+						const timeLeft = defEffect.empireEffectValue - effectAge
 						if (timeLeft > 0) {
-							canAttack = true;
-							defenderTimegate = true;
+							canAttack = true
+							defenderTimegate = true
 							returnText = translate(
 								"responses:attack.opponentTimeGate",
 								language,
-							);
+							)
 						} else {
-							returnText = translate("errors:attack.noTimeGate", language);
+							returnText = translate("responses:attack.noTimeGate", language)
 							return res.json({
 								error: returnText,
-							});
+							})
 						}
 					} else {
-						canAttack = false;
-						returnText = translate("errors:attack.noTimeGate", language);
+						canAttack = false
+						returnText = translate("responses:attack.noTimeGate", language)
 						return res.json({
 							error: returnText,
-						});
+						})
 					}
 				}
 			} else {
@@ -245,33 +245,33 @@ const attack = async (req: Request, res: Response) => {
 						empireEffectName: "time gate",
 					},
 					order: { createdAt: "DESC" },
-				});
+				})
 
 				// console.log(defEffect)
 
 				if (defEffect) {
 					const effectAge =
-						(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000;
-					const timeLeft = defEffect.empireEffectValue - effectAge;
+						(now.valueOf() - new Date(defEffect.updatedAt).getTime()) / 60000
+					const timeLeft = defEffect.empireEffectValue - effectAge
 					if (timeLeft > 0) {
-						canAttack = true;
-						defenderTimegate = true;
+						canAttack = true
+						defenderTimegate = true
 						returnText = translate(
 							"responses:attack.opponentTimeGate",
 							language,
-						);
+						)
 					} else {
-						returnText = translate("errors:attack.noTimeGate", language);
+						returnText = translate("responses:attack.noTimeGate", language)
 						return res.json({
 							error: returnText,
-						});
+						})
 					}
 				} else {
-					canAttack = false;
-					returnText = translate("errors:attack.noTimeGate", language);
+					canAttack = false
+					returnText = translate("responses:attack.noTimeGate", language)
 					return res.json({
 						error: returnText,
-					});
+					})
 				}
 			}
 		}
@@ -284,28 +284,28 @@ const attack = async (req: Request, res: Response) => {
 		) {
 			// console.log(troopTypes);
 			for (const type of troopTypes) {
-				offPower += calcUnitPower(attacker, type, "o");
+				offPower += calcUnitPower(attacker, type, "o")
 			}
 
 			for (const type of troopTypes) {
-				defPower += calcUnitPower(defender, type, "d");
+				defPower += calcUnitPower(defender, type, "d")
 				// console.log(defPower)
 			}
 		} else {
-			offPower = calcUnitPower(attacker, attackType, "o");
-			defPower = calcUnitPower(defender, attackType, "d");
+			offPower = calcUnitPower(attacker, attackType, "o")
+			defPower = calcUnitPower(defender, attackType, "d")
 		}
 
 		// apply race bonus
-		offPower *= (100 + raceArray[attacker.race].mod_offense) / 100;
-		defPower *= (100 + raceArray[defender.race].mod_defense) / 100;
+		offPower *= (100 + raceArray[attacker.race].mod_offense) / 100
+		defPower *= (100 + raceArray[defender.race].mod_defense) / 100
 
 		// reduce power level based on health
-		offPower *= attacker.health / 100;
-		defPower *= defender.health / 100;
+		offPower *= attacker.health / 100
+		defPower *= defender.health / 100
 
 		// war flag +20% when at war with other clan
-		let clan = null;
+		let clan = null
 		if (attacker.clanId !== 0) {
 			// attacker is in a clan
 
@@ -313,25 +313,25 @@ const attack = async (req: Request, res: Response) => {
 			clan = await Clan.findOneOrFail({
 				where: { id: attacker.clanId },
 				relations: ["relation"],
-			});
+			})
 
 			// console.log(clan)
 			const relations = clan.relation.map((relation) => {
 				if (relation.clanRelationFlags === "war") {
-					return relation.c_id2;
+					return relation.c_id2
 				}
-			});
+			})
 			// check if clan is at war
 			if (relations.includes(defender.clanId)) {
-				console.log("clan is at war");
+				console.log("clan is at war")
 				// clan is at war with defender
-				offPower *= 1.2;
-				type = "war";
+				offPower *= 1.2
+				type = "war"
 			}
 		}
 
 		if (attackType === "surprise") {
-			offPower *= 1.25;
+			offPower *= 1.25
 		}
 
 		// clan shared defense
@@ -342,74 +342,74 @@ const attack = async (req: Request, res: Response) => {
 			// let clan = await Clan.findOne({ id: defender.clanId })
 
 			// get clan members
-			const clanMembers = await Empire.find({ clanId: defender.clanId });
+			const clanMembers = await Empire.find({ clanId: defender.clanId })
 			// console.log(clanMembers)
 
-			let defBonus = 0;
+			let defBonus = 0
 
 			// calculate clan defense
 			for (const member of clanMembers) {
 				if (member.id === defender.id) {
-					return;
+					return
 				}
 				if (member.era !== defender.era && !defenderTimegate) {
 					// check for member time gate
 					const effect = await EmpireEffect.findOne({
 						where: { effectOwnerId: member.id, empireEffectName: "time gate" },
 						order: { createdAt: "DESC" },
-					});
+					})
 
 					if (effect) {
 						// console.log('found effect on your empire')
 
 						let effectAge =
-							(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000;
-						let timeLeft = effect.empireEffectValue - effectAge;
+							(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+						let timeLeft = effect.empireEffectValue - effectAge
 
 						if (timeLeft > 0) {
-							let allyDef = 0;
+							let allyDef = 0
 							// time gate is active
 							if (attackType === "standard" || attackType === "surprise") {
 								for (const type of troopTypes) {
-									allyDef += calcUnitPower(defender, type, "d") * 0.1;
+									allyDef += calcUnitPower(defender, type, "d") * 0.1
 									// console.log(defPower)
 								}
 							} else {
-								allyDef = calcUnitPower(member, attackType, "d") * 0.1;
+								allyDef = calcUnitPower(member, attackType, "d") * 0.1
 							}
-							allyDef *= member.health / 100;
-							allyDef *= (100 + raceArray[member.race].mod_defense) / 100;
-							defBonus += allyDef;
+							allyDef *= member.health / 100
+							allyDef *= (100 + raceArray[member.race].mod_defense) / 100
+							defBonus += allyDef
 						}
 					}
 				} else {
-					let allyDef = 0;
+					let allyDef = 0
 					// time gate is active
 					if (attackType === "standard" || attackType === "surprise") {
 						for (const type of troopTypes) {
-							allyDef += calcUnitPower(defender, type, "d") * 0.1;
+							allyDef += calcUnitPower(defender, type, "d") * 0.1
 							// console.log(defPower)
 						}
 					} else {
-						allyDef = calcUnitPower(member, attackType, "d") * 0.1;
+						allyDef = calcUnitPower(member, attackType, "d") * 0.1
 					}
-					allyDef *= member.health / 100;
-					allyDef *= (100 + raceArray[member.race].mod_defense) / 100;
-					defBonus += allyDef;
+					allyDef *= member.health / 100
+					allyDef *= (100 + raceArray[member.race].mod_defense) / 100
+					defBonus += allyDef
 				}
 			}
 
 			// console.log('defBonus', defBonus)
 			// console.log('defPower', defPower)
 			if (defBonus > defPower) {
-				defBonus = defPower;
+				defBonus = defPower
 			}
 
-			defPower += defBonus;
+			defPower += defBonus
 
 			// console.log('defPower', defPower)/
 			if (defBonus > 0) {
-				returnText += "The defender's clan comes to their aid...";
+				returnText += "The defender's clan comes to their aid..."
 			}
 		}
 
@@ -418,111 +418,111 @@ const attack = async (req: Request, res: Response) => {
 			if (attacker.networth > defender.networth * 2.5 && type !== "war") {
 				// the attacker is ashamed for attacking a smaller empire, troops desert
 				returnText +=
-					"Your army is ashamed to fight such a weak opponent, many desert... ";
-				attacker.trpArm = Math.round(0.98 * attacker.trpArm);
-				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd);
-				attacker.trpFly = Math.round(0.98 * attacker.trpFly);
-				attacker.trpSea = Math.round(0.98 * attacker.trpSea);
-				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz);
+					"Your army is ashamed to fight such a weak opponent, many desert... "
+				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
+				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
+				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
+				attacker.trpSea = Math.round(0.98 * attacker.trpSea)
+				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
 			}
 
 			if (attacker.networth < defender.networth * 0.2 && type !== "war") {
 				// the attacker is fearful of large empire, troops desert
 				returnText +=
-					"Your army is fearful of fighting such a strong opponent, many desert... ";
-				attacker.trpArm = Math.round(0.98 * attacker.trpArm);
-				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd);
-				attacker.trpFly = Math.round(0.98 * attacker.trpFly);
-				attacker.trpSea = Math.round(0.98 * attacker.trpSea);
-				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz);
+					"Your army is fearful of fighting such a strong opponent, many desert... "
+				attacker.trpArm = Math.round(0.98 * attacker.trpArm)
+				attacker.trpLnd = Math.round(0.98 * attacker.trpLnd)
+				attacker.trpFly = Math.round(0.98 * attacker.trpFly)
+				attacker.trpSea = Math.round(0.98 * attacker.trpSea)
+				attacker.trpWiz = Math.round(0.98 * attacker.trpWiz)
 			}
 
-			attacker.health -= 8;
+			attacker.health -= 8
 			if (attackType === "surprise") {
-				attacker.health -= 5;
+				attacker.health -= 5
 			}
 
-			let attackTurns = useTurnInternal(type, 2, attacker, clan, true, game);
+			let attackTurns = useTurnInternal(type, 2, attacker, clan, true, game)
 
-			const attackRes = attackTurns[0];
-			attackTurns = attackTurns[0];
+			const attackRes = attackTurns[0]
+			attackTurns = attackTurns[0]
 			// console.log(attackRes)
 
 			// console.log('error', attackRes?.messages?.error)
 			// console.log('desertion', attackRes?.messages?.desertion)
 
-			attacker.cash = attacker.cash + attackRes.money;
+			attacker.cash = attacker.cash + attackRes.money
 
-			attacker.income += attackRes.income;
+			attacker.income += attackRes.income
 			attacker.expenses +=
-				attackRes.expenses + attackRes.wartax + attackRes.corruption;
+				attackRes.expenses + attackRes.wartax + attackRes.corruption
 
 			// attacker.bank -= Math.round(attackRes.withdraw / 2)
-			attacker.bank += attackRes.bankInterest;
-			attacker.loan += attackRes.loanInterest;
-			attacker.loan -= attackRes.loanpayed;
+			attacker.bank += attackRes.bankInterest
+			attacker.loan += attackRes.loanInterest
+			attacker.loan -= attackRes.loanpayed
 
-			attacker.trpArm += attackRes.trpArm;
-			attacker.trpLnd += attackRes.trpLnd;
-			attacker.trpFly += attackRes.trpFly;
-			attacker.trpSea += attackRes.trpSea;
+			attacker.trpArm += attackRes.trpArm
+			attacker.trpLnd += attackRes.trpLnd
+			attacker.trpFly += attackRes.trpFly
+			attacker.trpSea += attackRes.trpSea
 
 			attacker.indyProd +=
 				attackRes.trpArm * game.pvtmTrpArm +
 				attackRes.trpLnd * game.pvtmTrpLnd +
 				attackRes.trpFly * game.pvtmTrpFly +
-				attackRes.trpSea * game.pvtmTrpSea;
+				attackRes.trpSea * game.pvtmTrpSea
 
-			attacker.food += attackRes.food;
+			attacker.food += attackRes.food
 			if (attacker.food < 0) {
-				attacker.food = 0;
+				attacker.food = 0
 			}
 
-			attacker.foodpro += attackRes.foodpro;
-			attacker.foodcon += attackRes.foodcon;
+			attacker.foodpro += attackRes.foodpro
+			attacker.foodcon += attackRes.foodcon
 
-			attacker.peasants += attackRes.peasants;
-			attacker.runes += attackRes.runes;
-			attacker.trpWiz += attackRes.trpWiz;
+			attacker.peasants += attackRes.peasants
+			attacker.runes += attackRes.runes
+			attacker.trpWiz += attackRes.trpWiz
 
-			attacker.turns -= 2;
-			attacker.turnsUsed += 2;
+			attacker.turns -= 2
+			attacker.turnsUsed += 2
 
 			if (attackRes?.messages?.desertion) {
-				console.log("desertion triggered");
+				console.log("desertion triggered")
 
-				attacker.networth = getNetworth(attacker, game);
-				attacker.lastAction = new Date();
+				attacker.networth = getNetworth(attacker, game)
+				attacker.lastAction = new Date()
 				// save updated attacker and defender
-				await attacker.save();
-				await takeSnapshot(attacker, game.turnsProtection);
+				await attacker.save()
+				await takeSnapshot(attacker, game.turnsProtection)
 				attackDescription = {
 					result: "desertion",
 					message: "The attack was not attempted due to the crisis.",
-				};
-				attackTurns["attack"] = attackDescription;
-				resultArray.push(attackTurns);
-				return res.json(resultArray);
+				}
+				attackTurns["attack"] = attackDescription
+				resultArray.push(attackTurns)
+				return res.json(resultArray)
 			}
 
 			if (type !== "war") {
-				attacker.attacks++;
+				attacker.attacks++
 			}
-			attacker.offTotal++;
-			defender.defTotal++;
+			attacker.offTotal++
+			defender.defTotal++
 
 			let newTowerDef =
 				// percent land as GTs
-				1 + defender.bldDef / defender.land;
+				1 + defender.bldDef / defender.land
 
 			if (newTowerDef > 1.5) {
-				newTowerDef = 1.5;
+				newTowerDef = 1.5
 			}
 
 			// console.log(newTowerDef)
 			// console.log('tower def', towerDef)
-			defPower *= newTowerDef;
-			defPower = Math.round(defPower);
+			defPower *= newTowerDef
+			defPower = Math.round(defPower)
 
 			// console.log('off power', offPower)
 			// console.log('def power', defPower)
@@ -530,15 +530,15 @@ const attack = async (req: Request, res: Response) => {
 
 			// modification to attacker losses (towers excluded)
 			// let omod = Math.sqrt((defPower - towerDef) / (offPower + 1))
-			console.log("offPower", offPower);
-			console.log("defPower", defPower);
-			let omod = Math.sqrt(defPower / (offPower + 1));
+			console.log("offPower", offPower)
+			console.log("defPower", defPower)
+			let omod = Math.sqrt(defPower / (offPower + 1))
 			// modification to enemy losses
-			const dmod = Math.sqrt(offPower / (defPower + 1));
+			const dmod = Math.sqrt(offPower / (defPower + 1))
 
-			const attackLosses: attackLosses = {};
-			const defenseLosses: defendLosses = {};
-			let result: UnitLoss;
+			const attackLosses: attackLosses = {}
+			const defenseLosses: defendLosses = {}
+			let result: UnitLoss
 
 			switch (attackType) {
 				case "trparm":
@@ -549,10 +549,10 @@ const attack = async (req: Request, res: Response) => {
 						0.0705,
 						omod,
 						dmod,
-					);
-					attackLosses["trparm"] = result.attackLosses;
-					defenseLosses["trparm"] = result.defendLosses;
-					break;
+					)
+					attackLosses["trparm"] = result.attackLosses
+					defenseLosses["trparm"] = result.defendLosses
+					break
 				case "trplnd":
 					result = calcUnitLosses(
 						attacker.trpLnd,
@@ -561,10 +561,10 @@ const attack = async (req: Request, res: Response) => {
 						0.053,
 						omod,
 						dmod,
-					);
-					attackLosses["trplnd"] = result.attackLosses;
-					defenseLosses["trplnd"] = result.defendLosses;
-					break;
+					)
+					attackLosses["trplnd"] = result.attackLosses
+					defenseLosses["trplnd"] = result.defendLosses
+					break
 				case "trpfly":
 					result = calcUnitLosses(
 						attacker.trpFly,
@@ -573,10 +573,10 @@ const attack = async (req: Request, res: Response) => {
 						0.0445,
 						omod,
 						dmod,
-					);
-					attackLosses["trpfly"] = result.attackLosses;
-					defenseLosses["trpfly"] = result.defendLosses;
-					break;
+					)
+					attackLosses["trpfly"] = result.attackLosses
+					defenseLosses["trpfly"] = result.defendLosses
+					break
 				case "trpsea":
 					result = calcUnitLosses(
 						attacker.trpSea,
@@ -585,19 +585,19 @@ const attack = async (req: Request, res: Response) => {
 						0.0355,
 						omod,
 						dmod,
-					);
-					attackLosses["trpsea"] = result.attackLosses;
-					defenseLosses["trpsea"] = result.defendLosses;
-					break;
+					)
+					attackLosses["trpsea"] = result.attackLosses
+					defenseLosses["trpsea"] = result.defendLosses
+					break
 				//surprise attack and standard attack losses
 				case "surprise":
 					// console.log('surprise attack')
-					omod *= 1.2;
-					console.log("omod", omod);
+					omod *= 1.2
+					console.log("omod", omod)
 				case "pillage":
 					// console.log('pillage attack')
-					omod *= 1.2;
-					console.log("omod", omod);
+					omod *= 1.2
+					console.log("omod", omod)
 				case "standard":
 					// console.log('omod', omod)
 					// console.log('standard attack')
@@ -608,10 +608,10 @@ const attack = async (req: Request, res: Response) => {
 						0.0695,
 						omod,
 						dmod,
-					);
+					)
 					// console.log(result)
-					attackLosses["trparm"] = result.attackLosses;
-					defenseLosses["trparm"] = result.defendLosses;
+					attackLosses["trparm"] = result.attackLosses
+					defenseLosses["trparm"] = result.defendLosses
 					result = calcUnitLosses(
 						attacker.trpLnd,
 						defender.trpLnd,
@@ -619,10 +619,10 @@ const attack = async (req: Request, res: Response) => {
 						0.052,
 						omod,
 						dmod,
-					);
+					)
 					// console.log(result)
-					attackLosses["trplnd"] = result.attackLosses;
-					defenseLosses["trplnd"] = result.defendLosses;
+					attackLosses["trplnd"] = result.attackLosses
+					defenseLosses["trplnd"] = result.defendLosses
 					result = calcUnitLosses(
 						attacker.trpFly,
 						defender.trpFly,
@@ -630,10 +630,10 @@ const attack = async (req: Request, res: Response) => {
 						0.0435,
 						omod,
 						dmod,
-					);
+					)
 					// console.log(result)
-					attackLosses["trpfly"] = result.attackLosses;
-					defenseLosses["trpfly"] = result.defendLosses;
+					attackLosses["trpfly"] = result.attackLosses
+					defenseLosses["trpfly"] = result.defendLosses
 					result = calcUnitLosses(
 						attacker.trpSea,
 						defender.trpSea,
@@ -641,24 +641,24 @@ const attack = async (req: Request, res: Response) => {
 						0.0345,
 						omod,
 						dmod,
-					);
+					)
 					// console.log(result)
-					attackLosses["trpsea"] = result.attackLosses;
-					defenseLosses["trpsea"] = result.defendLosses;
+					attackLosses["trpsea"] = result.attackLosses
+					defenseLosses["trpsea"] = result.defendLosses
 			}
 
 			if (attackType === "trparm") {
-				attacker.trpArm -= attackLosses.trparm;
-				defender.trpArm -= defenseLosses.trparm;
+				attacker.trpArm -= attackLosses.trparm
+				defender.trpArm -= defenseLosses.trparm
 			} else if (attackType === "trplnd") {
-				attacker.trpLnd -= attackLosses.trplnd;
-				defender.trpLnd -= defenseLosses.trplnd;
+				attacker.trpLnd -= attackLosses.trplnd
+				defender.trpLnd -= defenseLosses.trplnd
 			} else if (attackType === "trpfly") {
-				attacker.trpFly -= attackLosses.trpfly;
-				defender.trpFly -= defenseLosses.trpfly;
+				attacker.trpFly -= attackLosses.trpfly
+				defender.trpFly -= defenseLosses.trpfly
 			} else if (attackType === "trpsea") {
-				attacker.trpSea -= attackLosses.trpsea;
-				defender.trpSea -= defenseLosses.trpsea;
+				attacker.trpSea -= attackLosses.trpsea
+				defender.trpSea -= defenseLosses.trpsea
 			} else if (
 				attackType === "surprise" ||
 				attackType === "standard" ||
@@ -667,18 +667,18 @@ const attack = async (req: Request, res: Response) => {
 				// console.log('surprise, standard, pillage attack')
 				// console.log(attackLosses)
 				// console.log(defenseLosses)
-				attacker.trpArm -= attackLosses.trparm;
-				defender.trpArm -= defenseLosses.trparm;
-				attacker.trpLnd -= attackLosses.trplnd;
-				defender.trpLnd -= defenseLosses.trplnd;
-				attacker.trpFly -= attackLosses.trpfly;
-				defender.trpFly -= defenseLosses.trpfly;
-				attacker.trpSea -= attackLosses.trpsea;
-				defender.trpSea -= defenseLosses.trpsea;
+				attacker.trpArm -= attackLosses.trparm
+				defender.trpArm -= defenseLosses.trparm
+				attacker.trpLnd -= attackLosses.trplnd
+				defender.trpLnd -= defenseLosses.trplnd
+				attacker.trpFly -= attackLosses.trpfly
+				defender.trpFly -= defenseLosses.trpfly
+				attacker.trpSea -= attackLosses.trpsea
+				defender.trpSea -= defenseLosses.trpsea
 			}
 
 			// let won: boolean
-			let lowLand = 1;
+			let lowLand = 1
 			// console.log('type', attackType)
 			// console.log('normal attack ratio', offPower > defPower * 1.05)
 			// console.log('pillage ratio', offPower > defPower * 1.33)
@@ -695,12 +695,12 @@ const attack = async (req: Request, res: Response) => {
 					type !== "war"
 				) {
 					// the defender is being "low landed"
-					returnText += translate("responses:attack.smallEmpire", language);
-					lowLand = 0.5;
+					returnText += translate("responses:attack.smallEmpire", language)
+					lowLand = 0.5
 				}
 				// won = true
-				const buildLoss: buildLoss = {};
-				const buildGain: buildGain = {};
+				const buildLoss: buildLoss = {}
+				const buildGain: buildGain = {}
 
 				destroyBuildings(
 					attackType,
@@ -711,7 +711,7 @@ const attack = async (req: Request, res: Response) => {
 					attacker,
 					buildLoss,
 					buildGain,
-				);
+				)
 				destroyBuildings(
 					attackType,
 					0.07 * lowLand,
@@ -721,7 +721,7 @@ const attack = async (req: Request, res: Response) => {
 					attacker,
 					buildLoss,
 					buildGain,
-				);
+				)
 				destroyBuildings(
 					attackType,
 					0.07 * lowLand,
@@ -731,7 +731,7 @@ const attack = async (req: Request, res: Response) => {
 					attacker,
 					buildLoss,
 					buildGain,
-				);
+				)
 				destroyBuildings(
 					attackType,
 					0.07 * lowLand,
@@ -741,7 +741,7 @@ const attack = async (req: Request, res: Response) => {
 					attacker,
 					buildLoss,
 					buildGain,
-				);
+				)
 				destroyBuildings(
 					attackType,
 					0.07 * lowLand,
@@ -751,7 +751,7 @@ const attack = async (req: Request, res: Response) => {
 					attacker,
 					buildLoss,
 					buildGain,
-				);
+				)
 				destroyBuildings(
 					attackType,
 					0.07 * lowLand,
@@ -761,7 +761,7 @@ const attack = async (req: Request, res: Response) => {
 					attacker,
 					buildLoss,
 					buildGain,
-				);
+				)
 				destroyBuildings(
 					attackType,
 					0.11 * lowLand,
@@ -771,7 +771,7 @@ const attack = async (req: Request, res: Response) => {
 					attacker,
 					buildLoss,
 					buildGain,
-				); // towers more likely to be taken, since they are encountered first
+				) // towers more likely to be taken, since they are encountered first
 				destroyBuildings(
 					attackType,
 					0.1 * lowLand,
@@ -781,33 +781,33 @@ const attack = async (req: Request, res: Response) => {
 					attacker,
 					buildLoss,
 					buildGain,
-				); // 3rd argument MUST be 0 (for Standard attacks)
+				) // 3rd argument MUST be 0 (for Standard attacks)
 
 				const sumBuildGain = (buildGain: { [key: string]: number }): number => {
-					let sum = 0;
+					let sum = 0
 					for (const key in buildGain) {
 						if (Object.prototype.hasOwnProperty.call(buildGain, key)) {
-							sum += buildGain[key];
+							sum += buildGain[key]
 						}
 					}
-					return sum;
-				};
+					return sum
+				}
 
-				let totalBuildGain = sumBuildGain(buildGain);
+				let totalBuildGain = sumBuildGain(buildGain)
 				// console.log('buildGain', buildGain)
 				// console.log('buildLoss', buildLoss)
 				// create return text for captured buildings
 
-				let food = 0;
-				let cash = 0;
+				let food = 0
+				let cash = 0
 				if (attackType === "pillage") {
 					// steal food and cash
-					food = Math.ceil(defender.food * 0.025);
-					cash = Math.ceil(defender.cash * 0.025);
-					defender.food -= food;
-					attacker.food += food;
-					defender.cash -= cash;
-					attacker.cash += cash;
+					food = Math.ceil(defender.food * 0.025)
+					cash = Math.ceil(defender.cash * 0.025)
+					defender.food -= food
+					attacker.food += food
+					defender.cash -= cash
+					attacker.cash += cash
 				}
 
 				// take enemy land
@@ -819,7 +819,7 @@ const attack = async (req: Request, res: Response) => {
 						foodUnit: eraArray[attacker.era].food,
 						cash: cash.toLocaleString(),
 						defenderName: defender.name,
-					});
+					})
 
 					attackDescription = {
 						result: "success",
@@ -829,12 +829,12 @@ const attack = async (req: Request, res: Response) => {
 						troopLoss: attackLosses,
 						troopKilled: defenseLosses,
 						buildingGain: buildGain,
-					};
+					}
 				} else if (attackType !== "surprise" && attackType !== "standard") {
 					returnText += translate("responses:attack.attackGain", language, {
 						amount: buildGain.freeLand.toLocaleString(),
 						defenderName: defender.name,
-					});
+					})
 
 					attackDescription = {
 						result: "success",
@@ -844,12 +844,12 @@ const attack = async (req: Request, res: Response) => {
 						troopLoss: attackLosses,
 						troopKilled: defenseLosses,
 						buildingGain: buildGain,
-					};
+					}
 				} else {
 					returnText += translate("responses:attack.standardGain", language, {
 						amount: totalBuildGain.toLocaleString(),
 						defenderName: defender.name,
-					});
+					})
 
 					attackDescription = {
 						result: "success",
@@ -859,39 +859,39 @@ const attack = async (req: Request, res: Response) => {
 						troopLoss: attackLosses,
 						troopKilled: defenseLosses,
 						buildingGain: buildGain,
-					};
+					}
 				}
 
 				// attacker off success
-				attacker.offSucc++;
+				attacker.offSucc++
 
 				// give points to attacker
 				if (game.scoreEnabled) {
-					const ratio = defender.networth / Math.max(1, attacker.networth);
+					const ratio = defender.networth / Math.max(1, attacker.networth)
 					if (ratio <= 1) {
-						attacker.score += 1;
+						attacker.score += 1
 					} else {
-						attacker.score += 1 + Math.floor((ratio - 1) * 2);
+						attacker.score += 1 + Math.floor((ratio - 1) * 2)
 					}
 
 					if (defender.land < landCutoff && aboveCutoff && !defeated) {
-						attacker.score += 100;
+						attacker.score += 100
 
-						let effect: EmpireEffect = null;
+						let effect: EmpireEffect = null
 						effect = new EmpireEffect({
 							effectOwnerId: defender.id,
 							empireEffectName: "defeated",
 							empireEffectValue: 12960,
-						});
-						await effect.save();
+						})
+						await effect.save()
 					}
 				}
 				// console.log(defenseLosses)
 				// console.log(attackLosses)
 				// console.log(buildGain)
 
-				let content: any = {};
-				let pubContent: any = {};
+				let content: any = {}
+				let pubContent: any = {}
 
 				if (attackType === "pillage") {
 					content = {
@@ -927,7 +927,7 @@ const attack = async (req: Request, res: Response) => {
 								},
 							},
 						},
-					};
+					}
 
 					pubContent = {
 						key: "news.attack.pillage.public",
@@ -963,7 +963,7 @@ const attack = async (req: Request, res: Response) => {
 								},
 							},
 						},
-					};
+					}
 				} else if (attackType !== "surprise" && attackType !== "standard") {
 					// Single unit type attacks
 					content = {
@@ -977,7 +977,7 @@ const attack = async (req: Request, res: Response) => {
 							kills: attackLosses[attackType],
 							attackerUnitType: eraArray[attacker.era][attackType],
 						},
-					};
+					}
 
 					pubContent = {
 						key: "news.attack.single.public",
@@ -991,7 +991,7 @@ const attack = async (req: Request, res: Response) => {
 							attackerLosses: attackLosses[attackType],
 							attackerUnitType: eraArray[attacker.era][attackType],
 						},
-					};
+					}
 				} else {
 					// Standard or surprise attack
 					content = {
@@ -1026,7 +1026,7 @@ const attack = async (req: Request, res: Response) => {
 								},
 							},
 						},
-					};
+					}
 
 					pubContent = {
 						key: `news.attack.${
@@ -1061,7 +1061,7 @@ const attack = async (req: Request, res: Response) => {
 								},
 							},
 						},
-					};
+					}
 				}
 
 				await createNewsEvent(
@@ -1074,7 +1074,7 @@ const attack = async (req: Request, res: Response) => {
 					"attack",
 					"fail",
 					attacker.game_id,
-				);
+				)
 
 				// check for kill
 			} else {
@@ -1092,7 +1092,7 @@ const attack = async (req: Request, res: Response) => {
 						troopLoss: attackLosses,
 						troopKilled: defenseLosses,
 						buildingGain: null,
-					};
+					}
 				} else {
 					attackDescription = {
 						result: "fail",
@@ -1102,20 +1102,20 @@ const attack = async (req: Request, res: Response) => {
 						troopLoss: attackLosses,
 						troopKilled: defenseLosses,
 						buildingGain: null,
-					};
+					}
 				}
 				// defender def success
-				defender.defSucc++;
+				defender.defSucc++
 				// give points to defender
-				const ratio = attacker.networth / Math.max(1, defender.networth);
+				const ratio = attacker.networth / Math.max(1, defender.networth)
 				if (ratio <= 1) {
-					defender.score += 1;
+					defender.score += 1
 				} else {
-					defender.score += 1 + Math.floor((ratio - 1) * 2);
+					defender.score += 1 + Math.floor((ratio - 1) * 2)
 				}
 
-				let content: any = {};
-				let pubContent: any = {};
+				let content: any = {}
+				let pubContent: any = {}
 
 				if (
 					attackType !== "surprise" &&
@@ -1137,7 +1137,7 @@ const attack = async (req: Request, res: Response) => {
 								unitType: eraArray[attacker.era][attackType],
 							},
 						},
-					};
+					}
 
 					pubContent = {
 						key: "news.defense.single.public",
@@ -1154,7 +1154,7 @@ const attack = async (req: Request, res: Response) => {
 								unitType: eraArray[attacker.era][attackType],
 							},
 						},
-					};
+					}
 				} else {
 					content = {
 						key: `news.defense.${
@@ -1200,7 +1200,7 @@ const attack = async (req: Request, res: Response) => {
 								},
 							},
 						},
-					};
+					}
 
 					pubContent = {
 						key: `news.defense.${
@@ -1247,7 +1247,7 @@ const attack = async (req: Request, res: Response) => {
 								},
 							},
 						},
-					};
+					}
 				}
 
 				await createNewsEvent(
@@ -1260,85 +1260,85 @@ const attack = async (req: Request, res: Response) => {
 					"attack",
 					"success",
 					attacker.game_id,
-				);
+				)
 			}
 
 			const adjustedDR =
-				game.drRate + Math.round((defender.bldDef / defender.land) * 100) / 100;
+				game.drRate + Math.round((defender.bldDef / defender.land) * 100) / 100
 
 			// console.log('adjusted DR', adjustedDR)
 			defender.diminishingReturns =
-				defender.diminishingReturns + adjustedDR / lowLand;
+				defender.diminishingReturns + adjustedDR / lowLand
 
 			if (attacker.diminishingReturns > 0) {
-				attacker.diminishingReturns -= game.drRate;
+				attacker.diminishingReturns -= game.drRate
 			}
 
 			if (attacker.diminishingReturns < 0) {
-				attacker.diminishingReturns = 0;
+				attacker.diminishingReturns = 0
 			}
 
-			attackTurns["attack"] = attackDescription;
-			resultArray.push(attackTurns);
-			attacker.networth = getNetworth(attacker, game);
-			defender.networth = getNetworth(defender, game);
+			attackTurns["attack"] = attackDescription
+			resultArray.push(attackTurns)
+			attacker.networth = getNetworth(attacker, game)
+			defender.networth = getNetworth(defender, game)
 
 			if (attacker.peakCash < attacker.cash + attacker.bank) {
-				attacker.peakCash = attacker.cash + attacker.bank;
+				attacker.peakCash = attacker.cash + attacker.bank
 			}
 			if (attacker.peakFood < attacker.food) {
-				attacker.peakFood = attacker.food;
+				attacker.peakFood = attacker.food
 			}
 			if (attacker.peakRunes < attacker.runes) {
-				attacker.peakRunes = attacker.runes;
+				attacker.peakRunes = attacker.runes
 			}
 			if (attacker.peakPeasants < attacker.peasants) {
-				attacker.peakPeasants = attacker.peasants;
+				attacker.peakPeasants = attacker.peasants
 			}
 			if (attacker.peakLand < attacker.land) {
-				attacker.peakLand = attacker.land;
+				attacker.peakLand = attacker.land
 			}
 			if (attacker.peakNetworth < attacker.networth) {
-				attacker.peakNetworth = attacker.networth;
+				attacker.peakNetworth = attacker.networth
 			}
 			if (attacker.peakTrpArm < attacker.trpArm) {
-				attacker.peakTrpArm = attacker.trpArm;
+				attacker.peakTrpArm = attacker.trpArm
 			}
 			if (attacker.peakTrpLnd < attacker.trpLnd) {
-				attacker.peakTrpLnd = attacker.trpLnd;
+				attacker.peakTrpLnd = attacker.trpLnd
 			}
 			if (attacker.peakTrpFly < attacker.trpFly) {
-				attacker.peakTrpFly = attacker.trpFly;
+				attacker.peakTrpFly = attacker.trpFly
 			}
 			if (attacker.peakTrpSea < attacker.trpSea) {
-				attacker.peakTrpSea = attacker.trpSea;
+				attacker.peakTrpSea = attacker.trpSea
 			}
 			if (attacker.peakTrpWiz < attacker.trpWiz) {
-				attacker.peakTrpWiz = attacker.trpWiz;
+				attacker.peakTrpWiz = attacker.trpWiz
 			}
 
-			attacker.lastAction = new Date();
+			attacker.lastAction = new Date()
 			// save updated attacker and defender
-			await attacker.save();
-			await defender.save();
+			await attacker.save()
+			await defender.save()
 
 			// await awardAchievements(attacker)
-			await takeSnapshot(attacker, game.turnsProtection);
-			await takeSnapshot(defender, game.turnsProtection);
+			await takeSnapshot(attacker, game.turnsProtection)
+			await takeSnapshot(defender, game.turnsProtection)
 		} else {
 			// console.log('not allowed')
-			return sendError(res, 400)("errors.generic", language);
+			return sendError(res, 400)("errors.generic", language)
 		}
 
 		// console.log('resultArray', resultArray)
-		return res.json(resultArray);
+		return res.json(resultArray)
 	} catch (err) {
-		console.log(err);
+		console.log(err)
 	}
-};
+}
 
-const router = Router();
+const router = Router()
 
-router.post("/", user, auth, language, attachGame, attack);
+router.post("/", user, auth, language, attachGame, attack)
 
-export default router;
+export default router

@@ -1,19 +1,20 @@
-import { eraArray } from '../../config/eras'
-import Empire from '../../entity/Empire'
-import { getPower_self, getWizLoss_self } from './general'
-import EmpireEffect from '../../entity/EmpireEffect'
+import { eraArray } from "../../config/eras"
+import type Empire from "../../entity/Empire"
+import { getPower_self, getWizLoss_self } from "./general"
+import EmpireEffect from "../../entity/EmpireEffect"
+import { translate } from "../../util/translation"
 
 export const regress_cost = (baseCost: number) => {
 	return Math.ceil(47.5 * baseCost)
 }
 
-export const regress_allow = async ({ era, id }) => {
-	console.log('casting regress')
+export const regress_allow = async ({ era, id }, language: string) => {
+	console.log("casting regress")
 
-	let now = new Date()
+	const now = new Date()
 	const effect = await EmpireEffect.findOne({
-		where: { effectOwnerId: id, empireEffectName: 'era delay' },
-		order: { updatedAt: 'DESC' },
+		where: { effectOwnerId: id, empireEffectName: "era delay" },
+		order: { updatedAt: "DESC" },
 	})
 
 	// figure out age of effect and see if it is expired
@@ -36,51 +37,53 @@ export const regress_allow = async ({ era, id }) => {
 
 	if (timeLeft <= 0 && effect) {
 		effect.remove()
-		console.log('expired')
+		console.log("expired")
 	} else if (timeLeft > 0) {
 		// convert timeLeft to hours and minutes
-		let hours = Math.floor(timeLeft / 60)
-		let minutes = Math.round(timeLeft % 60)
+		const hours = Math.floor(timeLeft / 60)
+		const minutes = Math.round(timeLeft % 60)
 
-		errorMessage = `You must wait ${hours} hours and ${minutes} minutes before changing eras again.`
+		errorMessage = translate("responses:spells.advanceWait", language, {
+			hours: hours,
+			minutes: minutes,
+		})
 	}
 
 	// console.log(errorMessage)
 
 	if (eraArray[era].era_prev < 0) {
 		return false
-	} else if (errorMessage !== null) {
-		return errorMessage
-	} else {
-		return true
 	}
+	if (errorMessage !== null) {
+		return errorMessage
+	}
+	return true
 }
 
-export const regress_cast = (empire: Empire) => {
+export const regress_cast = (empire: Empire, language: string) => {
 	if (getPower_self(empire) >= 80) {
 		let effect: EmpireEffect = null
 		effect = new EmpireEffect({
 			effectOwnerId: empire.id,
-			empireEffectName: 'era delay',
+			empireEffectName: "era delay",
 			empireEffectValue: 4320,
 		})
 		effect.save()
 
-		let result = {
-			result: 'success',
-			message: 'You have regressed to the previous era.',
+		const result = {
+			result: "success",
+			message: translate("responses:spells.regressSuccess", language),
 			wizloss: 0,
 			descriptor: null,
 		}
 		return result
-	} else {
-		let wizloss = getWizLoss_self(empire)
-		let result = {
-			result: 'fail',
-			message: 'Spell failed',
-			wizloss: wizloss,
-			descriptor: eraArray[empire.era].trpwiz,
-		}
-		return result
 	}
+	const wizloss = getWizLoss_self(empire)
+	const result = {
+		result: "fail",
+		message: "Spell failed",
+		wizloss: wizloss,
+		descriptor: eraArray[empire.era].trpwiz,
+	}
+	return result
 }

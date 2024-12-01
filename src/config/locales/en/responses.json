@@ -50,7 +50,22 @@
 		"smallEmpire": "You cannot cast spells on an empire with so little land.",
 		"timeGate": "Your spell travels through your Time Gate...",
 		"opponentTimeGate": "Your spell travels through your opponents Time Gate...",
-		"noTimeGate": "You must open a Time Gate to cast spells on players in another Era"
+		"noTimeGate": "You must open a Time Gate to cast spells on players in another Era",
+		"shield": "Your spell shield is now active for 24 hours.",
+		"shieldRenew": "Your spell shield was renewed for 24 hours.",
+		"shieldExtended": "Your spell shield was extended for 3 hours.",
+		"spellFail": "Your spell failed to cast.",
+		"food": "Your spell created",
+		"noEraAdvance": "There is no era to advance to",
+		"advanceWait": "You must wait {{hours}} hours and {{minutes}} minutes before changing eras again.",
+		"advanceSuccess": "You have advanced to the next era.",
+		"noEraRegress": "There is no era to regress to",
+		"regressSuccess": "You have regressed to the previous era.",
+		"timeGateSuccess": "Your time gate is now active for 12 hours.",
+		"timeGateRenew": "Your time gate was renewed for 12 hours.",
+		"timeGateExtend": "Your time gate was extended for 3 hours.",
+		"ungateSuccess": "You closed your time gate.",
+		"ungateFail": "You do not have a time gate open."
 	},
 	"market": {
 		"purchaseSuccess": "Purchased {{amount}} {{item}} for ${{cost}}",
