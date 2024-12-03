@@ -1,0 +1,79 @@
+{
+	"generic": "Algo salió mal",
+	"unauthorized": "No autorizado",
+	"tryAgain": "Ocurrió un error. Por favor, inténtalo de nuevo.",
+	"auth": {
+		"emailAlreadyInUse": "El correo electrónico ya está en uso",
+		"usernameAlreadyTaken": "El nombre de usuario ya está en uso",
+		"userNotFound": "Usuario no encontrado",
+		"passwordIncorrect": "La contraseña es incorrecta",
+		"ipError": "Ocurrió un error, por favor inténtalo de nuevo. Crea una cuenta si este problema persiste.",
+		"demoError": "Por favor espera un momento antes de crear una nueva cuenta de demostración",
+		"invalidToken": "Token inválido",
+		"emailNotFound": "Dirección de correo electrónico no encontrada",
+		"tokenExpired": "Token expirado",
+		"usernameEmpty": "El nombre de usuario no puede estar vacío",
+		"passwordEmpty": "La contraseña no puede estar vacía"
+	},
+	"aid": {
+		"nothingToSend": "¡No hay nada para enviar!",
+		"notEnoughShips": "¡No hay suficientes naves!",
+		"cannotSendAidToSelf": "¡No puedes enviarte ayuda a ti mismo!",
+		"notEnoughAidCredits": "¡No tienes suficientes créditos de ayuda!",
+		"cannotSendAidAsDemo": "¡No puedes enviar ni recibir ayuda como imperio de demostración!",
+		"cannotSendAidWhileInProtection": "¡No puedes enviar ni recibir ayuda mientras estés bajo protección!",
+		"cannotSendAidToWarClan": "¡No puedes enviar ayuda a un clan con el que estás en guerra!",
+		"cannotSendAidToLargeEmpire": "¡No puedes enviar ayuda a un imperio tan grande!"
+	},
+	"attack": {
+		"cannotAttackSelf": "¡No puedes atacarte a ti mismo!",
+		"empireDefeated": "Este imperio ha sido derrotado recientemente, no se otorgarán puntos...",
+		"maxAttacks": "Has alcanzado el número máximo de ataques. Espera un momento antes de atacar.",
+		"clanMate": "No puedes atacar a un miembro de tu clan.",
+		"cannotAttackWhileInProtection": "No puedes atacar mientras estés bajo protección.",
+		"cannotAttackYoungEmpire": "No puedes atacar a un imperio tan joven.",
+		"cannotAttackSmallEmpire": "No puedes atacar a un imperio con tan poca tierra.",
+		"notEnoughTurns": "No tienes suficientes turnos para atacar.",
+		"notEnoughHealth": "Tu salud es demasiado baja para enviar un ataque."
+	},
+	"clan": {
+		"alreadyInClan": "Ya estás en un clan",
+		"underProtection": "No puedes crear un clan mientras estés bajo protección de jugador nuevo",
+		"clanNameAlreadyExists": "El nombre del clan ya existe",
+		"joinCooldown": "No puedes unirte a un clan durante 3 días después de abandonar uno",
+		"cannotJoinClanWhileProtected": "No puedes unirte a un clan mientras estés bajo protección de jugador nuevo",
+		"clanFull": "Este clan está lleno",
+		"leaveCooldown": "No puedes abandonar un clan durante {{hours}} horas después de unirte",
+		"notInClan": "No estás en un clan",
+		"clanLeaderCannotLeave": "El líder del clan no puede abandonar el clan",
+		"disbandCooldown": "No puedes disolver un clan durante {{hours}} horas después de crearlo",
+		"notLeader": "No tienes autoridad para disolver el clan",
+		"cannotKickLeader": "El líder del clan no puede ser expulsado",
+		"notLeaderAssignRole": "No tienes autoridad para asignar un rol",
+		"alreadyAssigned": "Este rol ya está asignado",
+		"cantDeclareWar": "No estás en una posición de poder para declarar la guerra",
+		"alreadyAtWar": "Ya estás en guerra con este clan",
+		"cannotOfferPeace": "No estás en una posición de poder para ofrecer la paz",
+		"notAtWar": "No estás en guerra con este clan",
+		"alreadyOfferedPeace": "Ya has ofrecido la paz a este clan",
+		"enemyAlreadyOfferedPeace": "El enemigo ya te ha ofrecido la paz",
+		"profaneClanTag": "La etiqueta del clan no está permitida",
+		"notClanLeader": "No eres el líder del clan"
+	},
+	"magic": {
+		"notEnoughFood": "¡Te has quedado sin comida! ¡No se pueden lanzar hechizos durante esta crisis!",
+		"notEnoughCash": "¡Te has quedado sin dinero! ¡No se pueden lanzar hechizos durante esta crisis!",
+		"notEnoughRunes": "No tienes suficiente {{resource}} para lanzar este hechizo.",
+		"notEnoughHealth": "No tienes suficiente salud para lanzar este hechizo.",
+		"notEnoughTurns": "No tienes suficientes turnos para lanzar este hechizo.",
+		"notEnoughWiz": "No tienes suficientes {{trpwiz}} para lanzar este hechizo."
+	},
+	"market": {
+		"notEnoughMoney": "No tienes suficiente dinero.",
+		"sellTooMuch": "¡No puedes vender tantos!",
+		"invalidPurchase": "Cantidad de compra inválida",
+		"notEnoughCash": "No hay suficiente dinero para realizar la compra",
+		"noItemsToSell": "No hay artículos para vender",
+		"invalidPrice": "Precio inválido"
+	}
+}
