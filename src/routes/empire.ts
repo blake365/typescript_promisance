@@ -1,22 +1,22 @@
-import type { Request, Response } from 'express'
-import { Router } from 'express'
-import Empire from '../entity/Empire'
-import type User from '../entity/User'
-import auth from '../middleware/auth'
-import user from '../middleware/user'
-import { containsOnlySymbols, getNetworth } from '../services/actions/actions'
-import { Not, getConnection } from 'typeorm'
-import EmpireEffect from '../entity/EmpireEffect'
-import EmpireSnapshot from '../entity/EmpireSnapshot'
-import Clan from '../entity/Clan'
-import ClanRelation from '../entity/ClanRelation'
-import ClanMessage from '../entity/ClanMessage'
+import type { Request, Response } from "express"
+import { Router } from "express"
+import Empire from "../entity/Empire"
+import type User from "../entity/User"
+import auth from "../middleware/auth"
+import user from "../middleware/user"
+import { containsOnlySymbols, getNetworth } from "../services/actions/actions"
+import { Not, getConnection } from "typeorm"
+import EmpireEffect from "../entity/EmpireEffect"
+import EmpireSnapshot from "../entity/EmpireSnapshot"
+import Clan from "../entity/Clan"
+import ClanRelation from "../entity/ClanRelation"
+import ClanMessage from "../entity/ClanMessage"
 // import EmpireMessage from '../entity/EmpireMessage'
-import { attachGame } from '../middleware/game'
-import type Game from '../entity/Game'
-import Market from '../entity/Market'
+import { attachGame } from "../middleware/game"
+import type Game from "../entity/Game"
+import Market from "../entity/Market"
 
-const Filter = require('bad-words')
+const Filter = require("bad-words")
 const filter = new Filter()
 
 //CREATE
@@ -37,7 +37,7 @@ const createEmpire = async (req: Request, res: Response) => {
 	// console.log(req.body)
 	const user: User = res.locals.user
 
-	let mode = 'normal'
+	let mode = "normal"
 	let turns: number = turnsInitial
 	let storedturns = 0
 	const mktArm: number = 999999999999
@@ -51,16 +51,16 @@ const createEmpire = async (req: Request, res: Response) => {
 
 	// get names of already created empires in game
 	const empireNames = await Empire.find({
-		select: ['name'],
+		select: ["name"],
 		where: { game_id },
 	})
 	console.log(empireNames)
 	if (
 		empireNames.some(
-			(empire) => empire.name.toLowerCase() === name.toLowerCase()
+			(empire) => empire.name.toLowerCase() === name.toLowerCase(),
 		)
 	) {
-		return res.status(400).json({ error: 'Empire name already exists' })
+		return res.status(400).json({ error: "Empire name already exists" })
 	}
 
 	// see how many days have passed since round started
@@ -75,7 +75,7 @@ const createEmpire = async (req: Request, res: Response) => {
 	const turnsElapsed = ((days * 24 * 60) / turnsFreq) * turnsCount
 	console.log(turnsElapsed)
 	const turnsToAdd = turnsElapsed
-	if (turnsToAdd > turnsMax) {
+	if (turnsToAdd >= turnsMax) {
 		turns = turnsMax
 		storedturns += turnsToAdd - turnsMax
 		if (storedturns > 100) {
@@ -89,11 +89,11 @@ const createEmpire = async (req: Request, res: Response) => {
 	if (user.empires.some((empire) => empire.game_id === game_id)) {
 		return res
 			.status(400)
-			.json({ error: 'User already has an empire in this game' })
+			.json({ error: "User already has an empire in this game" })
 	}
 
-	if (name.trim() === '') {
-		return res.status(400).json({ error: 'Name must not be empty' })
+	if (name.trim() === "") {
+		return res.status(400).json({ error: "Name must not be empty" })
 	}
 
 	try {
@@ -103,8 +103,8 @@ const createEmpire = async (req: Request, res: Response) => {
 			name = filter.clean(name)
 		}
 
-		if (user.role === 'demo') {
-			mode = 'demo'
+		if (user.role === "demo") {
+			mode = "demo"
 			turns = turnsDemo
 			attacks = Math.round(maxAttacks * 0.8)
 			spells = Math.round(maxSpells * 0.8)
@@ -173,7 +173,7 @@ const createEmpire = async (req: Request, res: Response) => {
 		let effect: EmpireEffect = null
 		effect = new EmpireEffect({
 			effectOwnerId: empire.id,
-			empireEffectName: 'era delay',
+			empireEffectName: "era delay",
 			empireEffectValue: effectCatchUp,
 			createdAt: createdAt,
 			updatedAt: createdAt,
@@ -202,7 +202,7 @@ const createEmpire = async (req: Request, res: Response) => {
 		return res.status(201).json(empire)
 	} catch (error) {
 		console.log(error)
-		return res.status(500).json({ error: 'Something went wrong' })
+		return res.status(500).json({ error: "Something went wrong" })
 	}
 }
 
@@ -213,23 +213,23 @@ const getEmpires = async (req: Request, res: Response) => {
 	try {
 		const empires = await Empire.find({
 			select: [
-				'empireId',
-				'id',
-				'name',
-				'networth',
-				'empireId',
-				'race',
-				'era',
-				'land',
-				'rank',
-				'mode',
-				'turnsUsed',
-				'diminishingReturns',
-				'game_id',
+				"empireId",
+				"id",
+				"name",
+				"networth",
+				"empireId",
+				"race",
+				"era",
+				"land",
+				"rank",
+				"mode",
+				"turnsUsed",
+				"diminishingReturns",
+				"game_id",
 			],
 			where: { game_id: gameId },
 			order: {
-				networth: 'DESC',
+				networth: "DESC",
 			},
 		})
 		return res.json(empires)
@@ -251,23 +251,23 @@ const getOtherEmpires = async (req: Request, res: Response) => {
 
 	const otherEmpires = await Empire.find({
 		select: [
-			'empireId',
-			'id',
-			'name',
-			'networth',
-			'empireId',
-			'race',
-			'era',
-			'land',
-			'rank',
-			'mode',
-			'turnsUsed',
-			'diminishingReturns',
-			'game_id',
+			"empireId",
+			"id",
+			"name",
+			"networth",
+			"empireId",
+			"race",
+			"era",
+			"land",
+			"rank",
+			"mode",
+			"turnsUsed",
+			"diminishingReturns",
+			"game_id",
 		],
 		where: { empireId: Not(empireId), game_id: gameId },
 		order: {
-			networth: 'DESC',
+			networth: "DESC",
 		},
 		// cache: 1000,
 	})
@@ -282,38 +282,38 @@ const getScores = async (req: Request, res: Response) => {
 	try {
 		const empires = await Empire.find({
 			select: [
-				'id',
-				'name',
-				'networth',
-				'empireId',
-				'race',
-				'era',
-				'land',
-				'rank',
-				'mode',
-				'turnsUsed',
-				'profile',
-				'profileIcon',
-				'updatedAt',
-				'lastAction',
-				'clanId',
-				'diminishingReturns',
-				'offSucc',
-				'offTotal',
-				'defSucc',
-				'defTotal',
-				'game_id',
-				'score',
+				"id",
+				"name",
+				"networth",
+				"empireId",
+				"race",
+				"era",
+				"land",
+				"rank",
+				"mode",
+				"turnsUsed",
+				"profile",
+				"profileIcon",
+				"updatedAt",
+				"lastAction",
+				"clanId",
+				"diminishingReturns",
+				"offSucc",
+				"offTotal",
+				"defSucc",
+				"defTotal",
+				"game_id",
+				"score",
 			],
 			where: { game_id: gameId },
 			order: {
-				rank: 'ASC',
+				rank: "ASC",
 			},
 			// cache: 1000,
 		})
 
 		if (empires.length === 0) {
-			return res.status(400).json({ error: 'No empires found' })
+			return res.status(400).json({ error: "No empires found" })
 		}
 
 		const newEmpires = await Promise.all(
@@ -321,17 +321,17 @@ const getScores = async (req: Request, res: Response) => {
 				if (empire.clanId !== 0 && empire.clanId !== null) {
 					const clan = await Clan.find({
 						select: [
-							'id',
-							'clanName',
-							'clanPic',
-							'empireIdLeader',
-							'empireIdAssistant',
-							'empireIdAgent1',
-							'empireIdAgent2',
-							'clanTag',
+							"id",
+							"clanName",
+							"clanPic",
+							"empireIdLeader",
+							"empireIdAssistant",
+							"empireIdAgent1",
+							"empireIdAgent2",
+							"clanTag",
 						],
 						where: { id: empire.clanId, game_id: gameId },
-						relations: ['relation'],
+						relations: ["relation"],
 					})
 
 					const clanReturn = clan[0]
@@ -340,7 +340,7 @@ const getScores = async (req: Request, res: Response) => {
 				}
 
 				return empire
-			})
+			}),
 		)
 
 		return res.json(newEmpires)
@@ -365,7 +365,7 @@ const updateTax = async (req: Request, res: Response) => {
 		return res.json(empire)
 	} catch (error) {
 		console.log(error)
-		return res.status(500).json({ error: 'something went wrong' })
+		return res.status(500).json({ error: "something went wrong" })
 	}
 }
 
@@ -375,7 +375,7 @@ const updateProfile = async (req: Request, res: Response) => {
 	try {
 		const empire = await Empire.findOneOrFail({ id: empireId })
 
-		if (type === 'profile') {
+		if (type === "profile") {
 			if (!containsOnlySymbols(profile)) {
 				empire.profile = filter.clean(profile)
 			} else {
@@ -386,7 +386,7 @@ const updateProfile = async (req: Request, res: Response) => {
 		}
 	} catch (error) {
 		console.log(error)
-		return res.status(500).json({ error: 'something went wrong' })
+		return res.status(500).json({ error: "something went wrong" })
 	}
 }
 
@@ -396,14 +396,14 @@ const updateIcon = async (req: Request, res: Response) => {
 	try {
 		const empire = await Empire.findOneOrFail({ id: empireId })
 
-		if (type === 'icon') {
+		if (type === "icon") {
 			empire.profileIcon = `/icons/${icon}.svg`
 			await empire.save()
 			return res.json(empire)
 		}
 	} catch (error) {
 		console.log(error)
-		return res.status(500).json({ error: 'something went wrong' })
+		return res.status(500).json({ error: "something went wrong" })
 	}
 }
 
@@ -413,7 +413,7 @@ const updateIndustry = async (req: Request, res: Response) => {
 
 	// console.log(req.body)
 	if (indArmy + indFly + indLnd + indSea !== 100) {
-		return res.status(500).json({ error: 'Must add up to 100' })
+		return res.status(500).json({ error: "Must add up to 100" })
 	}
 
 	try {
@@ -442,7 +442,7 @@ const updateIndustry = async (req: Request, res: Response) => {
 		return res.json(empire)
 	} catch (error) {
 		console.log(error)
-		return res.status(500).json({ error: 'something went wrong' })
+		return res.status(500).json({ error: "something went wrong" })
 	}
 }
 
@@ -479,7 +479,7 @@ const changeRace = async (req: Request, res: Response) => {
 		return res.json(empire)
 	} catch (error) {
 		console.log(error)
-		return res.status(500).json({ error: 'something went wrong' })
+		return res.status(500).json({ error: "something went wrong" })
 	}
 }
 
@@ -512,12 +512,12 @@ const bank = async (req: Request, res: Response) => {
 		let loanResult = null
 		let repayResult = null
 
-		if (type === 'savings') {
+		if (type === "savings") {
 			if (depositAmt !== 0 && depositAmt <= canSave) {
 				empire.cash -= depositAmt
 				empire.bank += depositAmt
 				empire.networth = getNetworth(empire, game)
-				depositResult = { action: 'deposit', amount: depositAmt }
+				depositResult = { action: "deposit", amount: depositAmt }
 
 				await empire.save()
 			}
@@ -527,18 +527,18 @@ const bank = async (req: Request, res: Response) => {
 				empire.cash += withdrawAmt
 				empire.networth = getNetworth(empire, game)
 
-				withdrawResult = { action: 'withdraw', amount: withdrawAmt }
+				withdrawResult = { action: "withdraw", amount: withdrawAmt }
 
 				await empire.save()
 			}
 		}
 
-		if (type === 'loan') {
+		if (type === "loan") {
 			if (loanAmt !== 0 && loanAmt <= maxLoan - empire.loan) {
 				empire.cash += loanAmt
 				empire.loan += loanAmt
 				empire.networth = getNetworth(empire, game)
-				loanResult = { action: 'loan', amount: loanAmt }
+				loanResult = { action: "loan", amount: loanAmt }
 
 				await empire.save()
 			}
@@ -548,7 +548,7 @@ const bank = async (req: Request, res: Response) => {
 				empire.loan -= repayAmt
 				empire.networth = getNetworth(empire, game)
 
-				repayResult = { action: 'repay', amount: repayAmt }
+				repayResult = { action: "repay", amount: repayAmt }
 
 				await empire.save()
 			}
@@ -562,7 +562,7 @@ const bank = async (req: Request, res: Response) => {
 		return res.json(bankResult)
 	} catch (error) {
 		console.log(error)
-		return res.status(500).json({ error: 'something went wrong' })
+		return res.status(500).json({ error: "something went wrong" })
 	}
 }
 
@@ -620,21 +620,21 @@ const deleteEmpire = async (req: Request, res: Response) => {
 			.createQueryBuilder()
 			.delete()
 			.from(Market)
-			.where('empire_id = :empire_id', { empire_id: empire.id })
+			.where("empire_id = :empire_id", { empire_id: empire.id })
 			.execute()
 		// delete snapshots
 		await getConnection()
 			.createQueryBuilder()
 			.delete()
 			.from(EmpireSnapshot)
-			.where('empire_id = :empire_id', { empire_id: empire.id })
+			.where("empire_id = :empire_id", { empire_id: empire.id })
 			.execute()
 
 		await empire.remove()
-		return res.json({ message: 'empire deleted' })
+		return res.json({ message: "empire deleted" })
 	} catch (error) {
 		console.log(error)
-		return res.status(500).json({ error: 'something went wrong' })
+		return res.status(500).json({ error: "something went wrong" })
 	}
 }
 
@@ -645,22 +645,22 @@ const findOneEmpire = async (req: Request, res: Response) => {
 	try {
 		const empire = await Empire.findOneOrFail(
 			{ uuid },
-			{ relations: ['user', 'clan'] }
+			{ relations: ["user", "clan"] },
 		)
 
 		if (empire.clanId !== 0 && empire.clanId !== null) {
 			const clan = await Clan.find({
 				select: [
-					'id',
-					'clanName',
-					'empireIdLeader',
-					'empireIdAssistant',
-					'empireIdAgent1',
-					'empireIdAgent2',
-					'clanTag',
+					"id",
+					"clanName",
+					"empireIdLeader",
+					"empireIdAssistant",
+					"empireIdAgent1",
+					"empireIdAgent2",
+					"clanTag",
 				],
 				where: { id: empire.clanId },
-				relations: ['relation'],
+				relations: ["relation"],
 			})
 
 			if (clan[0]) {
@@ -673,7 +673,7 @@ const findOneEmpire = async (req: Request, res: Response) => {
 		return res.json(empire)
 	} catch (error) {
 		console.log(error)
-		return res.status(404).json({ empire: 'empire not found' })
+		return res.status(404).json({ empire: "empire not found" })
 	}
 }
 
@@ -704,13 +704,13 @@ const getEmpireEffects = async (req: Request, res: Response) => {
 		// console.log(effects)
 
 		const filterEffects = effects.filter((effect) =>
-			isOld(effect.updatedAt, effect.empireEffectValue)
+			isOld(effect.updatedAt, effect.empireEffectValue),
 		)
 
 		return res.json(filterEffects)
 	} catch (error) {
 		console.log(error)
-		return res.status(404).json({ empire: 'empire effects not found' })
+		return res.status(404).json({ empire: "empire effects not found" })
 	}
 }
 
@@ -734,7 +734,7 @@ const addEmpireEffect = async (req: Request, res: Response) => {
 		return res.status(201).json(effect)
 	} catch (error) {
 		console.log(error)
-		return res.status(404).json({ empire: 'empire effects not found' })
+		return res.status(404).json({ empire: "empire effects not found" })
 	}
 }
 
@@ -746,7 +746,6 @@ const updateEmpireFavorite = async (req: Request, res: Response) => {
 		const empire = await Empire.findOneOrFail({ uuid })
 
 		// select a column
-
 		if (empire?.favorites.includes(favorite)) {
 			empire.favorites = empire.favorites.filter((f) => f !== favorite)
 			if (
@@ -754,10 +753,10 @@ const updateEmpireFavorite = async (req: Request, res: Response) => {
 				empire.favColumns.column2.includes(favorite)
 			) {
 				empire.favColumns.column1 = empire.favColumns.column1.filter(
-					(f) => f !== favorite
+					(f) => f !== favorite,
 				)
 				empire.favColumns.column2 = empire.favColumns.column2.filter(
-					(f) => f !== favorite
+					(f) => f !== favorite,
 				)
 			}
 		} else {
@@ -771,11 +770,11 @@ const updateEmpireFavorite = async (req: Request, res: Response) => {
 		}
 
 		await empire.save()
-		console.log('favorite updated')
+		console.log("favorite updated")
 		return res.status(201).json(empire)
 	} catch (error) {
 		console.log(error)
-		return res.status(404).json({ empire: 'empire not found' })
+		return res.status(404).json({ empire: "empire not found" })
 	}
 }
 
@@ -789,11 +788,11 @@ const reorderFavorites = async (req: Request, res: Response) => {
 		empire.favorites = favorites
 
 		await empire.save()
-		console.log('favorite updated')
+		console.log("favorite updated")
 		return res.status(201).json(empire)
 	} catch (error) {
 		console.log(error)
-		return res.status(404).json({ empire: 'empire not found' })
+		return res.status(404).json({ empire: "empire not found" })
 	}
 }
 
@@ -807,11 +806,11 @@ const reorderColFavorites = async (req: Request, res: Response) => {
 		empire.favColumns = { column1: favorites[0], column2: favorites[1] }
 
 		await empire.save()
-		console.log('favorite col updated')
+		console.log("favorite col updated")
 		return res.status(201).json(empire)
 	} catch (error) {
 		console.log(error)
-		return res.status(404).json({ empire: 'empire not found' })
+		return res.status(404).json({ empire: "empire not found" })
 	}
 }
 
@@ -825,11 +824,11 @@ const setFavSize = async (req: Request, res: Response) => {
 		empire.favSize = favSize
 
 		await empire.save()
-		console.log('favorite size updated')
+		console.log("favorite size updated")
 		return res.status(201).json(empire)
 	} catch (error) {
 		console.log(error)
-		return res.status(404).json({ empire: 'empire not found' })
+		return res.status(404).json({ empire: "empire not found" })
 	}
 }
 
@@ -861,7 +860,7 @@ const bonusTurns = async (req: Request, res: Response) => {
 		// console.log(effects)
 
 		const filterEffects = effects.filter((effect) =>
-			isOld(effect.createdAt, effect.empireEffectValue)
+			isOld(effect.createdAt, effect.empireEffectValue),
 		)
 
 		const empire = await Empire.findOneOrFail({ uuid })
@@ -869,7 +868,7 @@ const bonusTurns = async (req: Request, res: Response) => {
 		let receivedBonus = false
 		if (filterEffects.length > 0) {
 			filterEffects.forEach((effect) => {
-				if (effect.empireEffectName === 'bonus turns') {
+				if (effect.empireEffectName === "bonus turns") {
 					receivedBonus = true
 				}
 			})
@@ -887,7 +886,7 @@ const bonusTurns = async (req: Request, res: Response) => {
 			let effect: EmpireEffect = null
 			effect = new EmpireEffect({
 				effectOwnerId: empire.id,
-				empireEffectName: 'bonus turns',
+				empireEffectName: "bonus turns",
 				empireEffectValue: 1440,
 			})
 
@@ -919,7 +918,7 @@ const getAchievements = async (req: Request, res: Response) => {
 		return res.status(200).json(achievements)
 	} catch (error) {
 		console.log(error)
-		return res.status(404).json({ empire: 'empire not found' })
+		return res.status(404).json({ empire: "empire not found" })
 	}
 }
 
@@ -928,8 +927,8 @@ const nameChange = async (req: Request, res: Response) => {
 	const { name } = req.body
 	const game_id = res.locals.game.game_id
 
-	if (name.trim() === '') {
-		return res.status(400).json({ error: 'Name must not be empty' })
+	if (name.trim() === "") {
+		return res.status(400).json({ error: "Name must not be empty" })
 	}
 
 	try {
@@ -937,16 +936,16 @@ const nameChange = async (req: Request, res: Response) => {
 
 		// get names of already created empires in game
 		const empireNames = await Empire.find({
-			select: ['name'],
+			select: ["name"],
 			where: { game_id },
 		})
 		// console.log(empireNames)
 		if (
 			empireNames.some(
-				(empire) => empire.name.toLowerCase() === name.toLowerCase()
+				(empire) => empire.name.toLowerCase() === name.toLowerCase(),
 			)
 		) {
-			return res.status(400).json({ error: 'Empire name already exists' })
+			return res.status(400).json({ error: "Empire name already exists" })
 		}
 
 		if (empire.changeName < 1) {
@@ -960,35 +959,35 @@ const nameChange = async (req: Request, res: Response) => {
 			return res.status(201).json(empire)
 		}
 
-		return res.status(400).json({ error: 'Name change already used' })
+		return res.status(400).json({ error: "Name change already used" })
 	} catch (error) {
 		console.log(error)
-		return res.status(404).json({ error: 'Error changing name' })
+		return res.status(404).json({ error: "Error changing name" })
 	}
 }
 
 const router = Router()
 
-router.post('/', user, auth, attachGame, createEmpire)
-router.get('/', getEmpires)
-router.get('/scores', getScores)
-router.get('/:uuid', user, auth, findOneEmpire)
-router.get('/:uuid/achievements', getAchievements)
-router.post('/effects', user, auth, getEmpireEffects)
-router.post('/effects/new', user, auth, addEmpireEffect)
-router.post('/:uuid/bank', user, auth, attachGame, bank)
-router.post('/:uuid/tax', user, auth, updateTax)
-router.post('/:uuid/industry', user, auth, updateIndustry)
-router.post('/otherEmpires', user, auth, getOtherEmpires)
-router.post('/:uuid/favorite', user, auth, updateEmpireFavorite)
-router.post('/:uuid/favorites/order', user, auth, reorderFavorites)
-router.post('/:uuid/favorites/orderColumns', user, auth, reorderColFavorites)
-router.post('/:uuid/favorites/size', user, auth, setFavSize)
-router.post('/:uuid/profile', user, auth, updateProfile)
-router.post('/:uuid/icon', user, auth, updateIcon)
-router.post('/:uuid/bonus', user, auth, attachGame, bonusTurns)
-router.post('/:uuid/changeRace', user, auth, attachGame, changeRace)
-router.post('/:uuid/nameChange', user, auth, attachGame, nameChange)
-router.delete('/:uuid', user, auth, deleteEmpire)
+router.post("/", user, auth, attachGame, createEmpire)
+router.get("/", getEmpires)
+router.get("/scores", getScores)
+router.get("/:uuid", user, auth, findOneEmpire)
+router.get("/:uuid/achievements", getAchievements)
+router.post("/effects", user, auth, getEmpireEffects)
+router.post("/effects/new", user, auth, addEmpireEffect)
+router.post("/:uuid/bank", user, auth, attachGame, bank)
+router.post("/:uuid/tax", user, auth, updateTax)
+router.post("/:uuid/industry", user, auth, updateIndustry)
+router.post("/otherEmpires", user, auth, getOtherEmpires)
+router.post("/:uuid/favorite", user, auth, updateEmpireFavorite)
+router.post("/:uuid/favorites/order", user, auth, reorderFavorites)
+router.post("/:uuid/favorites/orderColumns", user, auth, reorderColFavorites)
+router.post("/:uuid/favorites/size", user, auth, setFavSize)
+router.post("/:uuid/profile", user, auth, updateProfile)
+router.post("/:uuid/icon", user, auth, updateIcon)
+router.post("/:uuid/bonus", user, auth, attachGame, bonusTurns)
+router.post("/:uuid/changeRace", user, auth, attachGame, changeRace)
+router.post("/:uuid/nameChange", user, auth, attachGame, nameChange)
+router.delete("/:uuid", user, auth, deleteEmpire)
 
 export default router
