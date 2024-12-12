@@ -1,46 +1,46 @@
-import { eraArray } from "../../config/eras";
-import Empire from "../../entity/Empire";
+import { eraArray } from "../../config/eras"
+import Empire from "../../entity/Empire"
 import {
 	getPower_enemy,
 	getWizLoss_enemy,
 	getPower_self,
 	randomIntFromInterval,
-} from "./general";
-import { createNewsEvent } from "../../util/helpers";
-import { getNetworth } from "../actions/actions";
-import { getRepository } from "typeorm";
-import type Game from "../../entity/Game";
-import EmpireEffect from "../../entity/EmpireEffect";
-import { translate } from "../../util/translation";
+} from "./general"
+import { createNewsEvent } from "../../util/helpers"
+import { getNetworth } from "../actions/actions"
+import { getRepository } from "typeorm"
+import type Game from "../../entity/Game"
+import EmpireEffect from "../../entity/EmpireEffect"
+import { translate } from "../../util/translation"
 
 export const fight_cost = (baseCost: number) => {
-	return Math.ceil(27.5 * baseCost);
-};
+	return Math.ceil(27.5 * baseCost)
+}
 
 const destroyBuildings = async (
 	type: string,
 	pcloss: number,
 	enemyEmpire: Empire,
 ) => {
-	pcloss *= 0.66;
-	let loss = 0;
+	pcloss *= 0.66
+	let loss = 0
 
 	if (enemyEmpire[type] > 0) {
-		console.log(enemyEmpire[type]);
+		console.log(enemyEmpire[type])
 		loss = randomIntFromInterval(
 			enemyEmpire[type] * 0.01,
 			Math.ceil(pcloss * enemyEmpire[type] + 2),
-		);
+		)
 		if (loss > enemyEmpire[type]) {
-			loss = enemyEmpire[type];
+			loss = enemyEmpire[type]
 		}
 	}
 
-	enemyEmpire[type] -= loss;
-	await enemyEmpire.save();
+	enemyEmpire[type] -= loss
+	await enemyEmpire.save()
 
-	return loss;
-};
+	return loss
+}
 
 export const fight_cast = async (
 	empire: Empire,
@@ -52,18 +52,18 @@ export const fight_cast = async (
 	points: number,
 	language: string,
 ) => {
-	let war = false;
+	let war = false
 	if (clan) {
 		const relations = clan.relation.map((relation) => {
 			if (relation.clanRelationFlags === "war") {
-				return relation.c_id2;
+				return relation.c_id2
 			}
-		});
+		})
 		// check if clan is at war
 		if (relations.includes(enemyEmpire.clanId)) {
 			// console.log('clan is at war')
 			// clan is at war with defender
-			war = true;
+			war = true
 		}
 	}
 
@@ -72,7 +72,7 @@ export const fight_cast = async (
 
 	if (getPower_self(empire) < 50) {
 		// spell failed to cast
-		const wizloss = getWizLoss_enemy(empire);
+		const wizloss = getWizLoss_enemy(empire)
 		const result = {
 			result: "fail",
 			message: translate("responses:spells.fail", language, {
@@ -81,19 +81,19 @@ export const fight_cast = async (
 			}),
 			wizloss: wizloss,
 			descriptor: eraArray[empire.era].trpwiz,
-		};
+		}
 
-		empire.offTotal++;
-		await empire.save();
+		empire.offTotal++
+		await empire.save()
 
-		return result;
+		return result
 	}
 
 	if (getPower_enemy(empire, enemyEmpire) >= 2.2) {
-		let returnText = "";
+		let returnText = ""
 		// spell casts successfully
-		const now = new Date();
-		let avgLand = 1;
+		const now = new Date()
+		let avgLand = 1
 		if (!game.scoreEnabled) {
 			const { totalLand, empireCount } = await getRepository(Empire)
 				.createQueryBuilder("empire")
@@ -103,18 +103,18 @@ export const fight_cast = async (
 					turnsUsed: turnsProtection,
 					demo: "demo",
 				})
-				.getRawOne();
+				.getRawOne()
 
 			// console.log(totalLand, empireCount)
-			avgLand = totalLand / empireCount;
+			avgLand = totalLand / empireCount
 		}
 
-		const landCutoff = 10000;
-		let aboveCutoff = false;
-		let defeated = false;
+		const landCutoff = 10000
+		let aboveCutoff = false
+		let defeated = false
 		if (game.scoreEnabled) {
 			if (enemyEmpire.land >= landCutoff) {
-				aboveCutoff = true;
+				aboveCutoff = true
 			}
 
 			const effect = await EmpireEffect.findOne({
@@ -123,44 +123,44 @@ export const fight_cast = async (
 					empireEffectName: "defeated",
 				},
 				order: { updatedAt: "DESC" },
-			});
+			})
 
-			let timeLeft = 0;
+			let timeLeft = 0
 			if (effect) {
 				let effectAge =
-					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000;
-				timeLeft = effect.empireEffectValue - effectAge;
+					(now.valueOf() - new Date(effect.updatedAt).getTime()) / 60000
+				timeLeft = effect.empireEffectValue - effectAge
 				// age in minutes
-				effectAge = Math.floor(effectAge);
+				effectAge = Math.floor(effectAge)
 				if (timeLeft > 0) {
-					aboveCutoff = false;
-					defeated = true;
+					aboveCutoff = false
+					defeated = true
 					returnText +=
-						"This empire has been recently defeated, no points will be given...";
+						"This empire has been recently defeated, no points will be given..."
 				}
 			}
 		}
 
-		let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.05 + 1));
+		let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.05 + 1))
 		let eloss = randomIntFromInterval(
 			0,
 			Math.round(enemyEmpire.trpWiz * 0.07 + 1),
-		);
+		)
 
 		if (uloss > empire.trpWiz) {
-			uloss = empire.trpWiz;
+			uloss = empire.trpWiz
 		}
 		if (eloss > 50 * uloss) {
-			eloss = randomIntFromInterval(0, 50 * uloss + 1);
+			eloss = randomIntFromInterval(0, 50 * uloss + 1)
 		}
 		if (eloss > enemyEmpire.trpWiz) {
-			eloss = enemyEmpire.trpWiz;
+			eloss = enemyEmpire.trpWiz
 		}
 
-		empire.trpWiz -= uloss;
-		enemyEmpire.trpWiz -= eloss;
+		empire.trpWiz -= uloss
+		enemyEmpire.trpWiz -= eloss
 
-		let lowLand = 1;
+		let lowLand = 1
 		if (
 			enemyEmpire.land < avgLand * 0.75 &&
 			empire.land > enemyEmpire.land * 2 &&
@@ -170,56 +170,56 @@ export const fight_cast = async (
 			// the defender is being "low landed"
 			returnText += translate("responses:spells.lowLand", language, {
 				trpwiz: eraArray[empire.era].trpwiz,
-			});
-			lowLand = 0.5;
+			})
+			lowLand = 0.5
 		}
 
-		let bldLoss = 0;
-		bldLoss += await destroyBuildings("bldCash", 0.07 * lowLand, enemyEmpire);
-		bldLoss += await destroyBuildings("bldPop", 0.07 * lowLand, enemyEmpire);
-		bldLoss += await destroyBuildings("bldTroop", 0.07 * lowLand, enemyEmpire);
-		bldLoss += await destroyBuildings("bldCost", 0.07 * lowLand, enemyEmpire);
-		bldLoss += await destroyBuildings("bldFood", 0.07 * lowLand, enemyEmpire);
-		bldLoss += await destroyBuildings("bldWiz", 0.07 * lowLand, enemyEmpire);
-		bldLoss += await destroyBuildings("bldDef", 0.11 * lowLand, enemyEmpire);
-		bldLoss += await destroyBuildings("freeLand", 0.1 * lowLand, enemyEmpire);
+		let bldLoss = 0
+		bldLoss += await destroyBuildings("bldCash", 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings("bldPop", 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings("bldTroop", 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings("bldCost", 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings("bldFood", 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings("bldWiz", 0.07 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings("bldDef", 0.11 * lowLand, enemyEmpire)
+		bldLoss += await destroyBuildings("freeLand", 0.1 * lowLand, enemyEmpire)
 
-		enemyEmpire.land -= bldLoss;
-		empire.land += bldLoss;
-		empire.freeLand += bldLoss;
-		empire.attackGains += bldLoss;
-		enemyEmpire.attackLosses += bldLoss;
-		empire.attacks++;
-		empire.offSucc++;
-		empire.offTotal++;
-		enemyEmpire.defTotal++;
+		enemyEmpire.land -= bldLoss
+		empire.land += bldLoss
+		empire.freeLand += bldLoss
+		empire.attackGains += bldLoss
+		enemyEmpire.attackLosses += bldLoss
+		empire.attacks++
+		empire.offSucc++
+		empire.offTotal++
+		enemyEmpire.defTotal++
 		enemyEmpire.diminishingReturns =
-			enemyEmpire.diminishingReturns + drRate / lowLand;
-		enemyEmpire.networth = getNetworth(enemyEmpire, game);
+			enemyEmpire.diminishingReturns + drRate / lowLand
+		enemyEmpire.networth = getNetworth(enemyEmpire, game)
 
 		if (empire.diminishingReturns > 0) {
-			empire.diminishingReturns -= drRate;
+			empire.diminishingReturns -= drRate
 		}
 
 		if (empire.diminishingReturns < 0) {
-			empire.diminishingReturns = 0;
+			empire.diminishingReturns = 0
 		}
 
 		returnText += translate("responses:spells.fightSuccess", language, {
 			acres: bldLoss.toLocaleString(),
 			defenderName: enemyEmpire.name,
-			ewizloss: eloss.toLocaleString(),
+			eloss: eloss.toLocaleString(),
 			etrpwiz: eraArray[enemyEmpire.era].trpwiz,
 			wizloss: uloss.toLocaleString(),
 			trpwiz: eraArray[empire.era].trpwiz,
-		});
+		})
 
 		const attackDescription = {
 			result: "success",
 			message: returnText,
 			wizloss: uloss,
 			fight: true,
-		};
+		}
 
 		const content = {
 			key: "spells.fight.successPrivate",
@@ -232,7 +232,7 @@ export const fight_cast = async (
 				kills: uloss.toLocaleString(),
 				attackerUnitType: eraArray[empire.era].trpwiz,
 			},
-		};
+		}
 
 		const pubContent = {
 			key: "spells.fight.successPublic",
@@ -246,7 +246,7 @@ export const fight_cast = async (
 				attackerLosses: uloss.toLocaleString(),
 				attackerUnitType: eraArray[empire.era].trpwiz,
 			},
-		};
+		}
 
 		await createNewsEvent(
 			content,
@@ -258,59 +258,59 @@ export const fight_cast = async (
 			"spell",
 			"fail", // defense fails
 			empire.game_id,
-		);
+		)
 
 		if (game.scoreEnabled) {
-			empire.score += points;
+			empire.score += points
 			if (enemyEmpire.land < landCutoff && aboveCutoff && !defeated) {
-				empire.score += 100;
+				empire.score += 100
 
-				let effect: EmpireEffect = null;
+				let effect: EmpireEffect = null
 				effect = new EmpireEffect({
 					effectOwnerId: enemyEmpire.id,
 					empireEffectName: "defeated",
 					empireEffectValue: 12960,
-				});
-				await effect.save();
+				})
+				await effect.save()
 			}
 		}
 
-		await empire.save();
-		await enemyEmpire.save();
+		await empire.save()
+		await enemyEmpire.save()
 
-		return attackDescription;
+		return attackDescription
 	}
 
 	// spell casts but attack fails
-	let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.08 + 1));
+	let uloss = randomIntFromInterval(0, Math.round(empire.trpWiz * 0.08 + 1))
 	let eloss = randomIntFromInterval(
 		0,
 		Math.round(enemyEmpire.trpWiz * 0.04 + 1),
-	);
+	)
 
 	if (uloss > empire.trpWiz) {
-		uloss = empire.trpWiz;
+		uloss = empire.trpWiz
 	}
 	if (eloss > 50 * uloss) {
-		eloss = randomIntFromInterval(0, 50 * uloss + 1);
+		eloss = randomIntFromInterval(0, 50 * uloss + 1)
 	}
 	if (eloss > enemyEmpire.trpWiz) {
-		eloss = enemyEmpire.trpWiz;
+		eloss = enemyEmpire.trpWiz
 	}
 
-	empire.trpWiz -= uloss;
-	enemyEmpire.trpWiz -= eloss;
+	empire.trpWiz -= uloss
+	enemyEmpire.trpWiz -= eloss
 
-	empire.offTotal++;
-	enemyEmpire.defTotal++;
-	enemyEmpire.defSucc++;
-	enemyEmpire.diminishingReturns = enemyEmpire.diminishingReturns + drRate;
+	empire.offTotal++
+	enemyEmpire.defTotal++
+	enemyEmpire.defSucc++
+	enemyEmpire.diminishingReturns = enemyEmpire.diminishingReturns + drRate
 	if (empire.diminishingReturns > 0) {
-		empire.diminishingReturns -= drRate;
+		empire.diminishingReturns -= drRate
 	}
 
 	if (empire.diminishingReturns < 0) {
-		empire.diminishingReturns = 0;
+		empire.diminishingReturns = 0
 	}
 
 	const returnText = translate("responses:spells.fightFail", language, {
@@ -319,14 +319,14 @@ export const fight_cast = async (
 		etrpwiz: eraArray[enemyEmpire.era].trpwiz,
 		wizloss: uloss.toLocaleString(),
 		trpwiz: eraArray[empire.era].trpwiz,
-	});
+	})
 
 	const attackDescription = {
 		result: "fail",
 		message: returnText,
 		wizloss: uloss,
 		fight: true,
-	};
+	}
 
 	const content = {
 		key: "spells.fight.failPrivate",
@@ -338,7 +338,7 @@ export const fight_cast = async (
 			kills: uloss.toLocaleString(),
 			attackerUnitType: eraArray[empire.era].trpwiz,
 		},
-	};
+	}
 
 	const pubContent = {
 		key: "spells.fight.failPublic",
@@ -350,7 +350,7 @@ export const fight_cast = async (
 			attackerLosses: uloss.toLocaleString(),
 			attackerUnitType: eraArray[empire.era].trpwiz,
 		},
-	};
+	}
 
 	await createNewsEvent(
 		content,
@@ -362,13 +362,13 @@ export const fight_cast = async (
 		"spell",
 		"success", // defense succeeds
 		empire.game_id,
-	);
+	)
 
-	enemyEmpire.networth = getNetworth(enemyEmpire, game);
-	enemyEmpire.score += points;
+	enemyEmpire.networth = getNetworth(enemyEmpire, game)
+	enemyEmpire.score += points
 
-	await empire.save();
-	await enemyEmpire.save();
+	await empire.save()
+	await enemyEmpire.save()
 
-	return attackDescription;
-};
+	return attackDescription
+}

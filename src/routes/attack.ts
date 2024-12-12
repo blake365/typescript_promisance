@@ -199,7 +199,7 @@ const attack = async (req: Request, res: Response) => {
 
 				if (timeLeft > 0) {
 					canAttack = true
-					returnText = translate("responses:attack.timeGate", language)
+					returnText = translate("responses:attack.timeGateTravel", language)
 				} else {
 					// try defender time gate
 					const defEffect = await EmpireEffect.findOne({
