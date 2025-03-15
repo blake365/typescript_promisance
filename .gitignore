@@ -15,3 +15,5 @@ temp/
 # profiles
 *.heapprofile
 *.heapsnapshot
+
+backups/

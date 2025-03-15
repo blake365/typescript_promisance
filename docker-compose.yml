@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    volumes:
+      - ./src:/app/src     # Sync source files
+      - ./build:/app/build # Sync compiled files
+    environment:
+      - NODE_ENV=production
+      - DB_DIALECT=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=hokies
+      - DB_PASSWORD=hokies
+      - DB_DATABASE=promisance
+      # Google Authentication
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      # Other important environment variables
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=3000
+      - ORIGIN=${ORIGIN}
+      - ALTORIGIN=${ALTORIGIN}
+      - DOMAIN=${DOMAIN}
+      - GAME_RESET=${GAME_RESET}
+      - CRON_SECRET=${CRON_SECRET}
+      - LINK_SECRET=${LINK_SECRET}
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"  # Expose PostgreSQL port to host
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=promisance
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d promisance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

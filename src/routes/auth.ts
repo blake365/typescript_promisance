@@ -548,8 +548,8 @@ passport.use(
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 			callbackURL:
 				process.env.NODE_ENV === "production"
-					? "https://api.neopromisance.com/api/auth/auth/google/callback"
-					: "http://localhost:5001/api/auth/auth/google/callback",
+					? `https://api.${process.env.DOMAIN}/api/auth/auth/google/callback`
+					: `http://localhost:${process.env.PORT}/api/auth/auth/google/callback`,
 		},
 		async function verify(accessToken, refreshToken, profile, cb) {
 			try {
