@@ -1,16 +1,18 @@
 import type Empire from '../../entity/Empire'
 import { raceArray } from '../../config/races'
 import { eraArray } from '../../config/eras'
+import type { EmpireSizeFactors } from '../actions/actions'
 
 export function IndyOutput(
 	empire: Empire,
 	indMultiplier: number,
 	configMultiplier: number,
-	size: number
+	size: number | EmpireSizeFactors
 ) {
-	const sizeMultiplier = 1
-
-	// Math.max(0.8, size)
+	// Support both legacy number and new factors object
+	const sizeMultiplier = typeof size === 'number'
+		? Math.max(0.8, size)
+		: size.economicEfficiency
 	const trparm = Math.ceil(
 		empire.bldTroop *
 			(empire.indArmy / 100) *

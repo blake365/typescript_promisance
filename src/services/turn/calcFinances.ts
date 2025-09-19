@@ -1,21 +1,47 @@
 import type Empire from '../../entity/Empire'
 import { raceArray } from '../../config/races'
+import type { EmpireSizeFactors } from '../actions/actions'
 
-export function calcFinances(pci: number, empire: Empire, size: number) {
+export function calcFinances(
+	pci: number,
+	empire: Empire,
+	size: number | EmpireSizeFactors
+) {
+	// Support both legacy number and new factors object
+	const economicEfficiency = typeof size === 'number'
+		? Math.max(0.8, size * 1.25)
+		: size.economicEfficiency
+
 	const income = Math.round(
 		pci * (empire.tax / 100) * (empire.health / 100) * empire.peasants +
-			empire.bldCash * 550 * Math.max(0.8, size * 1.25)
+			empire.bldCash * 550 * economicEfficiency
 	)
 
-	// income *= Math.max(0.8, size)
-	// let loan = Math.round(empire.loan / 200)
+	// Calculate military upkeep with progressive scaling
+	const baseUpkeep =
+		empire.trpArm * 0.25 +   // Increased from 0.13
+		empire.trpLnd * 1.0 +    // Increased from 0.5
+		empire.trpFly * 3.0 +    // Increased from 1.5
+		empire.trpSea * 6.0 +    // Increased from 3.0
+		empire.trpWiz * 1.0      // Increased from 0.53
+
+	// Apply military logistics multiplier if using new system
+	const militaryLogistics = typeof size === 'object'
+		? size.militaryLogistics
+		: 1.0
+
+	// Progressive scaling based on army-to-land ratio
+	// Softened to allow more sustainable growth
+	const troopDensity = (empire.trpArm + empire.trpLnd + empire.trpFly + empire.trpSea) / Math.max(empire.land, 1)
+	let densityMultiplier = 1.0
+
+	if (troopDensity > 15) {  // More than 15 troops per acre (was 10)
+		densityMultiplier = 1.0 + (troopDensity - 15) * 0.01  // +1% per unit over 15 (was 2% over 10)
+	}
+
 	let expenses = Math.round(
-		empire.trpArm * 0.13 +
-			empire.trpLnd * 0.5 +
-			empire.trpFly * 1.5 +
-			empire.trpSea * 3 +
-			empire.land * 3.2 +
-			empire.trpWiz * 0.53
+		baseUpkeep * militaryLogistics * densityMultiplier +
+		empire.land * 3.2
 	)
 
 	// console.log(empire.loan)

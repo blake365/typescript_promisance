@@ -1,7 +1,7 @@
 import { eraArray } from "../../config/eras"
 import { raceArray } from "../../config/races"
 import type Empire from "../../entity/Empire"
-import { calcSizeBonus } from "../actions/actions"
+import { calcSizeFactors } from "../actions/actions"
 import { getPower_self, getWizLoss_self } from "./general"
 import { translate } from "../../util/translation"
 
@@ -15,17 +15,18 @@ export const food_cast = (
 	language: string,
 ) => {
 	if (getPower_self(empire) >= 30) {
+		// Use new size factors instead of old bonus
+		const sizeFactors = calcSizeFactors(empire, 10000000, 0) // Default values
+		const efficiency = sizeFactors.economicEfficiency // 0.9-1.3 range
+
 		const food = Math.round(
 			(empire.trpWiz *
 				(empire.health / 100) *
-				Math.max(
-					0.8,
-					calcSizeBonus(empire) *
-						60 *
-						(1 + Math.sqrt(empire.bldWiz / empire.land) / 2) *
-						((100 + raceArray[empire.race].mod_magic) / 100) *
-						Math.max(0.8, calcSizeBonus(empire) * 0.8),
-				)) /
+				efficiency *
+				60 *
+				(1 + Math.sqrt(empire.bldWiz / empire.land) / 2) *
+				((100 + raceArray[empire.race].mod_magic) / 100) *
+				efficiency) /  // Applied twice in original formula
 				pvtmFood,
 		)
 

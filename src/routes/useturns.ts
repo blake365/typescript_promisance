@@ -6,9 +6,13 @@ import type Game from '../entity/Game'
 import {
 	calcPCI,
 	calcSizeBonus,
+	calcSizeFactors,
+	calcGrowthBonus,
+	calcUnderdogBonus,
 	exploreAlt,
 	getNetworth,
 } from '../services/actions/actions'
+import { getServerStats } from '../services/game/serverStats'
 // import Empire from '../entity/Empire'
 import { eraArray } from '../config/eras'
 
@@ -80,10 +84,14 @@ export const useTurn = async (
 		let troubleCashMinor = false
 		empire.networth = getNetworth(empire, game)
 
-		// size bonus penalty
-		const size = calcSizeBonus(empire)
+		// Get server stats and calculate new size factors
+		const serverStats = await getServerStats(game.game_id)
+		const sizeFactors = calcSizeFactors(empire, serverStats.medianNetworth, serverStats.dayOfRound)
+		const growthBonus = calcGrowthBonus(empire)
+		const underdogBonus = calcUnderdogBonus(empire, serverStats.medianNetworth)
 
-		const luck = game.baseLuck / size
+		// Use economic efficiency for luck calculation
+		const luck = game.baseLuck / sizeFactors.economicEfficiency
 		const lucky = Math.random() * 100 <= luck
 
 		if (empire.health < 0) {
@@ -91,7 +99,18 @@ export const useTurn = async (
 		}
 
 		if (type === 'explore') {
-			turnResult = exploreAlt(empire, lucky)
+			// Apply underdog exploration bonus if applicable
+			let explorationMultiplier = 1.0
+			if (underdogBonus && underdogBonus.explorationBonus) {
+				explorationMultiplier = underdogBonus.explorationBonus
+			}
+
+			const baseExploration = exploreAlt(empire, lucky)
+			turnResult = Math.round(baseExploration * explorationMultiplier)
+			// Apply the multiplied exploration gains
+			empire.land += turnResult - baseExploration
+			empire.freeLand += turnResult - baseExploration
+			empire.exploreGains += turnResult - baseExploration
 			// console.log(turnResult)
 		}
 
@@ -122,7 +141,7 @@ export const useTurn = async (
 				empire.bank -= withdraw
 				empire.cash += withdraw
 			} else {
-				const saveRate = game.bankSaveRate - size
+				const saveRate = game.bankSaveRate - (sizeFactors.economicEfficiency - 1) * 10  // Scale appropriately
 				const bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
 				empire.bank = Math.min(empire.bank + bankInterest, bankMax)
 			}
@@ -133,16 +152,16 @@ export const useTurn = async (
 
 		// loan interest
 		const loanMax = empire.networth * 50
-		const loanRate = game.bankLoanRate + size
+		const loanRate = game.bankLoanRate + (sizeFactors.economicEfficiency - 1) * 10  // Scale appropriately
 		const loanInterest = Math.round(empire.loan * (loanRate / 52 / 100))
 		empire.loan += loanInterest
 		current['loanInterest'] = loanInterest
 
-		let { income, expenses } = calcFinances(calcPCI(empire), empire, size)
+		let { income, expenses } = calcFinances(calcPCI(empire), empire, sizeFactors)
 		// console.log(loanpayed)
 
 		if (type === 'cash') {
-			income = Math.round(income * 1.25)
+			income = Math.round(income * 1.25 * growthBonus)
 			if (lucky) {
 				income = Math.round(income * 1.5)
 			}
@@ -256,7 +275,7 @@ export const useTurn = async (
 		// industry
 		let indMultiplier = 1
 		if (type === 'industry') {
-			indMultiplier = 1.25
+			indMultiplier = 1.25 * growthBonus  // Apply growth bonus
 			if (lucky) {
 				indMultiplier *= 1.5
 			}
@@ -269,7 +288,7 @@ export const useTurn = async (
 			empire,
 			indMultiplier,
 			game.industryMult,
-			size
+			sizeFactors
 		)
 
 		empire.trpArm += trparm
@@ -297,11 +316,11 @@ export const useTurn = async (
 		}
 
 		// update food
-		let { foodpro, foodcon } = calcProvisions(empire, size)
+		let { foodpro, foodcon } = calcProvisions(empire, sizeFactors.economicEfficiency)
 		const rot = calcRot(empire)
 
 		if (type === 'farm') {
-			foodpro = Math.round(1.25 * foodpro)
+			foodpro = Math.round(1.25 * foodpro * growthBonus)
 			if (lucky) {
 				foodpro *= 1.5
 			}
@@ -355,7 +374,7 @@ export const useTurn = async (
 		// gain magic energy
 		let runeMultiplier = 1
 		if (type === 'meditate') {
-			runeMultiplier = 1.25
+			runeMultiplier = 1.25 * growthBonus  // Apply growth bonus
 			if (lucky) {
 				runeMultiplier *= 1.5
 			}
@@ -587,7 +606,10 @@ export const useTurnInternal = (
 		// }
 
 		// size bonus penalty
-		const size = calcSizeBonus(empire)
+		// For internal sync usage, use default server stats
+		// This is used by build/demolish loops which need sync operation
+		const sizeFactors = calcSizeFactors(empire, 10000000, 0)  // Default values for internal use
+		const size = calcSizeBonus(empire)  // Keep for backward compatibility where needed
 
 		if (empire.health < 0) {
 			empire.health = 0
@@ -620,7 +642,7 @@ export const useTurnInternal = (
 				empire.bank -= withdraw
 				empire.cash += withdraw
 			} else {
-				const saveRate = game.bankSaveRate - size
+				const saveRate = game.bankSaveRate - (sizeFactors.economicEfficiency - 1) * 10  // Scale appropriately
 				bankInterest = Math.round(empire.bank * (saveRate / 52 / 100))
 				if (empire.bank + bankInterest > bankMax) {
 					bankInterest = bankMax - empire.bank
@@ -638,14 +660,14 @@ export const useTurnInternal = (
 		// console.log(current['withdraw'])
 		// loan interest
 		let loanMax = empire.networth * 50
-		let loanRate = game.bankLoanRate + size
+		let loanRate = game.bankLoanRate + (sizeFactors.economicEfficiency - 1) * 10  // Scale appropriately
 		let loanInterest = Math.round(empire.loan * (loanRate / 52 / 100))
 		// empire.loan += loanInterest
 		current['loanInterest'] = loanInterest
 		// income/expenses/loan
 
 		// takes place of calcFinances function
-		let { income, expenses } = calcFinances(calcPCI(empire), empire, size)
+		let { income, expenses } = calcFinances(calcPCI(empire), empire, sizeFactors)
 
 		//war tax
 		let wartax = 0
@@ -742,7 +764,7 @@ export const useTurnInternal = (
 			empire,
 			indMultiplier,
 			game.industryMult,
-			size
+			sizeFactors
 		)
 
 		// empire.trpArm += trparm
@@ -756,7 +778,7 @@ export const useTurnInternal = (
 		current['trpSea'] = trpsea
 
 		// update food
-		const { foodpro, foodcon } = calcProvisions(empire, size)
+		const { foodpro, foodcon } = calcProvisions(empire, sizeFactors)
 		const rot = calcRot(empire)
 		const food = Math.round(foodpro - foodcon - rot)
 

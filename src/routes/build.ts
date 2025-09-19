@@ -6,17 +6,22 @@ import Clan from "../entity/Clan";
 import { useTurnInternal } from "./useturns";
 import user from "../middleware/user";
 import auth from "../middleware/auth";
-import { calcSizeBonus } from "../services/actions/actions";
+import { calcSizeBonus, calcSizeFactors } from "../services/actions/actions";
 import { takeSnapshot } from "../services/actions/snaps";
 import { attachGame } from "../middleware/game";
 import type Game from "../entity/Game";
 import { updateEmpire } from "../services/actions/updateEmpire";
+import { getServerStats } from "../services/game/serverStats";
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
-const getBuildAmounts = (empire: Empire, cost: number) => {
-	let size = calcSizeBonus(empire);
-	let buildCost = Math.round((cost + empire.land * 0.2) * (size / 3));
+const getBuildAmounts = async (empire: Empire, cost: number, gameId: number) => {
+	// Get server statistics for balanced calculations
+	const serverStats = await getServerStats(gameId);
+	const sizeFactors = calcSizeFactors(empire, serverStats.medianNetworth, serverStats.dayOfRound);
+
+	// Apply expansion difficulty instead of raw size
+	let buildCost = Math.round((cost + empire.land * 0.3) * sizeFactors.expansionDifficulty);
 
 	let buildRate = Math.round(empire.land * 0.015 + 4);
 
@@ -63,9 +68,10 @@ const build = async (req: Request, res: Response) => {
 		});
 	}
 
-	const { canBuild, buildRate, buildCost } = getBuildAmounts(
+	const { canBuild, buildRate, buildCost } = await getBuildAmounts(
 		empire,
 		game.buildCost,
+		game.game_id
 	);
 
 	let buildTotal =

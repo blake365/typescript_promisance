@@ -17,3 +17,9 @@ temp/
 *.heapsnapshot
 
 backups/
+
+
+# nginx
+nginx/
+
+CLAUDE.md

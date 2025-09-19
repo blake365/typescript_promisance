@@ -1,6 +1,6 @@
 import type Empire from '../../entity/Empire'
 import { raceArray } from '../../config/races'
-import { calcSizeBonus } from '../actions/actions'
+import { calcSizeFactors } from '../actions/actions'
 
 export function randomIntFromInterval(min, max) {
 	// min and max included
@@ -8,13 +8,15 @@ export function randomIntFromInterval(min, max) {
 }
 
 export const baseCost = (empire: Empire) => {
+	// Use combat readiness for spell costs (magic is affected by empire size/readiness)
+	const sizeFactors = calcSizeFactors(empire, 10000000, 0) // Default values
 	return (
 		empire.land * 0.1 +
 		100 +
 		empire.bldWiz *
 			0.35 *
 			((100 - raceArray[empire.race].mod_magic) / 100) *
-			calcSizeBonus(empire)
+			sizeFactors.combatReadiness  // Use combat readiness for spell costs
 	)
 }
 

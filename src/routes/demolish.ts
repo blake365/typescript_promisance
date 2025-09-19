@@ -6,17 +6,22 @@ import Clan from '../entity/Clan'
 import { useTurnInternal } from './useturns'
 import auth from '../middleware/auth'
 import user from '../middleware/user'
-import { calcSizeBonus } from '../services/actions/actions'
+import { calcSizeBonus, calcSizeFactors } from '../services/actions/actions'
 import { takeSnapshot } from '../services/actions/snaps'
 import { attachGame } from '../middleware/game'
 import type Game from '../entity/Game'
 import { updateEmpire } from '../services/actions/updateEmpire'
+import { getServerStats } from '../services/game/serverStats'
 
 // FIXED?: created new turn function for use in loops that is not async use returned values to update empire
 
-const getDemolishAmounts = (empire: Empire, cost: number) => {
-	const size = calcSizeBonus(empire)
-	const demolishCost = Math.round(((cost + empire.land * 0.2) * (size / 3)) / 5)
+const getDemolishAmounts = async (empire: Empire, cost: number, gameId: number) => {
+	// Get server statistics for balanced calculations
+	const serverStats = await getServerStats(gameId)
+	const sizeFactors = calcSizeFactors(empire, serverStats.medianNetworth, serverStats.dayOfRound)
+
+	// Apply expansion difficulty for demolish costs too
+	const demolishCost = Math.round(((cost + empire.land * 0.3) * sizeFactors.expansionDifficulty) / 5)
 
 	let demolishRate = Math.round(empire.land * 0.008 + 4)
 	demolishRate = Math.round(
@@ -59,9 +64,10 @@ const demolish = async (req: Request, res: Response) => {
 		})
 	}
 
-	const { canDemolish, demolishRate, demolishCost } = getDemolishAmounts(
+	const { canDemolish, demolishRate, demolishCost } = await getDemolishAmounts(
 		empire,
-		game.buildCost
+		game.buildCost,
+		game.game_id
 	)
 
 	const demoTotal =

@@ -348,6 +348,27 @@ export default class Empire extends Model {
 	})
 	networth: number
 
+	@Column('bigint', {
+		nullable: true,
+		transformer: {
+			to: (value) => value,
+			from: (value) => value ? Number.parseInt(value) : null,
+		},
+	})
+	networthYesterday?: number
+
+	@Column({
+		type: 'float',
+		default: 1.0,
+	})
+	militaryUpkeepMultiplier: number
+
+	@Column({
+		type: 'float',
+		default: 1.0,
+	})
+	growthBonus: number
+
 	@Column({
 		type: 'int',
 		default: 0,

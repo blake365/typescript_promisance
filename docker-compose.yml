@@ -1,15 +1,31 @@
 version: '3.8'
 
 services:
-  app:
-    build: .
+  nginx:
+    image: nginx:latest
     ports:
-      - "3000:3000"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      # For SSL certificates (when you have them)
+      # - /etc/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: neopromisance-backend
+    expose:
+      - "3000"
     depends_on:
       - db
     volumes:
-      - ./src:/app/src     # Sync source files
-      - ./build:/app/build # Sync compiled files
+      - ./backend/src:/app/src
+      - ./backend/build:/app/build
     environment:
       - NODE_ENV=production
       - DB_DIALECT=postgres
@@ -29,7 +45,6 @@ services:
       - DOMAIN=${DOMAIN}
       - GAME_RESET=${GAME_RESET}
       - CRON_SECRET=${CRON_SECRET}
-      - LINK_SECRET=${LINK_SECRET}
     restart: unless-stopped
     networks:
       - app-network
@@ -38,8 +53,6 @@ services:
     image: postgres:16-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"  # Expose PostgreSQL port to host
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -58,4 +71,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:
+  postgres_data: 
