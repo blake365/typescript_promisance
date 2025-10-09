@@ -55,10 +55,13 @@ const build = async (req: Request, res: Response) => {
 	const game: Game = res.locals.game;
 
 	if (type !== "build") {
-		return res.json({ error: "Something went wrong" });
+		return res.status(400).json({ error: "Invalid type", code: "INVALID_TYPE" });
 	}
 
 	const empire = await Empire.findOne({ id: empireId });
+	if (!empire) {
+		return res.status(404).json({ error: "Empire not found", code: "EMPIRE_NOT_FOUND" });
+	}
 
 	let clan = null;
 	if (empire.clanId !== 0) {
@@ -78,7 +81,26 @@ const build = async (req: Request, res: Response) => {
 		bldCash + bldPop + bldCost + bldDef + bldFood + bldTroop + bldWiz;
 
 	if (buildTotal > canBuild) {
-		return res.json({ error: "Can't build that many structures" });
+		const maxByCash = Math.floor(empire.cash / buildCost);
+		const maxByTurns = buildRate * empire.turns;
+		const maxByLand = empire.freeLand;
+		console.warn('[BUILD] Request exceeds limits', {
+			empireId,
+			requested: buildTotal,
+			maxByCash,
+			maxByTurns,
+			maxByLand,
+			buildRate,
+			buildCost,
+			cash: empire.cash,
+			turns: empire.turns,
+			freeLand: empire.freeLand,
+		});
+		return res.status(400).json({
+			error: "Requested buildings exceed available limits",
+			code: "REQUEST_EXCEEDS_LIMITS",
+			details: { requested: buildTotal, maxByCash, maxByTurns, maxByLand },
+		});
 	}
 
 	// console.log(buildRate)
@@ -97,12 +119,17 @@ const build = async (req: Request, res: Response) => {
 	// console.log(buildArray)
 	buildArray = buildArray.filter((object) => Object.values(object)[0] > 0);
 
-	let totalTurns = buildTotal / buildRate;
+	// Calculate the exact number of turns required across all categories
+	// Using per-category ceiling prevents underestimating turns when splitting builds
+	const requiredTurns = buildArray.reduce((sum, obj) => {
+		const value: number = Object.values(obj)[0] as number;
+		return sum + Math.ceil(value / buildRate);
+	}, 0);
 
 	const buildLoop = async () => {
 		try {
-			if (totalTurns > empire.turns) {
-				return res.json({ error: "Not enough turns" });
+			if (requiredTurns > empire.turns) {
+				return [{ error: "Not enough turns", code: "NOT_ENOUGH_TURNS", requiredTurns, availableTurns: empire.turns }];
 			}
 			let resultArray = [];
 			for (let i = 0; i < buildArray.length; i++) {
@@ -129,7 +156,8 @@ const build = async (req: Request, res: Response) => {
 					let oneTurn = useTurnInternal("build", 1, empire, clan, true, game);
 					// console.log(oneTurn)
 					let turnRes = oneTurn[0];
-					if (turnRes?.messages?.error) {
+					// Detect both wrapped and direct error responses from the turn function
+					if (turnRes?.messages?.error || turnRes?.error) {
 						resultArray.push(turnRes);
 						break;
 					} else if (!turnRes?.messages?.desertion) {
@@ -163,6 +191,17 @@ const build = async (req: Request, res: Response) => {
 	};
 
 	let returnArray = await buildLoop();
+
+	// If buildLoop returned an error shape, surface as a 400 with details
+	if (
+		Array.isArray(returnArray) &&
+		returnArray.length > 0 &&
+		(returnArray[0]?.error || returnArray.some((r) => r?.messages?.error))
+	) {
+		const firstErr = returnArray.find((r) => r?.error) || returnArray.find((r) => r?.messages?.error);
+		console.warn('[BUILD] Build failed', { empireId, error: firstErr });
+		return res.status(400).json(firstErr);
+	}
 
 	return res.json(returnArray);
 };

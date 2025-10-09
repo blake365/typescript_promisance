@@ -17,26 +17,26 @@ export function calcFinances(
 			empire.bldCash * 550 * economicEfficiency
 	)
 
-	// Calculate military upkeep with progressive scaling
+	// Calculate military upkeep with progressive scaling (softened for larger armies)
 	const baseUpkeep =
-		empire.trpArm * 0.25 +   // Increased from 0.13
-		empire.trpLnd * 1.0 +    // Increased from 0.5
-		empire.trpFly * 3.0 +    // Increased from 1.5
-		empire.trpSea * 6.0 +    // Increased from 3.0
-		empire.trpWiz * 1.0      // Increased from 0.53
+		empire.trpArm * 0.18 +
+		empire.trpLnd * 0.7 +
+		empire.trpFly * 2.0 +
+		empire.trpSea * 4.0 +
+		empire.trpWiz * 0.7
 
-	// Apply military logistics multiplier if using new system
-	const militaryLogistics = typeof size === 'object'
-		? size.militaryLogistics
-		: 1.0
+	// Apply military logistics multiplier if using new system (softened and clamped)
+	const rawLogistics = typeof size === 'object' ? size.militaryLogistics : 1.0
+	const softenedLogistics = 1.0 + Math.pow((Math.max(0, (rawLogistics - 1.0)) * 100) / 125, 1.2)
+	const militaryLogistics = Math.min(1.25, softenedLogistics)
 
 	// Progressive scaling based on army-to-land ratio
 	// Softened to allow more sustainable growth
 	const troopDensity = (empire.trpArm + empire.trpLnd + empire.trpFly + empire.trpSea) / Math.max(empire.land, 1)
 	let densityMultiplier = 1.0
 
-	if (troopDensity > 15) {  // More than 15 troops per acre (was 10)
-		densityMultiplier = 1.0 + (troopDensity - 15) * 0.01  // +1% per unit over 15 (was 2% over 10)
+	if (troopDensity > 30) {
+		densityMultiplier = 1.0 + (troopDensity - 30) * 0.005  // +0.5% per unit over 30
 	}
 
 	let expenses = Math.round(
