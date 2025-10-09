@@ -65,10 +65,28 @@ app.use(express.json());
 app.use(morgan("dev"));
 app.use(trim);
 app.use(cookieParser());
+// Allow multiple origins via comma-separated env ORIGIN, with sensible defaults
+const allowedOriginsFromEnv = (process.env.ORIGIN || "")
+	.split(",")
+	.map((origin) => origin.trim())
+	.filter(Boolean);
+
+const defaultAllowedOrigins = [
+	"https://neopromisance.com",
+	"https://www.neopromisance.com",
+	"http://localhost:5173",
+	"http://localhost:3000",
+];
+
+// Merge env-defined origins with defaults and de-duplicate
+const mergedAllowedOrigins = Array.from(
+	new Set([...defaultAllowedOrigins, ...allowedOriginsFromEnv]),
+);
+
 app.use(
 	cors({
 		credentials: true,
-		origin: process.env.ORIGIN,
+		origin: mergedAllowedOrigins,
 		optionsSuccessStatus: 200,
 	}),
 );
