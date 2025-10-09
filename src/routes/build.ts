@@ -119,76 +119,69 @@ const build = async (req: Request, res: Response) => {
 	// console.log(buildArray)
 	buildArray = buildArray.filter((object) => Object.values(object)[0] > 0);
 
-	// Calculate the exact number of turns required across all categories
-	// Using per-category ceiling prevents underestimating turns when splitting builds
-	const requiredTurns = buildArray.reduce((sum, obj) => {
-		const value: number = Object.values(obj)[0] as number;
-		return sum + Math.ceil(value / buildRate);
-	}, 0);
+  // Calculate required turns based on total requested buildings instead of per-category ceilings.
+  // This allows remainders to spill across categories in the same turn.
+  const requiredTurns = Math.ceil(buildTotal / buildRate);
 
-	const buildLoop = async () => {
-		try {
-			if (requiredTurns > empire.turns) {
-				return [{ error: "Not enough turns", code: "NOT_ENOUGH_TURNS", requiredTurns, availableTurns: empire.turns }];
-			}
-			let resultArray = [];
-			for (let i = 0; i < buildArray.length; i++) {
-				// console.log(buildArray[i])
-				let key: string = Object.keys(buildArray[i])[0];
-				let value: number = Object.values(buildArray[i])[0];
-				let turns = 0;
-				if (value < buildRate) {
-					turns = 1;
-				} else {
-					turns = Math.ceil(value / buildRate);
-				}
-				// console.log(turns)
-				let leftToBuild = value;
-				for (let i = 0; i < turns; i++) {
-					// console.log(`build ${value} of ${key}s`)
-					let buildAmount: number;
-					if (leftToBuild < buildRate) {
-						buildAmount = leftToBuild;
-					} else {
-						buildAmount = buildRate;
-					}
-					// use one turn
-					let oneTurn = useTurnInternal("build", 1, empire, clan, true, game);
-					// console.log(oneTurn)
-					let turnRes = oneTurn[0];
-					// Detect both wrapped and direct error responses from the turn function
-					if (turnRes?.messages?.error || turnRes?.error) {
-						resultArray.push(turnRes);
-						break;
-					} else if (!turnRes?.messages?.desertion) {
-						// console.log(turnRes)
+  const buildLoop = async () => {
+    try {
+      if (requiredTurns > empire.turns) {
+        return [{ error: "Not enough turns", code: "NOT_ENOUGH_TURNS", requiredTurns, availableTurns: empire.turns }];
+      }
+      let resultArray = [];
 
-						empire.cash -= buildAmount * buildCost;
-						empire[key] += buildAmount;
-						empire.freeLand -= buildAmount;
-						leftToBuild -= buildAmount;
+      // Create a working list of remaining builds per category
+      const remainingList: Array<{ key: string; remaining: number }> = buildArray.map((obj) => ({
+        key: Object.keys(obj)[0],
+        remaining: Object.values(obj)[0] as number,
+      }));
 
-						await updateEmpire(empire, turnRes, 1, game);
-						// extract turn info from result and put individual object in result array
-						resultArray.push(turnRes);
-					} else {
-						// add value to empire.key
-						await updateEmpire(empire, turnRes, 1, game);
-						resultArray.push(turnRes);
+      // While there's anything left to build, consume one turn at a time and distribute capacity
+      while (remainingList.some((x) => x.remaining > 0)) {
+        // use one turn
+        let oneTurn = useTurnInternal("build", 1, empire, clan, true, game);
+        let turnRes = oneTurn[0];
 
-						break;
-					}
-				}
-			}
-			// console.log(resultArray)
-			// await awardAchievements(empire)
-			// console.log(achievementResult)
-			await takeSnapshot(empire, game.turnsProtection);
-			return resultArray;
-		} catch (err) {
-			console.log(err);
-		}
-	};
+        // Detect both wrapped and direct error responses from the turn function
+        if (turnRes?.messages?.error || turnRes?.error) {
+          resultArray.push(turnRes);
+          break;
+        }
+
+        let capacity = buildRate;
+        for (let i = 0; i < remainingList.length && capacity > 0; i++) {
+          const node = remainingList[i];
+          if (node.remaining <= 0) continue;
+
+          const buildAmount = Math.min(node.remaining, capacity);
+
+          // spend and apply
+          empire.cash -= buildAmount * buildCost;
+          // increment appropriate building key on empire
+          empire[node.key] += buildAmount as any;
+          empire.freeLand -= buildAmount;
+
+          node.remaining -= buildAmount;
+          capacity -= buildAmount;
+        }
+
+        // Apply per-turn economy updates after building
+        await updateEmpire(empire, turnRes, 1, game);
+        resultArray.push(turnRes);
+
+        // Guard in case turns run out mid-process
+        if (empire.turns <= 0 && remainingList.some((x) => x.remaining > 0)) {
+          resultArray.push({ error: "Not enough turns", code: "NOT_ENOUGH_TURNS", requiredTurns, availableTurns: 0 });
+          break;
+        }
+      }
+
+      await takeSnapshot(empire, game.turnsProtection);
+      return resultArray;
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
 	let returnArray = await buildLoop();
 

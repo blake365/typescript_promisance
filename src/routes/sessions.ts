@@ -58,7 +58,7 @@ const setSession = async (req: Request, res: Response) => {
 		session.role = 'user'
 		await session.save()
 		// console.log('session saved')
-		return res.status(200)
+		return res.sendStatus(200)
 	} catch (error) {
 		console.log(error)
 		return res.status(500).json(error)
