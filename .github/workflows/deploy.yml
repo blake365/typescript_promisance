@@ -3,27 +3,71 @@ name: Deploy to Production
 on:
   workflow_dispatch:
     inputs:
-      confirm:
-        description: 'Type "deploy" to confirm'
-        required: true
-        default: 'deploy'
+      trigger:
+        description: Optional trigger note
+        required: false
+        default: deploy
+        type: string
+
+env:
+  API_BASE: https://api.neopromisance.com
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: github.event.inputs.confirm == 'deploy'
-
     steps:
-    - name: Deploy to Digital Ocean
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.DROPLET_IP }}
-        username: ${{ secrets.DROPLET_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd /opt/neopromisance/typescript_promisance
-          git pull origin main
-          docker-compose down
-          docker-compose up -d --build
-          echo "Deployment complete!"
-          docker-compose ps
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read app version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Deploy over SSH
+        if: ${{ secrets.SSH_HOST != '' && secrets.SSH_USER != '' && secrets.SSH_PRIVATE_KEY != '' }}
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+            cd /opt/neopromisance/typescript_promisance
+            git fetch origin main
+            git reset --hard origin/main
+            export APP_VERSION=${{ steps.version.outputs.version }}
+            docker-compose down
+            docker-compose up -d --build
+
+      - name: Wait for API readiness
+        run: |
+          for i in {1..60}; do
+            if curl -fsS "$API_BASE/api/" >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not become ready" >&2
+          exit 1
+
+      - name: Health check root
+        run: |
+          resp=$(curl -fsS "$API_BASE/")
+          echo "$resp"
+          test "$resp" = "hello world"
+
+      - name: Health check API hello
+        run: |
+          resp=$(curl -fsS "$API_BASE/api/")
+          echo "$resp"
+          test "$resp" = "hello api"
+
+      - name: Health check version matches package.json
+        run: |
+          expected="${{ steps.version.outputs.version }}"
+          resp=$(curl -fsS "$API_BASE/api/version")
+          echo "$resp"
+          echo "$resp" | grep -q "\"version\":\"$expected\""

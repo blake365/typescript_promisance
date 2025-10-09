@@ -7,6 +7,8 @@ import { ProfilingIntegration } from "@sentry/profiling-node";
 import "reflect-metadata";
 import { createConnection } from "typeorm";
 import express from "express";
+import * as fs from "fs";
+import * as path from "path";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -75,6 +77,29 @@ app.use(passport.initialize());
 
 app.get("/", (_, res) => res.send("hello world"));
 app.get("/api/", (_, res) => res.send("hello api"));
+
+function readAppVersion(): string {
+    if (process.env.APP_VERSION) {
+        return process.env.APP_VERSION;
+    }
+    try {
+        const packageJsonPath = path.resolve(__dirname, "..", "package.json");
+        const contents = fs.readFileSync(packageJsonPath, "utf8");
+        const parsed = JSON.parse(contents);
+        if (parsed && typeof parsed.version === "string") {
+            return parsed.version;
+        }
+    } catch (err) {
+        // fall through to default
+    }
+    return "unknown";
+}
+
+const APP_VERSION = readAppVersion();
+
+app.get("/api/version", (_, res) => {
+    res.json({ version: APP_VERSION });
+});
 
 app.get("/api/perpetual/hello", (req, res) => {
 	console.log(req.url);
