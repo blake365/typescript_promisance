@@ -40,7 +40,9 @@ import {
 const app = express();
 
 Sentry.init({
-	dsn: "https://31985fcd0be208efe31e249cf10b34f5@o4505988856676352.ingest.sentry.io/4505988959895552",
+	// DSN is read from the environment so the open-source repo never ships a real key.
+	// When SENTRY_DSN is unset, the SDK is disabled and no events are sent.
+	dsn: process.env.SENTRY_DSN,
 	integrations: [
 		// enable HTTP calls tracing
 		new Sentry.Integrations.Http({ tracing: true }),

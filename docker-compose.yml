@@ -45,6 +45,8 @@ services:
       - DOMAIN=${DOMAIN}
       - GAME_RESET=${GAME_RESET}
       - CRON_SECRET=${CRON_SECRET}
+      # Sentry error/perf reporting. Unset = disabled (no events sent).
+      - SENTRY_DSN=${SENTRY_DSN}
     restart: unless-stopped
     networks:
       - app-network
